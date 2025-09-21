@@ -1,43 +1,46 @@
 import { SectionHeader } from "@/components/section-header";
 import { FeatureCard } from "@/components/feature-card";
+import { useLanguage } from "@/hooks/use-language";
 
 export const Solutions = () => {
+  const { t } = useLanguage();
+
   const solutions = [
     {
-      title: "Komunikasi Cepat",
+      title: t('solutions.communication.title'),
       icon: "💬",
-      description: "Semua interaksi tim langsung lewat WhatsApp tanpa aplikasi tambahan. Anak kandang, admin, hingga supervisor bisa terhubung real-time.",
-      example: "Contoh: Anak kandang mencatat mortalitas pagi ini, supervisor langsung dapat notifikasi di WhatsApp.",
+      description: t('solutions.communication.desc'),
+      example: t('solutions.communication.example'),
     },
     {
-      title: "Otomatisasi",
+      title: t('solutions.automation.title'),
       icon: "⚡",
-      description: "Setiap input data otomatis terstruktur dan tersimpan rapi, siap dipakai untuk laporan dan analisis.",
-      example: "Contoh: Pencatatan pakan harian otomatis masuk ke laporan bulanan tanpa perlu input manual di Excel.",
+      description: t('solutions.automation.desc'),
+      example: t('solutions.automation.example'),
     },
     {
-      title: "Efisiensi Waktu",
+      title: t('solutions.efficiency.title'),
       icon: "⏱️",
-      description: "Naraflow memotong alur birokrasi yang panjang, membuat laporan siap lebih cepat dan akurat.",
-      example: "Contoh: Admin tidak lagi menunggu seminggu untuk laporan panen—data bisa langsung dikompilasi dalam hitungan menit.",
+      description: t('solutions.efficiency.desc'),
+      example: t('solutions.efficiency.example'),
     },
     {
-      title: "Akurat & Transparan",
+      title: t('solutions.accuracy.title'),
       icon: "✅",
-      description: "Semua data tercatat dengan jelas, diverifikasi, dan dapat diaudit. Mengurangi risiko manipulasi dan kebocoran data.",
-      example: "Contoh: Nota timbang panen yang biasanya hanya di kertas, kini otomatis tercatat dan bisa diverifikasi supervisor.",
+      description: t('solutions.accuracy.desc'),
+      example: t('solutions.accuracy.example'),
     },
   ];
 
   return (
-    <section id="solutions" className="py-20 bg-background-soft">
-      <div className="container mx-auto px-6">
+    <section id="solutions" className="py-12 sm:py-16 lg:py-20 bg-background-soft">
+      <div className="container mx-auto px-4 sm:px-6">
         <SectionHeader
-          title="Solusi yang Ditawarkan Naraflow"
-          subtitle="Naraflow membantu bisnis Anda keluar dari pencatatan manual yang rawan hilang dan manipulasi. Semua data langsung rapi, transparan, dan siap dipakai untuk keputusan bisnis."
+          title={t('solutions.title')}
+          subtitle={t('solutions.subtitle')}
         />
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {solutions.map((solution, idx) => (
             <FeatureCard
               key={idx}
