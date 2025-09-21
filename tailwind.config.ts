@@ -14,49 +14,75 @@ export default {
     },
     extend: {
       colors: {
+        // System Colors
         border: "hsl(var(--border))",
+        "border-light": "hsl(var(--border-light))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
+        "background-soft": "hsl(var(--background-soft))",
         foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+        "foreground-muted": "hsl(var(--foreground-muted))",
+        "foreground-light": "hsl(var(--foreground-light))",
+        
+        // Brand Colors
+        brand: {
+          primary: "hsl(var(--brand-primary))",
+          "primary-light": "hsl(var(--brand-primary-light))",
+          "primary-glow": "hsl(var(--brand-primary-glow))",
+          secondary: "hsl(var(--brand-secondary))",
+          "secondary-light": "hsl(var(--brand-secondary-light))",
+          accent: "hsl(var(--brand-accent))",
         },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+        
+        // Surface Colors
+        surface: {
+          primary: "hsl(var(--surface-primary))",
+          "primary-foreground": "hsl(var(--surface-primary-foreground))",
+          secondary: "hsl(var(--surface-secondary))",
+          "secondary-foreground": "hsl(var(--surface-secondary-foreground))",
+          muted: "hsl(var(--surface-muted))",
+          "muted-foreground": "hsl(var(--surface-muted-foreground))",
         },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+        
+        // Interactive Colors
+        interactive: {
+          primary: "hsl(var(--interactive-primary))",
+          "primary-hover": "hsl(var(--interactive-primary-hover))",
+          secondary: "hsl(var(--interactive-secondary))",
+          "secondary-hover": "hsl(var(--interactive-secondary-hover))",
+          accent: "hsl(var(--interactive-accent))",
         },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
-        },
+        
+        // Legacy Support
+        card: "hsl(var(--card))",
+        "card-foreground": "hsl(var(--card-foreground))",
+        primary: "hsl(var(--surface-primary))",
+        "primary-foreground": "hsl(var(--surface-primary-foreground))",
+        secondary: "hsl(var(--surface-secondary))",
+        "secondary-foreground": "hsl(var(--surface-secondary-foreground))",
+        muted: "hsl(var(--surface-muted))",
+        "muted-foreground": "hsl(var(--surface-muted-foreground))",
+        accent: "hsl(var(--interactive-accent))",
+        "accent-foreground": "hsl(var(--surface-primary-foreground))",
+      },
+      
+      backgroundImage: {
+        "gradient-hero": "var(--gradient-hero)",
+        "gradient-card": "var(--gradient-card)",
+        "gradient-accent": "var(--gradient-accent)",
+      },
+      
+      boxShadow: {
+        soft: "var(--shadow-soft)",
+        medium: "var(--shadow-medium)",
+        strong: "var(--shadow-strong)",
+        glow: "var(--shadow-glow)",
+      },
+      
+      transitionTimingFunction: {
+        smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
+        bounce: "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
       },
       borderRadius: {
         lg: "var(--radius)",
