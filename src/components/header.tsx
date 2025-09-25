@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { NaraflowLogo } from "./ui/icons";
 import { Button } from "./ui/button-extended";
-import { LanguageSwitcher } from "./language-switcher";
 import { useLanguage } from "@/hooks/use-language";
+import { LanguageSwitcher } from "./language-switcher";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

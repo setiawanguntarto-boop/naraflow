@@ -1,22 +1,19 @@
 import { SectionHeader } from "@/components/section-header";
 import { Button } from "@/components/ui/button-extended";
+import { useLanguage } from "@/hooks/use-language";
 
 export const Contact = () => {
+  const { t } = useLanguage();
   return (
     <section id="contact" className="py-20 bg-background">
       <div className="container mx-auto px-6">
-        <SectionHeader
-          title="Hubungi Tim Naraflow"
-          subtitle="Ada pertanyaan atau ingin berdiskusi? Silakan hubungi kami lewat WhatsApp, email, atau kirim pesan langsung melalui form di bawah ini."
-        />
+        <SectionHeader title={t('contact.title')} subtitle={t('contact.subtitle')} />
 
         <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
           
           {/* Left Column - Contact Info */}
           <div className="space-y-8">
-            <h3 className="text-2xl font-semibold text-brand-primary mb-6">
-              Saluran Kontak
-            </h3>
+            <h3 className="text-2xl font-semibold text-brand-primary mb-6">{t('contact.channels')}</h3>
             
             <div className="space-y-6">
               {/* WhatsApp */}
@@ -66,28 +63,26 @@ export const Contact = () => {
 
           {/* Right Column - Contact Form */}
           <div className="bg-gradient-card rounded-xl border border-border-light shadow-soft p-8">
-            <h3 className="text-2xl font-semibold text-brand-primary mb-6">
-              Kirim Pesan
-            </h3>
+            <h3 className="text-2xl font-semibold text-brand-primary mb-6">{t('contact.send-message')}</h3>
             <form className="space-y-6">
               <div>
                 <input
                   type="text"
-                  placeholder="Nama Anda"
+                  placeholder={t('contact.name-placeholder')}
                   className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all"
                 />
               </div>
               <div>
                 <input
                   type="email"
-                  placeholder="Email Anda"
+                  placeholder={t('contact.email-placeholder')}
                   className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all"
                 />
               </div>
               <div>
                 <textarea
                   rows={4}
-                  placeholder="Pesan Anda"
+                  placeholder={t('contact.message-placeholder')}
                   className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all resize-none"
                 ></textarea>
               </div>
@@ -97,7 +92,7 @@ export const Contact = () => {
                 size="lg"
                 className="w-full"
               >
-                Kirim Pesan
+                {t('contact.send-button')}
               </Button>
             </form>
           </div>

@@ -1,54 +1,29 @@
 import { useState } from "react";
 import { SectionHeader } from "@/components/section-header";
+import { useLanguage } from "@/hooks/use-language";
 
 export const FAQ = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { t } = useLanguage();
 
   const toggleAnswer = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
   const faqs = [
-    {
-      q: "Berapa biaya jika saya deploy 2 chatbot dengan 5 nomor aktif selama 1 tahun, ditambah custom dashboard?",
-      a: `Deploy 2 chatbot = 2 × IDR 6.000.000 = IDR 12.000.000 (sekali bayar).
-Nomor aktif 5 × IDR 50.000 × 12 bulan = IDR 3.000.000/tahun.
-Custom dashboard 1 × IDR 1.000.000 = IDR 1.000.000 (sekali bayar).
-➡️ Total tahun pertama = IDR 16.000.000
-➡️ Tahun berikutnya hanya biaya nomor aktif = IDR 3.000.000/tahun.`,
-    },
-    {
-      q: "Apakah biaya deploy dibayar sekali atau tiap tahun?",
-      a: "Biaya deploy dibayar sekali saja. Setelah itu chatbot bisa digunakan selamanya tanpa biaya tambahan deploy.",
-    },
-    {
-      q: "Bagaimana jika saya hanya ingin 1 nomor aktif dulu, lalu menambah seiring waktu?",
-      a: "Sangat fleksibel. Anda cukup membayar sesuai jumlah nomor aktif per bulan. Kalau awalnya 1 nomor, lalu bulan depan ditambah jadi 3 nomor, tagihan otomatis menyesuaikan.",
-    },
-    {
-      q: "Apakah custom dashboard wajib?",
-      a: "Tidak wajib. Default dashboard standar sudah tersedia. Namun, jika Anda ingin format laporan khusus, ada biaya tambahan IDR 1.000.000 sekali deploy.",
-    },
-    {
-      q: "Apakah ada biaya maintenance?",
-      a: "Tidak ada biaya maintenance tambahan. Biaya bulanan sudah mencakup update sistem dasar dan support ringan.",
-    },
-    {
-      q: "Apakah ada trial gratis?",
-      a: "Ya. Anda bisa mencoba demo chatbot di WhatsApp tanpa biaya. Namun untuk implementasi ke nomor Anda sendiri tetap dikenakan biaya deploy.",
-    },
-    {
-      q: "Apakah chatbot bisa terhubung dengan sistem lain (ERP, accounting)?",
-      a: "Ya, tersedia API untuk integrasi. Integrasi standar sudah termasuk, sementara integrasi kompleks bisa dibicarakan lebih lanjut.",
-    },
+    { q: t('faq.q1'), a: t('faq.a1') },
+    { q: t('faq.q2'), a: t('faq.a2') },
+    { q: t('faq.q3'), a: t('faq.a3') },
+    { q: t('faq.q4'), a: t('faq.a4') },
+    { q: t('faq.q5'), a: t('faq.a5') },
+    { q: t('faq.q6'), a: t('faq.a6') },
+    { q: t('faq.q7'), a: t('faq.a7') },
   ];
 
   return (
     <section id="faq" className="py-20 bg-background-soft">
       <div className="container mx-auto px-6">
-        <SectionHeader
-          title="Pertanyaan yang Sering Diajukan"
-        />
+        <SectionHeader title={t('faq.title')} />
 
         <div className="max-w-4xl mx-auto space-y-4">
           {faqs.map((faq, idx) => (

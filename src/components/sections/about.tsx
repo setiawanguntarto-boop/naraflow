@@ -1,35 +1,36 @@
 import { SectionHeader } from "@/components/section-header";
+import { useLanguage } from "@/hooks/use-language";
 
 export const About = () => {
+  const { t } = useLanguage();
+
   const values = [
-    { title: "Sederhana", icon: "✨", desc: "Mudah dipakai tanpa training rumit." },
-    { title: "Transparan", icon: "🔍", desc: "Data jelas, rapi, dan bisa dipercaya." },
-    { title: "Kolaboratif", icon: "🤝", desc: "Mendukung semua peran dalam bisnis." },
-    { title: "Tangguh", icon: "💪", desc: "Dirancang untuk bisnis sehari-hari yang dinamis." },
+    { title: t('about.values.simple.title'), icon: "✨", desc: t('about.values.simple.desc') },
+    { title: t('about.values.transparent.title'), icon: "🔍", desc: t('about.values.transparent.desc') },
+    { title: t('about.values.collaborative.title'), icon: "🤝", desc: t('about.values.collaborative.desc') },
+    { title: t('about.values.resilient.title'), icon: "💪", desc: t('about.values.resilient.desc') },
   ];
 
   return (
     <section id="about" className="py-20 bg-background">
       <div className="container mx-auto px-6">
         <SectionHeader
-          title="Tentang Naraflow"
-          subtitle="Naraflow adalah platform WhatsApp-first Workflow yang membantu UMKM dan agribisnis mencatat, mengelola, dan memantau data secara sederhana namun terstruktur. Kami percaya setiap bisnis berhak atas tata kelola yang efisien, transparan, dan tangguh."
+          title={t('about.title')}
+          subtitle={t('about.subtitle')}
         />
 
         {/* Vision & Mission */}
         <div className="grid gap-8 md:grid-cols-2 mb-16">
           <div className="p-8 bg-gradient-card rounded-xl shadow-soft border border-border-light">
-            <h3 className="text-2xl font-semibold text-brand-primary mb-4">Visi</h3>
+            <h3 className="text-2xl font-semibold text-brand-primary mb-4">{t('about.vision.title')}</h3>
             <p className="text-foreground-muted leading-relaxed text-lg">
-              Menjadi jembatan digitalisasi UMKM di Asia Tenggara dengan solusi
-              sederhana, berbasis percakapan, dan transparan.
+              {t('about.vision.desc')}
             </p>
           </div>
           <div className="p-8 bg-gradient-card rounded-xl shadow-soft border border-border-light">
-            <h3 className="text-2xl font-semibold text-brand-primary mb-4">Misi</h3>
+            <h3 className="text-2xl font-semibold text-brand-primary mb-4">{t('about.mission.title')}</h3>
             <p className="text-foreground-muted leading-relaxed text-lg">
-              Memberdayakan pelaku usaha kecil dengan teknologi yang mudah digunakan,
-              meningkatkan efisiensi operasional, dan membangun kepercayaan berbasis data.
+              {t('about.mission.desc')}
             </p>
           </div>
         </div>

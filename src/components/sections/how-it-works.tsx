@@ -1,25 +1,28 @@
 import { SectionHeader } from "@/components/section-header";
+import { useLanguage } from "@/hooks/use-language";
 
 export const HowItWorks = () => {
+  const { t } = useLanguage();
+
   const steps = [
     {
-      title: "1. Mulai Lewat WhatsApp",
-      desc: "Cukup chat bot Naraflow di WhatsApp, tanpa perlu aplikasi tambahan.",
+      title: t('how.title1'),
+      desc: t('how.desc1'),
       icon: "💬",
     },
     {
-      title: "2. Input Data Harian",
-      desc: "Anak kandang, admin, atau staf cukup mencatat pakan, mortalitas, panen, dan transaksi langsung di chat.",
+      title: t('how.title2'),
+      desc: t('how.desc2'),
       icon: "✍️",
     },
     {
-      title: "3. Validasi & Sinkronisasi",
-      desc: "Data diverifikasi otomatis dan bisa dipantau supervisor atau manajemen secara real-time.",
+      title: t('how.title3'),
+      desc: t('how.desc3'),
       icon: "🔄",
     },
     {
-      title: "4. Laporan & Analitik",
-      desc: "Semua data terstruktur rapi dalam dashboard & PDF, siap dipakai untuk keputusan bisnis.",
+      title: t('how.title4'),
+      desc: t('how.desc4'),
       icon: "📊",
     },
   ];
@@ -27,10 +30,7 @@ export const HowItWorks = () => {
   return (
     <section id="how-it-works" className="py-20 bg-background">
       <div className="container mx-auto px-6">
-        <SectionHeader
-          title="Bagaimana Naraflow Bekerja?"
-          subtitle="Semua alur bisnis langsung berjalan di WhatsApp: mulai dari pencatatan, validasi, hingga laporan — sederhana, transparan, dan efisien."
-        />
+        <SectionHeader title={t('how.title')} subtitle={t('how.subtitle')} />
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, idx) => (

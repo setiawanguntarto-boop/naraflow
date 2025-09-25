@@ -1,23 +1,16 @@
 import { SectionHeader } from "@/components/section-header";
 import { Button } from "@/components/ui/button-extended";
 import { WhatsAppIcon, CheckIcon } from "@/components/ui/icons";
+import { useLanguage } from "@/hooks/use-language";
 
 export const Demo = () => {
-  const steps = [
-    "Bot menyapa dan menampilkan menu utama.",
-    "User memilih menu: Catat Data Harian, Lihat Ringkasan, atau Tutup Siklus.",
-    "Jika pilih Catat Data Harian, bot akan menanyakan jumlah pakan, mortalitas, suhu, dll.",
-    "Bot merangkum input lalu meminta konfirmasi user.",
-    "Data tersimpan otomatis & bisa dicek supervisor/admin."
-  ];
+  const { t } = useLanguage();
+  const steps = [t('demo.s1'), t('demo.s2'), t('demo.s3'), t('demo.s4'), t('demo.s5')];
 
   return (
     <section id="demo" className="py-20 bg-background">
       <div className="container mx-auto px-6">
-        <SectionHeader
-          title="Coba Demo Rahayu Sekarang"
-          subtitle="Rahayu adalah co-bot WhatsApp yang membantu pencatatan operasional harian di peternakan ayam. Semua data pakan, mortalitas, panen, dan suhu bisa dicatat dengan cepat, transparan, dan tanpa aplikasi tambahan."
-        />
+        <SectionHeader title={t('demo.title')} subtitle={t('demo.subtitle')} />
 
         <div className="text-center mb-12">
           <Button variant="whatsapp" size="xl" asChild className="group">
@@ -28,7 +21,7 @@ export const Demo = () => {
               className="flex items-center gap-3"
             >
               <WhatsAppIcon className="w-6 h-6 group-hover:scale-110 transition-transform" />
-              Buka Demo di WhatsApp
+              {t('demo.open-whatsapp')}
             </a>
           </Button>
         </div>
@@ -37,7 +30,7 @@ export const Demo = () => {
           {/* Left Column - Conversation Steps */}
           <div>
             <h3 className="text-2xl font-semibold text-brand-primary mb-8">
-              Alur Percakapan Demo
+              {t('demo.conversation-flow')}
             </h3>
             <div className="space-y-4">
               {steps.map((step, i) => (
@@ -52,7 +45,7 @@ export const Demo = () => {
           {/* Right Column - Video */}
           <div>
             <h3 className="text-2xl font-semibold text-brand-primary mb-8">
-              Tutorial Video
+              {t('demo.tutorial-video')}
             </h3>
             <div className="aspect-video rounded-xl overflow-hidden shadow-medium border border-border-light">
               <iframe
