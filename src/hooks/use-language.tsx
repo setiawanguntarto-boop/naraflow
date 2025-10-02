@@ -23,6 +23,12 @@ const translations = {
     'nav.try-demo': 'Coba Demo',
 
     // Hero Section
+    'hero.main-title-1': 'Satu',
+    'hero.main-title-wa': 'WhatsApp',
+    'hero.main-title-2': 'Semua Beres.',
+    'hero.lead': 'Naraflow mengubah cara tim lapangan bekerja. Catat, koordinasi, dan kelola semua operasional bisnis langsung dari WhatsApp, tanpa perlu install aplikasi tambahan.',
+    'hero.cta-demo-free': 'Coba Demo Gratis',
+    'hero.cta-how-it-works': 'Lihat Cara Kerja',
     'hero.title': 'WhatsApp-first Workflow for SMEs',
     'hero.subtitle': 'Sederhanakan pencatatan, koordinasi, dan tata kelola bisnis Anda — langsung dari WhatsApp, tanpa ribet aplikasi baru.',
     'hero.cta-demo': '🚀 Coba Demo',
@@ -177,6 +183,12 @@ const translations = {
     'nav.try-demo': 'Try Demo',
 
     // Hero Section
+    'hero.main-title-1': 'One',
+    'hero.main-title-wa': 'WhatsApp',
+    'hero.main-title-2': 'Everything Done.',
+    'hero.lead': 'Naraflow transforms how field teams work. Record, coordinate, and manage all business operations directly from WhatsApp, without installing additional apps.',
+    'hero.cta-demo-free': 'Try Free Demo',
+    'hero.cta-how-it-works': 'See How It Works',
     'hero.title': 'WhatsApp-first Workflow for SMEs',
     'hero.subtitle': 'Simplify your business recording, coordination, and governance — directly from WhatsApp, without the hassle of new apps.',
     'hero.cta-demo': '🚀 Try Demo',

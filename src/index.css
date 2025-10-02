@@ -8,12 +8,12 @@
 @layer base {
   :root {
     /* Brand Colors - Professional Purple & Green Scheme */
-    --brand-primary: 270 60% 35%;        /* Deep Purple */
-    --brand-primary-light: 270 60% 45%;  /* Medium Purple */
-    --brand-primary-glow: 270 60% 55%;   /* Light Purple */
-    --brand-secondary: 145 60% 45%;      /* Professional Green */
-    --brand-secondary-light: 145 60% 55%; /* Light Green */
-    --brand-accent: 35 85% 60%;          /* Warm Orange */
+    --brand-primary: 265 40% 40%;        /* #5B3F91 Purple */
+    --brand-primary-light: 265 40% 50%;  /* Medium Purple */
+    --brand-primary-glow: 265 40% 60%;   /* Light Purple */
+    --brand-secondary: 145 75% 49%;      /* #25D366 WhatsApp Green */
+    --brand-secondary-light: 145 75% 59%; /* Light Green */
+    --brand-accent: 145 75% 49%;         /* WhatsApp Green */
     
     /* Neutral System */
     --background: 0 0% 100%;
@@ -46,7 +46,7 @@
     --interactive-accent: var(--brand-accent);
     
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--brand-primary)) 0%, hsl(var(--brand-primary-light)) 100%);
+    --gradient-hero: radial-gradient(circle at 50% 0%, hsl(var(--brand-primary) / 0.08), transparent 50%);
     --gradient-card: linear-gradient(145deg, hsl(var(--background)) 0%, hsl(var(--background-soft)) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(var(--brand-secondary)) 0%, hsl(var(--brand-secondary-light)) 100%);
     
@@ -149,8 +149,21 @@
     }
   }
   
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
   .message-animate {
     animation: fadeInUp 0.5s ease-out forwards;
+  }
+  
+  .animate-fade-in {
+    animation: fadeInUp 0.8s ease-out forwards;
   }
   
   /* Float Animation */
