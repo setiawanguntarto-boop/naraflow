@@ -6,7 +6,6 @@ import { Products } from "@/components/sections/products";
 import { About } from "@/components/sections/about";
 import { HowItWorks } from "@/components/sections/how-it-works";
 import { Pricing } from "@/components/sections/pricing";
-import { Demo } from "@/components/sections/demo";
 import { FAQ } from "@/components/sections/faq";
 import { Contact } from "@/components/sections/contact";
 import { LanguageProvider } from "@/hooks/use-language";
@@ -23,7 +22,6 @@ const Index = () => {
           <HowItWorks />
           <Products />
           <Pricing />
-          <Demo />
           <FAQ />
           <Contact />
         </main>

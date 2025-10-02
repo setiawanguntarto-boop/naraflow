@@ -13,7 +13,6 @@ export const Header = () => {
     { href: "#how-it-works", label: t('nav.how-it-works') },
     { href: "#about", label: t('nav.about') },
     { href: "#pricing", label: t('nav.pricing') },
-    { href: "#demo", label: t('nav.demo') },
     { href: "#faq", label: t('nav.faq') },
     { href: "#contact", label: t('nav.contact') },
   ];
@@ -41,7 +40,7 @@ export const Header = () => {
           <div className="hidden lg:flex items-center gap-4">
             <LanguageSwitcher />
             <Button variant="primary" asChild>
-              <a href="#demo">{t('nav.try-demo')}</a>
+              <a href="#contact">{t('nav.contact')}</a>
             </Button>
           </div>
 
@@ -78,7 +77,7 @@ export const Header = () => {
                 </a>
               ))}
               <Button variant="primary" className="mt-4 w-full" asChild>
-                <a href="#demo" onClick={() => setIsMenuOpen(false)}>{t('nav.try-demo')}</a>
+                <a href="#contact" onClick={() => setIsMenuOpen(false)}>{t('nav.contact')}</a>
               </Button>
             </div>
           </nav>
