@@ -23,7 +23,7 @@ export const Products = () => {
     },
     {
       name: "Tambakflow",
-      icon: "🐟",
+      icon: "🦐",
       description: t('products.tambakflow.desc'),
       status: "available",
       features: t('products.tambakflow.features'),
