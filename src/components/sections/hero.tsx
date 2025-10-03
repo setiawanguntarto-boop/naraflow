@@ -1,8 +1,75 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button-extended";
 import { useLanguage } from "@/hooks/use-language";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export const Hero = () => {
   const { t } = useLanguage();
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const products = [
+    {
+      name: "Rahayu",
+      icon: "🐔",
+      description: t('products.rahayu.desc'),
+      features: t('products.rahayu.features'),
+      status: "available",
+      link: "https://tanyarahayu.com/",
+    },
+    {
+      name: "Rodaya",
+      icon: "🏍️",
+      description: t('products.rodaya.desc'),
+      features: t('products.rodaya.features'),
+      status: "available",
+      link: "https://rodaya.naraflow.id/",
+    },
+    {
+      name: "Tambakflow",
+      icon: "🦐",
+      description: t('products.tambakflow.desc'),
+      features: t('products.tambakflow.features'),
+      status: "available",
+      link: "https://tambak.naraflow.id",
+    },
+    {
+      name: "Kasaflow",
+      icon: "🏪",
+      description: t('products.kasaflow.desc'),
+      features: t('products.kasaflow.features'),
+      status: "coming-soon",
+    },
+    {
+      name: "Tamara",
+      icon: "🏨",
+      description: t('products.tamara.desc'),
+      features: t('products.tamara.features'),
+      status: "coming-soon",
+    },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % products.length);
+    }, 4000);
+    
+    return () => clearInterval(timer);
+  }, [products.length]);
+
+  const nextProduct = () => {
+    setCurrentIndex((prev) => (prev + 1) % products.length);
+  };
+
+  const prevProduct = () => {
+    setCurrentIndex((prev) => (prev - 1 + products.length) % products.length);
+  };
+
+  const currentProduct = products[currentIndex];
+  const isAvailable = currentProduct.status === "available";
+  const statusText = isAvailable ? t('products.status.available') : t('products.status.coming-soon');
+  const statusClass = isAvailable 
+    ? "bg-green-100 text-green-800 border-green-200" 
+    : "bg-orange-100 text-orange-800 border-orange-200";
 
   return (
     <section className="relative bg-gradient-hero overflow-hidden min-h-screen flex items-center justify-center py-24 sm:py-32">
@@ -80,8 +147,8 @@ export const Hero = () => {
               </div>
             </div>
 
-            {/* Right: Product Lineup */}
-            <div className="animate-fade-in space-y-8" style={{ animationDelay: '0.8s' }}>
+            {/* Right: Product Carousel */}
+            <div className="animate-fade-in space-y-6" style={{ animationDelay: '0.8s' }}>
               <div className="text-left">
                 <h2 className="text-3xl sm:text-4xl font-bold text-brand-primary mb-3">
                   {t('products.title')}
@@ -91,112 +158,109 @@ export const Hero = () => {
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  {
-                    name: "Rahayu",
-                    icon: "🐔",
-                    description: t('products.rahayu.desc'),
-                    status: "available",
-                    link: "https://tanyarahayu.com/",
-                  },
-                  {
-                    name: "Rodaya",
-                    icon: "🏍️",
-                    description: t('products.rodaya.desc'),
-                    status: "available",
-                    link: "https://rodaya.naraflow.id/",
-                  },
-                  {
-                    name: "Tambakflow",
-                    icon: "🦐",
-                    description: t('products.tambakflow.desc'),
-                    status: "available",
-                    link: "https://tambak.naraflow.id",
-                  },
-                  {
-                    name: "Kasaflow",
-                    icon: "🏪",
-                    description: t('products.kasaflow.desc'),
-                    status: "coming-soon",
-                  },
-                  {
-                    name: "Tamara",
-                    icon: "🏨",
-                    description: t('products.tamara.desc'),
-                    status: "coming-soon",
-                  },
-                ].map((product, idx) => {
-                  const isAvailable = product.status === "available";
-                  const statusText = isAvailable ? t('products.status.available') : t('products.status.coming-soon');
-                  const statusClass = isAvailable 
-                    ? "bg-green-100 text-green-800 border-green-200" 
-                    : "bg-orange-100 text-orange-800 border-orange-200";
-                  
-                  return (
-                    <div
+              {/* Carousel Container */}
+              <div className="relative">
+                {/* Product Card */}
+                <div
+                  key={currentIndex}
+                  className="relative p-8 rounded-3xl border-0 flex flex-col overflow-hidden animate-fade-in"
+                  style={{
+                    background: 'linear-gradient(145deg, hsl(var(--background)) 0%, hsl(var(--background-soft)) 100%)',
+                    boxShadow: '12px 12px 24px rgba(0, 0, 0, 0.15), -12px -12px 24px rgba(255, 255, 255, 0.8)',
+                    minHeight: '400px'
+                  }}
+                >
+                  <div className="absolute -top-3 -right-3">
+                    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold ${statusClass}`}>
+                      {statusText}
+                    </span>
+                  </div>
+
+                  <div className="text-7xl mb-6 text-center">
+                    {currentProduct.icon}
+                  </div>
+
+                  <h3 className="text-3xl font-bold text-brand-primary mb-4 text-center">
+                    {currentProduct.name}
+                  </h3>
+
+                  <p className="text-foreground-muted text-lg mb-6 leading-relaxed text-center">
+                    {currentProduct.description}
+                  </p>
+
+                  <div className="space-y-3 mb-6">
+                    <h4 className="text-base font-semibold text-foreground">
+                      {t('products.features-title')}:
+                    </h4>
+                    <ul className="text-sm text-foreground-muted space-y-2">
+                      {currentProduct.features.split(',').map((feature, featureIdx) => (
+                        <li key={featureIdx} className="flex items-start">
+                          <span className="text-brand-primary mr-2 text-lg">•</span>
+                          <span>{feature.trim()}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="mt-auto pt-4">
+                    {isAvailable ? (
+                      currentProduct.link ? (
+                        <a 
+                          href={currentProduct.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors inline-block text-center"
+                        >
+                          {t('products.visit-site')}
+                        </a>
+                      ) : (
+                        <button className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors">
+                          {t('products.learn-more')}
+                        </button>
+                      )
+                    ) : (
+                      <button 
+                        disabled
+                        className="w-full bg-gray-100 text-gray-400 py-3 px-6 rounded-xl text-base font-semibold cursor-not-allowed"
+                      >
+                        {t('products.coming-soon')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Navigation Arrows */}
+                <button
+                  onClick={prevProduct}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                  aria-label="Previous product"
+                >
+                  <ChevronLeft className="w-6 h-6 text-brand-primary" />
+                </button>
+                
+                <button
+                  onClick={nextProduct}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                  aria-label="Next product"
+                >
+                  <ChevronRight className="w-6 h-6 text-brand-primary" />
+                </button>
+
+                {/* Dots Indicator */}
+                <div className="flex justify-center gap-2 mt-6">
+                  {products.map((_, idx) => (
+                    <button
                       key={idx}
-                      className="relative p-5 rounded-2xl border-0 flex flex-col h-full overflow-hidden group"
-                      style={{
-                        background: 'linear-gradient(145deg, hsl(var(--background)) 0%, hsl(var(--background-soft)) 100%)',
-                        boxShadow: '8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.7)',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '12px 12px 24px rgba(0, 0, 0, 0.15), -12px -12px 24px rgba(255, 255, 255, 0.8)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = '8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.7)';
-                      }}
-                    >
-                      <div className="absolute -top-2 -right-2">
-                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusClass}`}>
-                          {statusText}
-                        </span>
-                      </div>
-
-                      <div className="text-3xl mb-3 text-center">
-                        {product.icon}
-                      </div>
-
-                      <h3 className="text-lg font-semibold text-brand-primary mb-2 text-center">
-                        {product.name}
-                      </h3>
-
-                      <p className="text-foreground-muted text-sm mb-3 leading-relaxed text-center">
-                        {product.description}
-                      </p>
-
-                      <div className="mt-auto pt-3">
-                        {isAvailable ? (
-                          product.link ? (
-                            <a 
-                              href={product.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-full bg-brand-primary text-surface-primary-foreground py-2 px-4 rounded-lg text-sm font-medium hover:bg-brand-primary/90 transition-colors inline-block text-center"
-                            >
-                              {t('products.visit-site')}
-                            </a>
-                          ) : (
-                            <button className="w-full bg-brand-primary text-surface-primary-foreground py-2 px-4 rounded-lg text-sm font-medium hover:bg-brand-primary/90 transition-colors">
-                              {t('products.learn-more')}
-                            </button>
-                          )
-                        ) : (
-                          <button 
-                            disabled
-                            className="w-full bg-gray-100 text-gray-400 py-2 px-4 rounded-lg text-sm font-medium cursor-not-allowed"
-                          >
-                            {t('products.coming-soon')}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                      onClick={() => setCurrentIndex(idx)}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        idx === currentIndex 
+                          ? 'w-8 bg-brand-primary' 
+                          : 'w-2 bg-gray-300 hover:bg-gray-400'
+                      }`}
+                      aria-label={`Go to product ${idx + 1}`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
