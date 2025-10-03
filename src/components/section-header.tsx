@@ -12,7 +12,7 @@ export const SectionHeader = ({
   className = "" 
 }: SectionHeaderProps) => (
   <div className={`mb-12 ${centered ? 'text-center' : ''} ${className}`}>
-    <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 gradient-text">
+    <h2 className="text-3xl md:text-4xl font-bold text-brand-primary mb-4">
       {title}
     </h2>
     {subtitle && (
