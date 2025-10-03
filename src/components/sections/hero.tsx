@@ -51,7 +51,7 @@ export const Hero = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % products.length);
-    }, 4000);
+    }, 6000); // 6 seconds per item
     
     return () => clearInterval(timer);
   }, [products.length]);
@@ -163,7 +163,7 @@ export const Hero = () => {
                 {/* Product Card */}
                 <div
                   key={currentIndex}
-                  className="relative p-8 rounded-3xl border-0 flex flex-col overflow-hidden animate-fade-in"
+                  className="relative p-8 rounded-3xl border-0 flex flex-col overflow-hidden slide-in-left"
                   style={{
                     background: 'linear-gradient(145deg, hsl(var(--background)) 0%, hsl(var(--background-soft)) 100%)',
                     boxShadow: '12px 12px 24px rgba(0, 0, 0, 0.15), -12px -12px 24px rgba(255, 255, 255, 0.8)',
