@@ -170,12 +170,6 @@ export const Hero = () => {
                     minHeight: '400px'
                   }}
                 >
-                  <div className="absolute -top-3 -right-3">
-                    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold ${statusClass}`}>
-                      {statusText}
-                    </span>
-                  </div>
-
                   <div className="text-7xl mb-6 text-center">
                     {currentProduct.icon}
                   </div>
