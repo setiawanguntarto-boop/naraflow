@@ -13,7 +13,7 @@ export const Header = () => {
     { href: "#solutions", label: t('nav.solutions'), isAnchor: true },
     { href: "/how-it-works", label: t('nav.how-it-works'), isAnchor: false },
     { href: "/about", label: t('nav.about'), isAnchor: false },
-    { href: "#pricing", label: t('nav.pricing'), isAnchor: true },
+    { href: "/pricing", label: t('nav.pricing'), isAnchor: false },
     { href: "#faq", label: t('nav.faq'), isAnchor: true },
     { href: "#contact", label: t('nav.contact'), isAnchor: true },
   ];
