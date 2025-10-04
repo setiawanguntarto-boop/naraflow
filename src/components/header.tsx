@@ -11,7 +11,7 @@ export const Header = () => {
 
   const navItems = [
     { href: "#solutions", label: t('nav.solutions'), isAnchor: true },
-    { href: "#how-it-works", label: t('nav.how-it-works'), isAnchor: true },
+    { href: "/how-it-works", label: t('nav.how-it-works'), isAnchor: false },
     { href: "/about", label: t('nav.about'), isAnchor: false },
     { href: "#pricing", label: t('nav.pricing'), isAnchor: true },
     { href: "#faq", label: t('nav.faq'), isAnchor: true },
