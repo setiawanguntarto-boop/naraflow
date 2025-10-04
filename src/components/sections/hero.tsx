@@ -2,77 +2,63 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button-extended";
 import { useLanguage } from "@/hooks/use-language";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
 export const Hero = () => {
-  const { t } = useLanguage();
+  const {
+    t
+  } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const products = [
-    {
-      name: "Rahayu",
-      icon: "🐔",
-      description: t('products.rahayu.desc'),
-      features: t('products.rahayu.features'),
-      status: "available",
-      link: "https://tanyarahayu.com/",
-    },
-    {
-      name: "Rodaya",
-      icon: "🏍️",
-      description: t('products.rodaya.desc'),
-      features: t('products.rodaya.features'),
-      status: "available",
-      link: "https://rodaya.naraflow.id/",
-    },
-    {
-      name: "Tambakflow",
-      icon: "🦐",
-      description: t('products.tambakflow.desc'),
-      features: t('products.tambakflow.features'),
-      status: "available",
-      link: "https://tambak.naraflow.id",
-    },
-    {
-      name: "Kasaflow",
-      icon: "🏪",
-      description: t('products.kasaflow.desc'),
-      features: t('products.kasaflow.features'),
-      status: "coming-soon",
-    },
-    {
-      name: "Tamara",
-      icon: "🏨",
-      description: t('products.tamara.desc'),
-      features: t('products.tamara.features'),
-      status: "coming-soon",
-    },
-  ];
-
+  const products = [{
+    name: "Rahayu",
+    icon: "🐔",
+    description: t('products.rahayu.desc'),
+    features: t('products.rahayu.features'),
+    status: "available",
+    link: "https://tanyarahayu.com/"
+  }, {
+    name: "Rodaya",
+    icon: "🏍️",
+    description: t('products.rodaya.desc'),
+    features: t('products.rodaya.features'),
+    status: "available",
+    link: "https://rodaya.naraflow.id/"
+  }, {
+    name: "Tambakflow",
+    icon: "🦐",
+    description: t('products.tambakflow.desc'),
+    features: t('products.tambakflow.features'),
+    status: "available",
+    link: "https://tambak.naraflow.id"
+  }, {
+    name: "Kasaflow",
+    icon: "🏪",
+    description: t('products.kasaflow.desc'),
+    features: t('products.kasaflow.features'),
+    status: "coming-soon"
+  }, {
+    name: "Tamara",
+    icon: "🏨",
+    description: t('products.tamara.desc'),
+    features: t('products.tamara.features'),
+    status: "coming-soon"
+  }];
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % products.length);
+      setCurrentIndex(prev => (prev + 1) % products.length);
     }, 6000); // 6 seconds per item
-    
+
     return () => clearInterval(timer);
   }, [products.length]);
-
   const nextProduct = () => {
-    setCurrentIndex((prev) => (prev + 1) % products.length);
+    setCurrentIndex(prev => (prev + 1) % products.length);
   };
-
   const prevProduct = () => {
-    setCurrentIndex((prev) => (prev - 1 + products.length) % products.length);
+    setCurrentIndex(prev => (prev - 1 + products.length) % products.length);
   };
-
   const currentProduct = products[currentIndex];
   const isAvailable = currentProduct.status === "available";
   const statusText = isAvailable ? t('products.status.available') : t('products.status.coming-soon');
-  const statusClass = isAvailable 
-    ? "bg-green-100 text-green-800 border-green-200" 
-    : "bg-orange-100 text-orange-800 border-orange-200";
-
-  return (
-    <section className="relative bg-gradient-hero overflow-hidden min-h-screen flex items-center justify-center py-24 sm:py-32">
+  const statusClass = isAvailable ? "bg-green-100 text-green-800 border-green-200" : "bg-orange-100 text-orange-800 border-orange-200";
+  return <section className="relative bg-gradient-hero overflow-hidden min-h-screen flex items-center justify-center py-24 sm:py-32">
       <div className="container mx-auto px-4 sm:px-6 relative">
         <div className="text-center space-y-10 max-w-5xl mx-auto">
           
@@ -82,34 +68,24 @@ export const Hero = () => {
               {t('hero.main-title-1')} <span className="text-brand-accent">{t('hero.main-title-wa')}</span>. {t('hero.main-title-2')}
             </h1>
             
-            <p className="text-lg sm:text-xl md:text-2xl text-foreground-muted leading-relaxed max-w-4xl mx-auto" style={{ animationDelay: '0.2s' }}>
+            <p className="text-lg sm:text-xl md:text-2xl text-foreground-muted leading-relaxed max-w-4xl mx-auto" style={{
+            animationDelay: '0.2s'
+          }}>
               {t('hero.lead')}
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <Button 
-              variant="primary" 
-              size="xl"
-              asChild
-              className="group w-full sm:w-auto bg-brand-primary hover:bg-brand-primary/90 text-white shadow-strong"
-            >
-              <a
-                href="https://demorahayu.lovable.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{
+          animationDelay: '0.4s'
+        }}>
+            <Button variant="primary" size="xl" asChild className="group w-full sm:w-auto bg-brand-primary hover:bg-brand-primary/90 text-white shadow-strong">
+              <a href="https://demorahayu.lovable.app/" target="_blank" rel="noopener noreferrer">
                 {t('hero.cta-demo-free')}
               </a>
             </Button>
             
-            <Button 
-              variant="outline" 
-              size="xl"
-              asChild
-              className="w-full sm:w-auto border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
-            >
+            <Button variant="outline" size="xl" asChild className="w-full sm:w-auto border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white">
               <a href="#how-it-works">
                 {t('hero.cta-how-it-works')}
               </a>
@@ -119,36 +95,26 @@ export const Hero = () => {
           {/* Two-column layout: Mockup + Products */}
           <div className="grid lg:grid-cols-2 gap-12 items-start mt-16 max-w-7xl mx-auto">
             {/* Left: Hero Mockup with 3D Effect */}
-            <div 
-              className="animate-fade-in lg:sticky lg:top-24" 
-              style={{ 
-                animationDelay: '0.6s',
-                perspective: '1500px'
-              }}
-            >
-              <div 
-                className="inline-block transition-transform duration-500 hover:scale-105 w-full"
-                style={{
-                  transform: 'rotateX(10deg) rotateY(-5deg)',
-                  transition: 'transform 0.5s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'rotateX(0deg) rotateY(0deg)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'rotateX(10deg) rotateY(-5deg)';
-                }}
-              >
-                <img 
-                  src="https://placehold.co/800x1600/E9E4D8/5B3F91?text=Contoh+Laporan%0Avia+Naraflow" 
-                  alt="Mockup smartphone menunjukkan antarmuka Naraflow di WhatsApp"
-                  className="w-full max-w-md mx-auto rounded-3xl shadow-strong border border-border"
-                />
+            <div className="animate-fade-in lg:sticky lg:top-24" style={{
+            animationDelay: '0.6s',
+            perspective: '1500px'
+          }}>
+              <div className="inline-block transition-transform duration-500 hover:scale-105 w-full" style={{
+              transform: 'rotateX(10deg) rotateY(-5deg)',
+              transition: 'transform 0.5s ease'
+            }} onMouseEnter={e => {
+              e.currentTarget.style.transform = 'rotateX(0deg) rotateY(0deg)';
+            }} onMouseLeave={e => {
+              e.currentTarget.style.transform = 'rotateX(10deg) rotateY(-5deg)';
+            }}>
+                <img src="https://placehold.co/800x1600/E9E4D8/5B3F91?text=Contoh+Laporan%0Avia+Naraflow" alt="Mockup smartphone menunjukkan antarmuka Naraflow di WhatsApp" className="w-full max-w-md mx-auto rounded-3xl shadow-strong border border-border" />
               </div>
             </div>
 
             {/* Right: Product Carousel */}
-            <div className="animate-fade-in space-y-6" style={{ animationDelay: '0.8s' }}>
+            <div className="animate-fade-in space-y-6" style={{
+            animationDelay: '0.8s'
+          }}>
               <div className="text-left">
                 <h2 className="text-3xl sm:text-4xl font-bold text-brand-primary mb-3">
                   {t('products.title')}
@@ -161,15 +127,11 @@ export const Hero = () => {
               {/* Carousel Container */}
               <div className="relative">
                 {/* Product Card */}
-                <div
-                  key={currentIndex}
-                  className="relative p-8 rounded-3xl border-0 flex flex-col overflow-hidden slide-in-left"
-                  style={{
-                    background: 'linear-gradient(145deg, hsl(var(--background)) 0%, hsl(var(--background-soft)) 100%)',
-                    boxShadow: '12px 12px 24px rgba(0, 0, 0, 0.15), -12px -12px 24px rgba(255, 255, 255, 0.8)',
-                    minHeight: '400px'
-                  }}
-                >
+                <div key={currentIndex} className="relative p-8 rounded-3xl border-0 flex flex-col overflow-hidden slide-in-left" style={{
+                background: 'linear-gradient(145deg, hsl(var(--background)) 0%, hsl(var(--background-soft)) 100%)',
+                boxShadow: '12px 12px 24px rgba(0, 0, 0, 0.15), -12px -12px 24px rgba(255, 255, 255, 0.8)',
+                minHeight: '400px'
+              }}>
                   <div className="text-7xl mb-6 text-center">
                     {currentProduct.icon}
                   </div>
@@ -182,84 +144,36 @@ export const Hero = () => {
                     {currentProduct.description}
                   </p>
 
-                  <div className="space-y-3 mb-6">
-                    <h4 className="text-base font-semibold text-foreground">
-                      {t('products.features-title')}:
-                    </h4>
-                    <ul className="text-sm text-foreground-muted space-y-2">
-                      {currentProduct.features.split(',').map((feature, featureIdx) => (
-                        <li key={featureIdx} className="flex items-start">
-                          <span className="text-brand-primary mr-2 text-lg">•</span>
-                          <span>{feature.trim()}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  
 
                   <div className="mt-auto pt-4">
-                    {isAvailable ? (
-                      currentProduct.link ? (
-                        <a 
-                          href={currentProduct.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors inline-block text-center"
-                        >
+                    {isAvailable ? currentProduct.link ? <a href={currentProduct.link} target="_blank" rel="noopener noreferrer" className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors inline-block text-center">
                           {t('products.visit-site')}
-                        </a>
-                      ) : (
-                        <button className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors">
+                        </a> : <button className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors">
                           {t('products.learn-more')}
-                        </button>
-                      )
-                    ) : (
-                      <button 
-                        disabled
-                        className="w-full bg-gray-100 text-gray-400 py-3 px-6 rounded-xl text-base font-semibold cursor-not-allowed"
-                      >
+                        </button> : <button disabled className="w-full bg-gray-100 text-gray-400 py-3 px-6 rounded-xl text-base font-semibold cursor-not-allowed">
                         {t('products.coming-soon')}
-                      </button>
-                    )}
+                      </button>}
                   </div>
                 </div>
 
                 {/* Navigation Arrows */}
-                <button
-                  onClick={prevProduct}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                  aria-label="Previous product"
-                >
+                <button onClick={prevProduct} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110" aria-label="Previous product">
                   <ChevronLeft className="w-6 h-6 text-brand-primary" />
                 </button>
                 
-                <button
-                  onClick={nextProduct}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                  aria-label="Next product"
-                >
+                <button onClick={nextProduct} className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110" aria-label="Next product">
                   <ChevronRight className="w-6 h-6 text-brand-primary" />
                 </button>
 
                 {/* Dots Indicator */}
                 <div className="flex justify-center gap-2 mt-6">
-                  {products.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentIndex(idx)}
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        idx === currentIndex 
-                          ? 'w-8 bg-brand-primary' 
-                          : 'w-2 bg-gray-300 hover:bg-gray-400'
-                      }`}
-                      aria-label={`Go to product ${idx + 1}`}
-                    />
-                  ))}
+                  {products.map((_, idx) => <button key={idx} onClick={() => setCurrentIndex(idx)} className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-8 bg-brand-primary' : 'w-2 bg-gray-300 hover:bg-gray-400'}`} aria-label={`Go to product ${idx + 1}`} />)}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
