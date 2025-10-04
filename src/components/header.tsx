@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { NaraflowLogo } from "./ui/icons";
 import { Button } from "./ui/button-extended";
 import { useLanguage } from "@/hooks/use-language";
@@ -9,12 +10,12 @@ export const Header = () => {
   const { t } = useLanguage();
 
   const navItems = [
-    { href: "#solutions", label: t('nav.solutions') },
-    { href: "#how-it-works", label: t('nav.how-it-works') },
-    { href: "#about", label: t('nav.about') },
-    { href: "#pricing", label: t('nav.pricing') },
-    { href: "#faq", label: t('nav.faq') },
-    { href: "#contact", label: t('nav.contact') },
+    { href: "#solutions", label: t('nav.solutions'), isAnchor: true },
+    { href: "#how-it-works", label: t('nav.how-it-works'), isAnchor: true },
+    { href: "/about", label: t('nav.about'), isAnchor: false },
+    { href: "#pricing", label: t('nav.pricing'), isAnchor: true },
+    { href: "#faq", label: t('nav.faq'), isAnchor: true },
+    { href: "#contact", label: t('nav.contact'), isAnchor: true },
   ];
 
   return (
@@ -26,13 +27,23 @@ export const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
             {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="text-foreground-muted hover:text-brand-primary transition-colors font-medium"
-              >
-                {item.label}
-              </a>
+              item.isAnchor ? (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="text-foreground-muted hover:text-brand-primary transition-colors font-medium"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className="text-foreground-muted hover:text-brand-primary transition-colors font-medium"
+                >
+                  {item.label}
+                </Link>
+              )
             ))}
           </nav>
 
@@ -67,14 +78,25 @@ export const Header = () => {
           <nav className="lg:hidden mt-4 pb-4 border-t border-border-light">
             <div className="flex flex-col space-y-4 mt-4">
               {navItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="text-foreground-muted hover:text-brand-primary transition-colors font-medium py-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </a>
+                item.isAnchor ? (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="text-foreground-muted hover:text-brand-primary transition-colors font-medium py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className="text-foreground-muted hover:text-brand-primary transition-colors font-medium py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                )
               ))}
               <Button variant="primary" className="mt-4 w-full" asChild>
                 <a href="#contact" onClick={() => setIsMenuOpen(false)}>{t('nav.contact')}</a>
