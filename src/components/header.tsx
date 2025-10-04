@@ -10,7 +10,7 @@ export const Header = () => {
   const { t } = useLanguage();
 
   const navItems = [
-    { href: "#solutions", label: t('nav.solutions'), isAnchor: true },
+    { href: "/solutions", label: t('nav.solutions'), isAnchor: false },
     { href: "/how-it-works", label: t('nav.how-it-works'), isAnchor: false },
     { href: "/about", label: t('nav.about'), isAnchor: false },
     { href: "/pricing", label: t('nav.pricing'), isAnchor: false },
