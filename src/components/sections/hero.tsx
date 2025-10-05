@@ -85,7 +85,8 @@ export const Hero = () => {
             {/* Left: Hero Mockup with 3D Effect */}
             <div className="animate-fade-in lg:sticky lg:top-24" style={{
             animationDelay: '0.6s',
-            perspective: '1500px'
+            perspective: '1500px',
+            filter: 'drop-shadow(0 10px 60px rgba(0, 0, 0, 0.15))'
           }}>
               <div className="inline-block w-full" style={{
               transform: 'rotateX(8deg) rotateY(-8deg) rotateZ(2deg)',
