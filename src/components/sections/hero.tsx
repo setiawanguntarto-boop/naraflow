@@ -58,7 +58,7 @@ export const Hero = () => {
   const isAvailable = currentProduct.status === "available";
   const statusText = isAvailable ? t('products.status.available') : t('products.status.coming-soon');
   const statusClass = isAvailable ? "bg-green-100 text-green-800 border-green-200" : "bg-orange-100 text-orange-800 border-orange-200";
-  return <section className="relative bg-gradient-hero overflow-hidden h-screen flex items-center justify-center py-12">
+  return <section className="relative bg-gradient-hero overflow-hidden min-h-screen flex items-center justify-center py-24 sm:py-32">
       <div className="container mx-auto px-4 sm:px-6 relative">
         <div className="text-center space-y-10 max-w-5xl mx-auto">
           
