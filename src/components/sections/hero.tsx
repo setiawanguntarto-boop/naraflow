@@ -114,9 +114,7 @@ export const Hero = () => {
                 <h2 className="text-3xl sm:text-4xl font-bold text-brand-primary mb-3">
                   {t('products.title')}
                 </h2>
-                <p className="text-foreground-muted text-lg">
-                  {t('products.subtitle')}
-                </p>
+                
               </div>
 
               {/* Carousel Container */}
