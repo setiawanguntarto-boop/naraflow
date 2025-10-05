@@ -1,55 +1,47 @@
 import { useLanguage } from "@/hooks/use-language";
-
 export const WhatsAppMockup = () => {
-  const { t } = useLanguage();
-
-  const chats = [
-    {
-      name: "Rahayu",
-      icon: "🐔",
-      message: "Sampling bobot hari ini sudah dikinm",
-      time: "09:41",
-      bgColor: "bg-green-500",
-      hasCheck: true,
-    },
-    {
-      name: "Rodaya",
-      icon: "🏍️",
-      message: "Pesanan, warung Bu Siti sudah dicatat",
-      time: "09:41",
-      bgColor: "bg-blue-500",
-      hasEmoji: "👊",
-    },
-    {
-      name: "Tambakflow",
-      icon: "🦐",
-      message: "Kualhas air stabil, pakan 25 kg",
-      time: "09:41",
-      bgColor: "bg-purple-500",
-      hasCheck: true,
-    },
-    {
-      name: "Kasaflow",
-      icon: "🌾",
-      message: "Nota timbang panen siap diverifikasi",
-      time: "09:41",
-      bgColor: "bg-green-600",
-      hasDocument: true,
-    },
-    {
-      name: "Tamara",
-      icon: "🏨",
-      message: "Checklist kamar 207 sudah selesai",
-      time: "09:41",
-      bgColor: "bg-orange-500",
-      hasEmoji: "👍",
-    },
-  ];
-
-  return (
-    <div className="w-full max-w-[340px] mx-auto h-[680px] bg-white rounded-[3rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden border-[12px] border-gray-900 relative">
+  const {
+    t
+  } = useLanguage();
+  const chats = [{
+    name: "Rahayu",
+    icon: "🐔",
+    message: "Sampling bobot hari ini sudah dikinm",
+    time: "09:41",
+    bgColor: "bg-green-500",
+    hasCheck: true
+  }, {
+    name: "Rodaya",
+    icon: "🏍️",
+    message: "Pesanan, warung Bu Siti sudah dicatat",
+    time: "09:41",
+    bgColor: "bg-blue-500",
+    hasEmoji: "👊"
+  }, {
+    name: "Tambakflow",
+    icon: "🦐",
+    message: "Kualhas air stabil, pakan 25 kg",
+    time: "09:41",
+    bgColor: "bg-purple-500",
+    hasCheck: true
+  }, {
+    name: "Kasaflow",
+    icon: "🌾",
+    message: "Nota timbang panen siap diverifikasi",
+    time: "09:41",
+    bgColor: "bg-green-600",
+    hasDocument: true
+  }, {
+    name: "Tamara",
+    icon: "🏨",
+    message: "Checklist kamar 207 sudah selesai",
+    time: "09:41",
+    bgColor: "bg-orange-500",
+    hasEmoji: "👍"
+  }];
+  return <div className="w-full max-w-[340px] mx-auto h-[680px] bg-white rounded-[3rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden border-[12px] border-gray-900 relative">
       {/* iPhone Notch */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-gray-900 rounded-b-3xl z-10"></div>
+      
       
       {/* Status Bar */}
       <div className="bg-[#075E54] text-white px-6 pt-3 pb-2 text-xs flex justify-between items-center">
@@ -74,7 +66,7 @@ export const WhatsAppMockup = () => {
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-lg">
               <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#25D366]">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
               </svg>
             </div>
             <span className="font-semibold text-lg">WhatsApp</span>
@@ -94,14 +86,9 @@ export const WhatsAppMockup = () => {
 
       {/* Chat List */}
       <div className="flex-1 bg-white overflow-y-auto">
-        {chats.map((chat, index) => (
-          <div
-            key={index}
-            className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
-            style={{
-              animation: `slideInRight 0.5s ease-out ${index * 0.1}s both`
-            }}
-          >
+        {chats.map((chat, index) => <div key={index} className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors" style={{
+        animation: `slideInRight 0.5s ease-out ${index * 0.1}s both`
+      }}>
             {/* Avatar */}
             <div className={`w-12 h-12 ${chat.bgColor} rounded-full flex items-center justify-center text-2xl flex-shrink-0`}>
               {chat.icon}
@@ -115,24 +102,18 @@ export const WhatsAppMockup = () => {
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-600 truncate pr-2">{chat.message}</p>
-                {chat.hasCheck && (
-                  <svg className="w-4 h-4 text-[#25D366] flex-shrink-0" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M13.5 2L6 9.5 2.5 6 1 7.5l5 5 9-9z"/>
-                    <path d="M11.5 2L4 9.5 2.5 8l-1.5 1.5 3 3 9-9z" opacity="0.6"/>
-                  </svg>
-                )}
+                {chat.hasCheck && <svg className="w-4 h-4 text-[#25D366] flex-shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M13.5 2L6 9.5 2.5 6 1 7.5l5 5 9-9z" />
+                    <path d="M11.5 2L4 9.5 2.5 8l-1.5 1.5 3 3 9-9z" opacity="0.6" />
+                  </svg>}
                 {chat.hasEmoji && <span className="text-base flex-shrink-0">{chat.hasEmoji}</span>}
-                {chat.hasDocument && (
-                  <svg className="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M4 0a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V6l-6-6H4z"/>
-                    <path d="M8 0v5h5L8 0z" opacity="0.5"/>
-                  </svg>
-                )}
+                {chat.hasDocument && <svg className="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M4 0a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V6l-6-6H4z" />
+                    <path d="M8 0v5h5L8 0z" opacity="0.5" />
+                  </svg>}
               </div>
             </div>
-          </div>
-        ))}
+          </div>)}
       </div>
-    </div>
-  );
+    </div>;
 };
