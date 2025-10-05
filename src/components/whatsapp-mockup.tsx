@@ -39,7 +39,17 @@ export const WhatsAppMockup = () => {
     bgColor: "bg-orange-500",
     hasEmoji: "👍"
   }];
-  return <div className="w-full max-w-[340px] mx-auto h-[680px] bg-white rounded-[3rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden border-[12px] border-gray-900 relative">
+  return <div className="w-full max-w-[340px] mx-auto h-[680px] bg-white rounded-[3rem] flex flex-col overflow-hidden border-[12px] border-gray-900 relative" style={{
+      boxShadow: `
+        0 2px 4px rgba(0, 0, 0, 0.1),
+        0 8px 16px rgba(0, 0, 0, 0.15),
+        0 16px 32px rgba(0, 0, 0, 0.2),
+        0 32px 64px rgba(0, 0, 0, 0.25),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1)
+      `,
+      transform: 'translateZ(50px)',
+      transformStyle: 'preserve-3d'
+    }}>
       {/* iPhone Notch */}
       
       
