@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button-extended";
 import { useLanguage } from "@/hooks/use-language";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { WhatsAppMockup } from "@/components/whatsapp-mockup";
 export const Hero = () => {
   const {
     t
@@ -93,7 +94,7 @@ export const Hero = () => {
             }} onMouseLeave={e => {
               e.currentTarget.style.transform = 'rotateX(10deg) rotateY(-5deg)';
             }}>
-                <img src="https://placehold.co/800x1600/E9E4D8/5B3F91?text=Contoh+Laporan%0Avia+Naraflow" alt="Mockup smartphone menunjukkan antarmuka Naraflow di WhatsApp" className="w-full max-w-md mx-auto rounded-3xl shadow-strong border border-border" />
+                <WhatsAppMockup />
               </div>
             </div>
 
