@@ -40,7 +40,8 @@ export const Hero = () => {
     icon: "🏨",
     description: t('products.tamara.desc'),
     features: t('products.tamara.features'),
-    status: "coming-soon"
+    status: "available",
+    link: "https://tamara.naraflow.id/"
   }];
   useEffect(() => {
     const timer = setInterval(() => {
