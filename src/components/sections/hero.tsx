@@ -86,13 +86,19 @@ export const Hero = () => {
             animationDelay: '0.6s',
             perspective: '1500px'
           }}>
-              <div className="inline-block transition-transform duration-500 hover:scale-105 w-full" style={{
-              transform: 'rotateX(10deg) rotateY(-5deg)',
-              transition: 'transform 0.5s ease'
-            }} onMouseEnter={e => {
-              e.currentTarget.style.transform = 'rotateX(0deg) rotateY(0deg)';
+              <div className="inline-block w-full" style={{
+              transform: 'rotateX(8deg) rotateY(-8deg) rotateZ(2deg)',
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)'
+            }} onMouseMove={e => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = (e.clientX - rect.left) / rect.width;
+              const y = (e.clientY - rect.top) / rect.height;
+              const rotateY = (x - 0.5) * 20;
+              const rotateX = (y - 0.5) * -20;
+              e.currentTarget.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
             }} onMouseLeave={e => {
-              e.currentTarget.style.transform = 'rotateX(10deg) rotateY(-5deg)';
+              e.currentTarget.style.transform = 'rotateX(8deg) rotateY(-8deg) rotateZ(2deg)';
             }}>
                 <WhatsAppMockup />
               </div>
