@@ -76,21 +76,7 @@ export const Hero = () => {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{
-          animationDelay: '0.4s'
-        }}>
-            <Button variant="primary" size="xl" asChild className="group w-full sm:w-auto bg-brand-primary hover:bg-brand-primary/90 text-white shadow-strong">
-              <a href="https://demorahayu.lovable.app/" target="_blank" rel="noopener noreferrer">
-                {t('hero.cta-demo-free')}
-              </a>
-            </Button>
-            
-            <Button variant="outline" size="xl" asChild className="w-full sm:w-auto border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white">
-              <a href="#how-it-works">
-                {t('hero.cta-how-it-works')}
-              </a>
-            </Button>
-          </div>
+          
 
           {/* Two-column layout: Mockup + Products */}
           <div className="grid lg:grid-cols-2 gap-12 items-start mt-16 max-w-7xl mx-auto">
