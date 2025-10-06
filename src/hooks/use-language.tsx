@@ -107,6 +107,8 @@ const translations = {
 
     // FAQ
     'faq.title': 'Pertanyaan yang Sering Diajukan',
+    'faq.page-title': 'Pertanyaan yang Sering Diajukan',
+    'faq.page-subtitle': 'Temukan jawaban atas pertanyaan umum tentang Naraflow, produk, dan layanan kami.',
     'faq.q1': 'Apa itu Naraflow?',
     'faq.a1': 'Naraflow adalah platform WhatsApp-first Workflow untuk membantu pencatatan, koordinasi, dan tata kelola operasional bisnis secara sederhana dan transparan.',
     'faq.q2': 'Apakah harus install aplikasi baru?',
@@ -268,6 +270,8 @@ const translations = {
 
     // FAQ
     'faq.title': 'Frequently Asked Questions',
+    'faq.page-title': 'Frequently Asked Questions',
+    'faq.page-subtitle': 'Find answers to common questions about Naraflow, our products, and services.',
     'faq.q1': 'What is Naraflow?',
     'faq.a1': 'Naraflow is a WhatsApp-first Workflow platform that helps with recording, coordination, and governance of business operations in a simple and transparent way.',
     'faq.q2': 'Do I need to install a new app?',

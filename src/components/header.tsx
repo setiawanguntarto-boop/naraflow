@@ -14,7 +14,7 @@ export const Header = () => {
     { href: "/how-it-works", label: t('nav.how-it-works'), isAnchor: false },
     { href: "/about", label: t('nav.about'), isAnchor: false },
     { href: "/pricing", label: t('nav.pricing'), isAnchor: false },
-    { href: "#faq", label: t('nav.faq'), isAnchor: true },
+    { href: "/faq", label: t('nav.faq'), isAnchor: false },
     { href: "#contact", label: t('nav.contact'), isAnchor: true },
   ];
 
