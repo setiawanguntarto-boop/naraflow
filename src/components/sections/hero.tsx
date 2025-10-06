@@ -60,13 +60,13 @@ export const Hero = () => {
   const isAvailable = currentProduct.status === "available";
   const statusText = isAvailable ? t('products.status.available') : t('products.status.coming-soon');
   const statusClass = isAvailable ? "bg-green-100 text-green-800 border-green-200" : "bg-orange-100 text-orange-800 border-orange-200";
-  return <section className="relative bg-gradient-hero overflow-hidden min-h-screen flex items-center justify-center pt-16 sm:pt-20 lg:pt-28 pb-20 lg:pb-24">
+  return <section className="relative bg-gradient-hero overflow-hidden min-h-screen flex items-start justify-center pt-24 sm:pt-28 lg:pt-32 pb-20 lg:pb-24">
       <div className="container mx-auto px-4 sm:px-6 relative">
         <div className="text-center space-y-6 max-w-5xl mx-auto">
           
           {/* Hero Content */}
-          <div className="space-y-6 animate-fade-in">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight whitespace-nowrap">
+          <div className="space-y-4 animate-fade-in">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight whitespace-nowrap mt-0 mb-4">
               {t('hero.main-title-1')} <span className="text-brand-accent">{t('hero.main-title-wa')}</span>. {t('hero.main-title-2')}
             </h1>
             
