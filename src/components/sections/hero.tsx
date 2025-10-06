@@ -139,14 +139,40 @@ export const Hero = () => {
 
                   
 
-                  <div className="mt-auto pt-4">
-                    {isAvailable ? currentProduct.link ? <a href={currentProduct.link} target="_blank" rel="noopener noreferrer" className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors inline-block text-center">
-                          {t('products.visit-site')}
-                        </a> : <button className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors">
-                          {t('products.learn-more')}
-                        </button> : <button disabled className="w-full bg-gray-100 text-gray-400 py-3 px-6 rounded-xl text-base font-semibold cursor-not-allowed">
+                  <div className="mt-auto pt-4 space-y-3">
+                    {isAvailable ? (
+                      <>
+                        {currentProduct.link && (
+                          <a 
+                            href={currentProduct.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors inline-block text-center"
+                          >
+                            {t('products.visit-site')}
+                          </a>
+                        )}
+                        {(currentProduct.name === "Rahayu" || currentProduct.name === "Tambakflow") && (
+                          <a 
+                            href={currentProduct.name === "Rahayu" ? "http://wa.me/6289637112147" : "https://wa.me/62881024280794"}
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="w-full bg-brand-secondary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-secondary/90 transition-colors inline-block text-center"
+                          >
+                            {t('products.try-me')}
+                          </a>
+                        )}
+                        {!currentProduct.link && currentProduct.name !== "Rahayu" && currentProduct.name !== "Tambakflow" && (
+                          <button className="w-full bg-brand-primary text-surface-primary-foreground py-3 px-6 rounded-xl text-base font-semibold hover:bg-brand-primary/90 transition-colors">
+                            {t('products.learn-more')}
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <button disabled className="w-full bg-gray-100 text-gray-400 py-3 px-6 rounded-xl text-base font-semibold cursor-not-allowed">
                         {t('products.coming-soon')}
-                      </button>}
+                      </button>
+                    )}
                   </div>
                 </div>
 
