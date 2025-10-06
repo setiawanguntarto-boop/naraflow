@@ -1,7 +1,6 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Hero } from "@/components/sections/hero";
-import { FAQ } from "@/components/sections/faq";
 import { Contact } from "@/components/sections/contact";
 import { LanguageProvider } from "@/hooks/use-language";
 
@@ -12,7 +11,6 @@ const Index = () => {
         <Header />
         <main>
           <Hero />
-          <FAQ />
           <Contact />
         </main>
         <Footer />
