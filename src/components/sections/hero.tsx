@@ -119,8 +119,8 @@ export const Hero = () => {
               onClick={() => handleCategoryChange('all')}
               className={`px-4 sm:px-6 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg transition-all ${
                 activeCategory === 'all'
-                  ? 'bg-brand-primary text-surface-primary-foreground'
-                  : 'bg-surface-primary text-brand-primary hover:bg-surface-soft'
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
               Semua Agen
@@ -129,8 +129,8 @@ export const Hero = () => {
               onClick={() => handleCategoryChange('farm')}
               className={`px-4 sm:px-6 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg transition-all ${
                 activeCategory === 'farm'
-                  ? 'bg-brand-primary text-surface-primary-foreground'
-                  : 'bg-surface-primary text-brand-primary hover:bg-surface-soft'
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
               🐔 Farm as a Service
@@ -139,8 +139,8 @@ export const Hero = () => {
               onClick={() => handleCategoryChange('field')}
               className={`px-4 sm:px-6 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg transition-all ${
                 activeCategory === 'field'
-                  ? 'bg-brand-primary text-surface-primary-foreground'
-                  : 'bg-surface-primary text-brand-primary hover:bg-surface-soft'
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
               🏍️ Field Workflow
