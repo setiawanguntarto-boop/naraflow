@@ -10,13 +10,25 @@ export const Header = () => {
   const { t } = useLanguage();
 
   const navItems = [
-    { href: "/solutions", label: t('nav.solutions'), isAnchor: false },
     { href: "/how-it-works", label: t('nav.how-it-works'), isAnchor: false },
     { href: "/about", label: t('nav.about'), isAnchor: false },
     { href: "/pricing", label: t('nav.pricing'), isAnchor: false },
     { href: "/faq", label: t('nav.faq'), isAnchor: false },
     { href: "#contact", label: t('nav.contact'), isAnchor: true },
   ];
+
+  const solutionsDropdown = {
+    farm: [
+      { name: "Rahayu", icon: "🐔", desc: "Broiler Farm Workflow", link: "https://tanyarahayu.com/" },
+      { name: "Tambakflow", icon: "🦐", desc: "Shrimp Farm Workflow", link: "https://tambak.naraflow.id" },
+      { name: "Kasaflow", icon: "🌿", desc: "Cassava Trading Workflow", link: "#" }
+    ],
+    field: [
+      { name: "Rodaya", icon: "🏍️", desc: "FMCG Distribution Workflow", link: "https://rodaya.naraflow.id/" },
+      { name: "Tamara", icon: "🏨", desc: "Hospitality Workflow", link: "https://tamara.naraflow.id/" },
+      { name: "Sortify", icon: "♻️", desc: "Waste Management", link: "#" }
+    ]
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border-light shadow-soft">
@@ -26,6 +38,44 @@ export const Header = () => {
           
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
+            {/* Solutions Dropdown */}
+            <div className="relative group">
+              <button className="flex items-center text-foreground-muted hover:text-brand-primary transition-colors font-medium">
+                {t('nav.solutions')}
+                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              
+              <div className="absolute hidden group-hover:block bg-background shadow-lg rounded-xl mt-3 w-80 border border-border right-0 z-50">
+                <div className="px-4 py-3 border-b border-border">
+                  <h3 className="text-sm uppercase tracking-wide text-foreground-muted font-semibold mb-2">Farm as a Service</h3>
+                  <ul className="space-y-2">
+                    {solutionsDropdown.farm.map((item) => (
+                      <li key={item.name}>
+                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex items-center text-foreground hover:text-brand-primary transition">
+                          <span className="mr-2">{item.icon}</span> {item.name} — {item.desc}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div className="px-4 py-3">
+                  <h3 className="text-sm uppercase tracking-wide text-foreground-muted font-semibold mb-2">Field Workflow Solutions</h3>
+                  <ul className="space-y-2">
+                    {solutionsDropdown.field.map((item) => (
+                      <li key={item.name}>
+                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex items-center text-foreground hover:text-brand-primary transition">
+                          <span className="mr-2">{item.icon}</span> {item.name} — {item.desc}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
             {navItems.map((item) => (
               item.isAnchor ? (
                 <a
