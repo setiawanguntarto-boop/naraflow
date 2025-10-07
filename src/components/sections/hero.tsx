@@ -205,7 +205,7 @@ export const Hero = () => {
                         </div>
                       )}
                       <div className="text-5xl mb-2">{product.icon}</div>
-                      <span className="font-semibold text-foreground">{product.name}</span>
+                      <span className="font-semibold text-white">{product.name}</span>
                     </button>
                   ))}
                 </div>
