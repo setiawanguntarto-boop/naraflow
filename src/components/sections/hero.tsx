@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button-extended";
 import { useLanguage } from "@/hooks/use-language";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Tractor, ClipboardList } from "lucide-react";
 import { WhatsAppMockup } from "@/components/whatsapp-mockup";
 export const Hero = () => {
   const { t } = useLanguage();
@@ -127,23 +127,25 @@ export const Hero = () => {
             </button>
             <button
               onClick={() => handleCategoryChange('farm')}
-              className={`px-4 sm:px-6 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg transition-all ${
+              className={`px-4 sm:px-6 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2 ${
                 activeCategory === 'farm'
                   ? 'bg-brand-primary text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
-              🐔 Farm as a Service
+              <Tractor className="w-5 h-5" />
+              Farm as a Service
             </button>
             <button
               onClick={() => handleCategoryChange('field')}
-              className={`px-4 sm:px-6 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg transition-all ${
+              className={`px-4 sm:px-6 py-3 text-sm sm:text-base font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2 ${
                 activeCategory === 'field'
                   ? 'bg-brand-primary text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
-              📝 Field Workflow
+              <ClipboardList className="w-5 h-5" />
+              Field Workflow
             </button>
           </div>
 
