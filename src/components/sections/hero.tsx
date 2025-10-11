@@ -18,7 +18,7 @@ export const Hero = () => {
     link: "https://tanyarahayu.com/"
   }, {
     name: "Rodaya",
-    icon: "🏍️",
+    icon: "📝",
     description: t('products.rodaya.desc'),
     features: t('products.rodaya.features'),
     status: "available",
@@ -143,7 +143,7 @@ export const Hero = () => {
                   : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
-              🏍️ Field Workflow
+              📝 Field Workflow
             </button>
           </div>
 
