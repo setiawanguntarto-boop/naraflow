@@ -1,19 +1,16 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Hero } from "@/components/sections/hero";
-import { LanguageProvider } from "@/hooks/use-language";
 
 const Index = () => {
   return (
-    <LanguageProvider>
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main>
-          <Hero />
-        </main>
-        <Footer />
-      </div>
-    </LanguageProvider>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <Hero />
+      </main>
+      <Footer />
+    </div>
   );
 };
 

@@ -12,29 +12,32 @@ import FAQ from "./pages/FAQ";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "next-themes";
+import { LanguageProvider } from "@/hooks/use-language";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/solutions" element={<Solutions />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/contact" element={<Contact />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/solutions" element={<Solutions />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/contact" element={<Contact />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </LanguageProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
