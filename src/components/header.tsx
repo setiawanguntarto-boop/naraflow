@@ -67,7 +67,9 @@ export const Header = () => {
   return <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border-light shadow-soft">
       <div className="container mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
-          <NaraflowLogo />
+          <Link to="/" className="cursor-pointer">
+            <NaraflowLogo />
+          </Link>
           
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
