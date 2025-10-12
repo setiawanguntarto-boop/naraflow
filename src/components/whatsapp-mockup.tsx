@@ -38,6 +38,13 @@ export const WhatsAppMockup = () => {
     time: "09:41",
     bgColor: "bg-orange-500",
     hasEmoji: "👍"
+  }, {
+    name: "Sortify",
+    icon: "♻️",
+    message: "Sampah plastik 15kg sudah tercatat",
+    time: "09:41",
+    bgColor: "bg-emerald-600",
+    hasCheck: true
   }];
   return <div className="w-full max-w-[340px] mx-auto h-[680px] bg-white rounded-[3rem] flex flex-col overflow-hidden border-[12px] border-gray-900 relative" style={{
       boxShadow: `
