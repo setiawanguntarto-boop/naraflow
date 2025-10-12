@@ -41,7 +41,7 @@ export const Header = () => {
       name: "Kasaflow",
       icon: "🌿",
       desc: "Cassava Trading Workflow",
-      link: "#"
+      link: "https://kasaflow.lovable.app/"
     }],
     field: [{
       name: "Rodaya",

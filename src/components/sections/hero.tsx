@@ -35,7 +35,8 @@ export const Hero = () => {
     icon: "🏪",
     description: t('products.kasaflow.desc'),
     features: t('products.kasaflow.features'),
-    status: "coming-soon"
+    status: "available",
+    link: "https://kasaflow.lovable.app/"
   }, {
     name: "Tamara",
     icon: "🏨",
