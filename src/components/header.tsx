@@ -25,10 +25,6 @@ export const Header = () => {
     href: "/faq",
     label: t('nav.faq'),
     isAnchor: false
-  }, {
-    href: "/contact",
-    label: t('nav.contact'),
-    isAnchor: false
   }];
   const solutionsDropdown = {
     farm: [{
