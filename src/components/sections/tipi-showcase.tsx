@@ -157,9 +157,7 @@ export const TipiShowcase = () => {
   return <section className="py-20 lg:py-24 bg-gradient-to-b from-background to-background-soft">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-brand-primary mb-4">
-            TIMBANGAN PINTAR (TIPI)
-          </h2>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-brand-primary mb-4">Timbangan Pintar (TIPI)</h2>
           <p className="text-foreground-muted text-lg max-w-3xl mx-auto">
             Jelajahi fitur dan kemampuan integrasi TIPI IoT Gateway kami. 
             Klik tombol di bawah untuk melihatnya beraksi.
