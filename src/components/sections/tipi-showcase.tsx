@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useLanguage } from '@/hooks/use-language';
-
 export const TipiShowcase = () => {
-  const { t } = useLanguage();
+  const {
+    t
+  } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<{
     scene?: THREE.Scene;
@@ -17,30 +18,26 @@ export const TipiShowcase = () => {
     productGroup?: THREE.Group;
     dataCable?: THREE.Group;
   }>({});
-
   const [isBoxOpen, setIsBoxOpen] = useState(false);
   const [isIntegrated, setIsIntegrated] = useState(false);
   const [infoText, setInfoText] = useState("Menampilkan USR-G771-E LTE Modem di dalam TIPI gateway. Klik tombol di bawah untuk berinteraksi.");
-
   useEffect(() => {
     if (!containerRef.current) return;
-
     const container = containerRef.current;
-    const dims = { width: 8.26, height: 2.5, depth: 8.6 };
+    const dims = {
+      width: 8.26,
+      height: 2.5,
+      depth: 8.6
+    };
 
     // Scene setup
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f2f5);
-
-    const camera = new THREE.PerspectiveCamera(
-      50,
-      container.clientWidth / container.clientHeight,
-      0.1,
-      1000
-    );
+    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
     camera.position.set(25, 20, 30);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
@@ -53,7 +50,6 @@ export const TipiShowcase = () => {
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
-
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
     directionalLight.position.set(15, 20, 10);
     directionalLight.castShadow = true;
@@ -74,7 +70,6 @@ export const TipiShowcase = () => {
     productGroup.add(packagingBox);
     productGroup.position.set(10, (dims.height + 2) / 2, 0);
     scene.add(productGroup);
-
     const weighingScale = createWeighingScale();
     weighingScale.position.set(-20, 0, 0);
     weighingScale.visible = false;
@@ -86,10 +81,10 @@ export const TipiShowcase = () => {
       camera,
       renderer,
       controls,
-      boxLid: packagingBox.children.find((c) => c.name === 'lid') as THREE.Group,
+      boxLid: packagingBox.children.find(c => c.name === 'lid') as THREE.Group,
       modem,
       weighingScale,
-      productGroup,
+      productGroup
     };
 
     // Animation loop
@@ -108,14 +103,12 @@ export const TipiShowcase = () => {
       sceneRef.current.renderer.setSize(container.clientWidth, container.clientHeight);
     };
     window.addEventListener('resize', handleResize);
-
     return () => {
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
       container.removeChild(renderer.domElement);
     };
   }, []);
-
   const toggleBox = () => {
     const newState = !isBoxOpen;
     setIsBoxOpen(newState);
@@ -123,17 +116,18 @@ export const TipiShowcase = () => {
       sceneRef.current.modem.visible = newState;
     }
   };
-
   const toggleIntegration = () => {
     const newState = !isIntegrated;
     setIsIntegrated(newState);
-
-    const { weighingScale, productGroup, scene, controls } = sceneRef.current;
+    const {
+      weighingScale,
+      productGroup,
+      scene,
+      controls
+    } = sceneRef.current;
     if (!weighingScale || !productGroup || !scene || !controls) return;
-
     const displayMesh = weighingScale.getObjectByName('displayMesh');
     if (!displayMesh) return;
-
     if (newState) {
       // Integrate
       if (isBoxOpen) toggleBox();
@@ -141,11 +135,9 @@ export const TipiShowcase = () => {
       displayMesh.add(productGroup);
       productGroup.position.set(0, 0, -7.25);
       productGroup.rotation.set(Math.PI / 2, 0, 0);
-
       if (sceneRef.current.dataCable) scene.remove(sceneRef.current.dataCable);
       sceneRef.current.dataCable = createDataCable(productGroup, weighingScale);
       scene.add(sceneRef.current.dataCable);
-
       setInfoText("Produk TIPI lengkap dipasang di belakang layar timbangan, terhubung untuk solusi IoT yang sempurna.");
       controls.target.copy(new THREE.Vector3(-10, 25, 0));
     } else {
@@ -154,19 +146,15 @@ export const TipiShowcase = () => {
       scene.add(productGroup);
       productGroup.position.set(10, 2.5, 0);
       productGroup.rotation.set(0, 0, 0);
-
       if (sceneRef.current.dataCable) {
         scene.remove(sceneRef.current.dataCable);
         sceneRef.current.dataCable = undefined;
       }
-
       setInfoText("Menampilkan USR-G771-E LTE Modem di dalam TIPI gateway. Klik tombol di bawah untuk berinteraksi.");
       controls.target.copy(new THREE.Vector3(10, 5, 0));
     }
   };
-
-  return (
-    <section className="py-20 lg:py-24 bg-gradient-to-b from-background to-background-soft">
+  return <section className="py-20 lg:py-24 bg-gradient-to-b from-background to-background-soft">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-extrabold text-brand-primary mb-4">
@@ -186,22 +174,9 @@ export const TipiShowcase = () => {
               <p className="text-foreground-muted text-sm mb-4 leading-relaxed">{infoText}</p>
               
               <div className="space-y-3">
-                <button
-                  onClick={toggleBox}
-                  disabled={isIntegrated}
-                  className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
-                    isIntegrated
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-brand-primary text-white hover:bg-brand-primary/90 shadow-soft hover:shadow-medium'
-                  }`}
-                >
-                  {isBoxOpen ? 'Tutup Box' : 'Buka Box'}
-                </button>
                 
-                <button
-                  onClick={toggleIntegration}
-                  className="w-full py-3 px-4 rounded-xl font-semibold bg-brand-secondary text-white hover:bg-brand-secondary/90 transition-all duration-300 shadow-soft hover:shadow-medium"
-                >
+                
+                <button onClick={toggleIntegration} className="w-full py-3 px-4 rounded-xl font-semibold bg-brand-secondary text-white hover:bg-brand-secondary/90 transition-all duration-300 shadow-soft hover:shadow-medium">
                   {isIntegrated ? 'Tampilkan Terpisah' : 'Integrasikan dengan Timbangan'}
                 </button>
               </div>
@@ -233,51 +208,54 @@ export const TipiShowcase = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
 
 // Helper functions to create 3D models
-function createModem(dims: { width: number; height: number; depth: number }) {
+function createModem(dims: {
+  width: number;
+  height: number;
+  depth: number;
+}) {
   const modemGroup = new THREE.Group();
-  const caseMaterial = new THREE.MeshStandardMaterial({ color: 0x2d3748, metalness: 0.5, roughness: 0.6 });
-
-  const mainCase = new THREE.Mesh(
-    new THREE.BoxGeometry(dims.width, dims.height, dims.depth),
-    caseMaterial
-  );
+  const caseMaterial = new THREE.MeshStandardMaterial({
+    color: 0x2d3748,
+    metalness: 0.5,
+    roughness: 0.6
+  });
+  const mainCase = new THREE.Mesh(new THREE.BoxGeometry(dims.width, dims.height, dims.depth), caseMaterial);
   mainCase.castShadow = true;
   mainCase.receiveShadow = true;
   modemGroup.add(mainCase);
-
   modemGroup.visible = false;
   return modemGroup;
 }
-
-function createPackagingBox(dims: { width: number; height: number; depth: number }, modem: THREE.Group) {
+function createPackagingBox(dims: {
+  width: number;
+  height: number;
+  depth: number;
+}, modem: THREE.Group) {
   const boxGroup = new THREE.Group();
   const boxThickness = 0.2;
   const boxDims = {
     width: dims.width + 2,
     height: dims.height + 2,
-    depth: dims.depth + 2,
+    depth: dims.depth + 2
   };
-
-  const boxMaterial = new THREE.MeshStandardMaterial({ color: 0x1a202c, roughness: 0.8 });
+  const boxMaterial = new THREE.MeshStandardMaterial({
+    color: 0x1a202c,
+    roughness: 0.8
+  });
 
   // Create box sides
   const bottom = new THREE.Mesh(new THREE.BoxGeometry(boxDims.width, boxThickness, boxDims.depth), boxMaterial);
   bottom.position.y = -boxDims.height / 2;
-
   const front = new THREE.Mesh(new THREE.BoxGeometry(boxDims.width, boxDims.height, boxThickness), boxMaterial);
   front.position.z = boxDims.depth / 2;
-
   const back = new THREE.Mesh(new THREE.BoxGeometry(boxDims.width, boxDims.height, boxThickness), boxMaterial);
   back.position.z = -boxDims.depth / 2;
-
   const left = new THREE.Mesh(new THREE.BoxGeometry(boxThickness, boxDims.height, boxDims.depth), boxMaterial);
   left.position.x = -boxDims.width / 2;
-
   const right = new THREE.Mesh(new THREE.BoxGeometry(boxThickness, boxDims.height, boxDims.depth), boxMaterial);
   right.position.x = boxDims.width / 2;
 
@@ -293,113 +271,100 @@ function createPackagingBox(dims: { width: number; height: number; depth: number
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.fillText('TIPI', 512, 512);
-
   const boxTexture = new THREE.CanvasTexture(canvas);
-  const topMaterial = new THREE.MeshStandardMaterial({ map: boxTexture, roughness: 0.8 });
-
+  const topMaterial = new THREE.MeshStandardMaterial({
+    map: boxTexture,
+    roughness: 0.8
+  });
   const boxLid = new THREE.Group();
   boxLid.name = 'lid';
   const lidMesh = new THREE.Mesh(new THREE.BoxGeometry(boxDims.width, boxThickness, boxDims.depth), topMaterial);
   lidMesh.position.y = boxThickness / 2;
   boxLid.add(lidMesh);
   boxLid.position.set(0, boxDims.height / 2, 0);
-
   const mainBoxBody = new THREE.Group();
   mainBoxBody.add(bottom, front, back, left, right);
   mainBoxBody.add(modem);
   boxGroup.add(mainBoxBody, boxLid);
 
   // Add data port
-  const dataPort = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16),
-    new THREE.MeshStandardMaterial({ color: 0x1a202c })
-  );
+  const dataPort = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16), new THREE.MeshStandardMaterial({
+    color: 0x1a202c
+  }));
   dataPort.rotation.x = Math.PI / 2;
   dataPort.position.set(0, 0, -boxDims.depth / 2 - 0.15);
   dataPort.name = 'boxDataPort';
   boxGroup.add(dataPort);
-
   boxGroup.castShadow = true;
   boxGroup.receiveShadow = true;
-
   return boxGroup;
 }
-
 function createWeighingScale() {
   const scaleGroup = new THREE.Group();
-  const platformMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8, roughness: 0.2 });
-
+  const platformMaterial = new THREE.MeshStandardMaterial({
+    color: 0xcccccc,
+    metalness: 0.8,
+    roughness: 0.2
+  });
   const platformWidth = 40;
   const platformDepth = 50;
   const platformBaseHeight = 4;
   const platformTopHeight = 1;
-
-  const platformBase = new THREE.Mesh(
-    new THREE.BoxGeometry(platformWidth - 1, platformBaseHeight, platformDepth - 1),
-    new THREE.MeshStandardMaterial({ color: 0x455a64 })
-  );
+  const platformBase = new THREE.Mesh(new THREE.BoxGeometry(platformWidth - 1, platformBaseHeight, platformDepth - 1), new THREE.MeshStandardMaterial({
+    color: 0x455a64
+  }));
   platformBase.position.y = platformBaseHeight / 2;
   scaleGroup.add(platformBase);
-
-  const platformTop = new THREE.Mesh(
-    new THREE.BoxGeometry(platformWidth, platformTopHeight, platformDepth),
-    platformMaterial
-  );
+  const platformTop = new THREE.Mesh(new THREE.BoxGeometry(platformWidth, platformTopHeight, platformDepth), platformMaterial);
   platformTop.position.y = platformBaseHeight + platformTopHeight / 2;
   scaleGroup.add(platformTop);
 
   // Pole
   const poleHeight = 30;
-  const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(1, 1, poleHeight, 32),
-    new THREE.MeshStandardMaterial({ color: 0x90a4ae, metalness: 0.9, roughness: 0.3 })
-  );
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, poleHeight, 32), new THREE.MeshStandardMaterial({
+    color: 0x90a4ae,
+    metalness: 0.9,
+    roughness: 0.3
+  }));
   pole.position.set(0, platformBaseHeight + poleHeight / 2, -(platformDepth / 2) + 5);
   scaleGroup.add(pole);
 
   // Display
-  const display = new THREE.Mesh(
-    new THREE.BoxGeometry(14, 8, 10),
-    new THREE.MeshStandardMaterial({ color: 0xb0bec5, metalness: 0.7, roughness: 0.4 })
-  );
+  const display = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 10), new THREE.MeshStandardMaterial({
+    color: 0xb0bec5,
+    metalness: 0.7,
+    roughness: 0.4
+  }));
   display.position.set(0, platformBaseHeight + poleHeight, -(platformDepth / 2) + 5);
   display.rotation.x = -Math.PI / 8;
   display.name = 'displayMesh';
   scaleGroup.add(display);
-
-  const port = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16),
-    new THREE.MeshStandardMaterial({ color: 0x2d3748 })
-  );
+  const port = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16), new THREE.MeshStandardMaterial({
+    color: 0x2d3748
+  }));
   port.rotation.z = Math.PI / 2;
   port.position.set(7.15, 0, 0);
   port.name = 'scalePort';
   display.add(port);
-
   return scaleGroup;
 }
-
 function createDataCable(productGroup: THREE.Group, weighingScale: THREE.Group) {
-  const cableMaterial = new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.8 });
-
+  const cableMaterial = new THREE.MeshStandardMaterial({
+    color: 0x2d3748,
+    roughness: 0.8
+  });
   const modemPort = productGroup.getObjectByName('boxDataPort');
   const scalePort = weighingScale.getObjectByName('scalePort');
-
   if (!modemPort || !scalePort) return new THREE.Group();
-
   const modemPortPos = new THREE.Vector3();
   modemPort.getWorldPosition(modemPortPos);
-
   const scalePortPos = new THREE.Vector3();
   scalePort.getWorldPosition(scalePortPos);
-
   const controlPoint = modemPortPos.clone().lerp(scalePortPos, 0.5);
   controlPoint.y -= 5;
-
   const curve = new THREE.CatmullRomCurve3([modemPortPos, controlPoint, scalePortPos]);
   const tubeGeometry = new THREE.TubeGeometry(curve, 64, 0.2, 8, false);
   const cableMesh = new THREE.Mesh(tubeGeometry, cableMaterial);
-
   const cableGroup = new THREE.Group();
   cableGroup.add(cableMesh);
   return cableGroup;
