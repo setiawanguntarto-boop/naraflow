@@ -181,7 +181,7 @@ export const TipiShowcase = () => {
         <div className="max-w-6xl mx-auto">
           <div className="relative bg-surface-primary rounded-3xl shadow-elegant overflow-hidden border border-border-light">
             {/* Info Box */}
-            <div className="absolute top-6 left-6 z-10 bg-surface-primary/95 backdrop-blur-sm p-6 rounded-2xl shadow-medium border border-border-light max-w-xs">
+            <div className="absolute top-6 left-6 z-10 bg-gradient-to-br from-brand-primary/10 via-brand-secondary/10 to-brand-accent/10 backdrop-blur-md p-6 rounded-2xl shadow-elegant border border-brand-primary/20 max-w-xs">
               <h3 className="text-xl font-bold text-brand-primary mb-3">TIPI Gateway</h3>
               <p className="text-foreground-muted text-sm mb-4 leading-relaxed">{infoText}</p>
               
