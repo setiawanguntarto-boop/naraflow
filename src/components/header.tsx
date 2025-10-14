@@ -10,16 +10,16 @@ export const Header = () => {
     t
   } = useLanguage();
   const navItems = [{
+    href: "/about",
+    label: t('nav.about'),
+    isAnchor: false
+  }, {
     href: "/how-it-works",
     label: t('nav.how-it-works'),
     isAnchor: false
   }, {
     href: "/workflow-studio",
     label: "Workflow Studio",
-    isAnchor: false
-  }, {
-    href: "/about",
-    label: t('nav.about'),
     isAnchor: false
   }, {
     href: "/pricing",
