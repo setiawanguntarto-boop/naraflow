@@ -169,9 +169,7 @@ export const WorkflowStudio = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-brand-primary mb-4">
-            Naraflow Studio
-          </h2>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-brand-primary mb-4">Workflow Studio</h2>
           <p className="text-lg text-foreground-muted">
             Prompt → Workflow → WhatsApp Agent
           </p>
