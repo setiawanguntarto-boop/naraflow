@@ -10,6 +10,7 @@ import Pricing from "./pages/Pricing";
 import Solutions from "./pages/Solutions";
 import FAQ from "./pages/FAQ";
 import Contact from "./pages/Contact";
+import WorkflowStudio from "./pages/WorkflowStudio";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/hooks/use-language";
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/solutions" element={<Solutions />} />
+              <Route path="/workflow-studio" element={<WorkflowStudio />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/contact" element={<Contact />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

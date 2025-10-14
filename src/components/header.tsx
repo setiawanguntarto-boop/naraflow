@@ -14,6 +14,10 @@ export const Header = () => {
     label: t('nav.how-it-works'),
     isAnchor: false
   }, {
+    href: "/workflow-studio",
+    label: "Workflow Studio",
+    isAnchor: false
+  }, {
     href: "/about",
     label: t('nav.about'),
     isAnchor: false
