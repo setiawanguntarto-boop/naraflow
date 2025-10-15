@@ -1,0 +1,58 @@
+import { memo } from 'react';
+import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Database, MapPin, Wifi, CheckSquare, FileText, Send } from 'lucide-react';
+
+const iconMap: Record<string, React.ElementType> = {
+  database: Database,
+  'map-pin': MapPin,
+  wifi: Wifi,
+  'check-square': CheckSquare,
+  'file-text': FileText,
+  send: Send,
+};
+
+export const DefaultNode = memo(({ data, selected }: NodeProps) => {
+  const Icon = data.icon && iconMap[data.icon as string] ? iconMap[data.icon as string] : Database;
+  
+  return (
+    <div
+      className={`
+        px-4 py-3 rounded-xl border-2 bg-card shadow-soft
+        transition-all duration-200
+        min-w-[160px] max-w-[200px]
+        ${selected 
+          ? 'border-brand-primary shadow-glow scale-105' 
+          : 'border-brand-primary/30 hover:border-brand-primary/50'
+        }
+      `}
+    >
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="w-3 h-3 !bg-brand-primary border-2 border-background"
+      />
+      
+      <div className="flex items-center gap-2">
+        {Icon && <Icon className="w-4 h-4 text-brand-primary flex-shrink-0" />}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-foreground truncate">
+            {String(data.label || '')}
+          </p>
+          {data.description && (
+            <p className="text-xs text-foreground-muted truncate">
+              {String(data.description)}
+            </p>
+          )}
+        </div>
+      </div>
+      
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="w-3 h-3 !bg-brand-primary border-2 border-background"
+      />
+    </div>
+  );
+});
+
+DefaultNode.displayName = 'DefaultNode';

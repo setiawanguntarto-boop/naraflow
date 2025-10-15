@@ -1,78 +1,135 @@
-import { useState, useRef, useEffect } from 'react';
-import { Sparkles, Trash2, MapPin, Database, Wifi, CheckSquare, FileText, Send, Workflow, Smartphone, Edit3, Box } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Sparkles, Trash2, Smartphone, Edit3, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-interface WorkflowNode {
-  id: string;
-  label: string;
-  x: number;
-  y: number;
-}
-const NODE_WIDTH = 160;
-const NODE_HEIGHT = 50;
-const toolboxItems = [{
-  label: 'Pilih Lokasi',
-  icon: MapPin
-}, {
-  label: 'Input Data',
-  icon: Database
-}, {
-  label: 'Timbang (IoT)',
-  icon: Wifi
-}, {
-  label: 'Validasi Data',
-  icon: CheckSquare
-}, {
-  label: 'Buat PDF',
-  icon: FileText
-}, {
-  label: 'Notifikasi',
-  icon: Send
-}];
-const scenarios = [{
-  label: '🐔 Manajemen Unggas',
-  prompt: 'Mulai → Pilih Kandang → Input Pakan → Catat Bobot → Validasi → Notifikasi SPV'
-}, {
-  label: '🦐 Manajemen Udang',
-  prompt: 'Mulai → Pilih Tambak → Cek Air → Input Pakan → Catat Kematian → Buat Laporan'
-}];
-export const WorkflowStudio = () => {
+import { Node, Edge, ReactFlowProvider } from '@xyflow/react';
+import { WorkflowCanvas } from '@/components/canvas/WorkflowCanvas';
+import { ToolboxPanel } from '@/components/canvas/ToolboxPanel';
+import { useWorkflowState } from '@/hooks/useWorkflowState';
+import '@xyflow/react/dist/style.css';
+const scenarios = [
+  {
+    label: '🐔 Manajemen Unggas',
+    prompt: 'Mulai → Pilih Kandang → Input Pakan → Catat Bobot → Validasi → Notifikasi SPV'
+  },
+  {
+    label: '🦐 Manajemen Udang',
+    prompt: 'Mulai → Pilih Tambak → Cek Air → Input Pakan → Catat Kematian → Buat Laporan'
+  }
+];
+
+const iconMap: Record<string, string> = {
+  'Pilih Lokasi': 'map-pin',
+  'Input Data': 'database',
+  'Timbang (IoT)': 'wifi',
+  'Validasi Data': 'check-square',
+  'Buat PDF': 'file-text',
+  'Notifikasi': 'send',
+};
+const WorkflowStudioContent = () => {
   const [prompt, setPrompt] = useState('');
-  const [nodes, setNodes] = useState<WorkflowNode[]>([]);
   const [chatMessages, setChatMessages] = useState<Array<{
     content: string;
     type: 'agent' | 'user';
     showTyping?: boolean;
   }>>([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
-  const [dragOffset, setDragOffset] = useState({
-    x: 0,
-    y: 0
-  });
-  const svgRef = useRef<SVGSVGElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
+  
+  const {
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    clearCanvas: clearWorkflowCanvas,
+  } = useWorkflowState();
   const extractSteps = (text: string): string[] => {
     return text.split(/→|->|,/).map(s => s.trim()).filter(Boolean);
   };
-  const generateWorkflow = () => {
+
+  const generateWorkflow = useCallback(() => {
     const steps = extractSteps(prompt);
     if (steps.length === 0) return;
-    const newNodes: WorkflowNode[] = steps.map((label, i) => ({
-      id: `node_${i}_${Date.now()}`,
-      label,
-      x: 100 + i * (NODE_WIDTH + 50),
-      y: 250
-    }));
+
+    const newNodes: Node[] = [];
+    const newEdges: Edge[] = [];
+
+    // Add start node
+    newNodes.push({
+      id: 'start',
+      type: 'start',
+      position: { x: 100, y: 200 },
+      data: { label: 'Mulai' },
+    });
+
+    // Add step nodes
+    steps.forEach((label, i) => {
+      const nodeId = `node_${i}`;
+      newNodes.push({
+        id: nodeId,
+        type: 'default',
+        position: { x: 300 + i * 250, y: 200 },
+        data: { 
+          label,
+          icon: iconMap[label] || 'database',
+        },
+      });
+
+      // Connect to previous node
+      if (i === 0) {
+        newEdges.push({
+          id: `e-start-${nodeId}`,
+          source: 'start',
+          target: nodeId,
+          type: 'smoothstep',
+          animated: true,
+          style: { stroke: 'hsl(var(--brand-primary))', strokeWidth: 2 },
+        });
+      } else {
+        newEdges.push({
+          id: `e-node_${i - 1}-${nodeId}`,
+          source: `node_${i - 1}`,
+          target: nodeId,
+          type: 'smoothstep',
+          animated: true,
+          style: { stroke: 'hsl(var(--brand-primary))', strokeWidth: 2 },
+        });
+      }
+    });
+
+    // Add end node
+    newNodes.push({
+      id: 'end',
+      type: 'end',
+      position: { x: 300 + steps.length * 250, y: 200 },
+      data: { label: 'Selesai' },
+    });
+
+    // Connect last step to end
+    if (steps.length > 0) {
+      newEdges.push({
+        id: `e-node_${steps.length - 1}-end`,
+        source: `node_${steps.length - 1}`,
+        target: 'end',
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: 'hsl(var(--brand-primary))', strokeWidth: 2 },
+      });
+    }
+
     setNodes(newNodes);
-    simulateChat(newNodes);
-  };
-  const clearCanvas = () => {
-    setNodes([]);
+    setEdges(newEdges);
+    simulateChat(steps);
+  }, [prompt, setNodes, setEdges]);
+
+  const clearCanvas = useCallback(() => {
+    clearWorkflowCanvas();
     setPrompt('');
     setChatMessages([]);
-  };
-  const simulateChat = (workflowNodes: WorkflowNode[]) => {
+  }, [clearWorkflowCanvas]);
+  const simulateChat = useCallback((steps: string[]) => {
     const messages: Array<{
       content: string;
       type: 'agent' | 'user';
@@ -80,91 +137,56 @@ export const WorkflowStudio = () => {
       delay: number;
     }> = [];
     let delay = 0;
+
     messages.push({
       content: 'Halo! Saya Agen Rahayu. Mari kita mulai alur kerjanya.',
       type: 'agent',
       delay
     });
     delay += 1000;
-    workflowNodes.forEach((node, i) => {
+
+    steps.forEach((label, i) => {
       messages.push({
-        content: `Langkah ${i + 1}: ${node.label}`,
+        content: `Langkah ${i + 1}: ${label}`,
         type: 'agent',
         showTyping: true,
         delay
       });
       delay += 1500;
       messages.push({
-        content: `Siap, ${node.label} sudah selesai.`,
+        content: `Siap, ${label} sudah selesai.`,
         type: 'user',
         delay
       });
       delay += 1000;
     });
+
     setChatMessages([]);
     messages.forEach(msg => {
       setTimeout(() => {
         setChatMessages(prev => [...prev, msg]);
       }, msg.delay);
     });
-  };
+  }, []);
+  const handleAddNode = useCallback((nodeData: Partial<Node>) => {
+    const newNode: Node = {
+      id: `node_${Date.now()}`,
+      type: nodeData.type || 'default',
+      position: { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
+      data: {
+        label: nodeData.data?.label || 'New Node',
+        icon: nodeData.data?.icon,
+      },
+    };
+    
+    setNodes([...nodes, newNode]);
+  }, [nodes, setNodes]);
+
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [chatMessages]);
-  const handleCanvasMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (!svgRef.current) return;
-    const target = e.target as SVGElement;
-    const nodeGroup = target.closest('[data-node-id]');
-    if (nodeGroup) {
-      const nodeId = nodeGroup.getAttribute('data-node-id');
-      const node = nodes.find(n => n.id === nodeId);
-      if (node) {
-        setIsDragging(true);
-        setSelectedNode(node);
-        const rect = svgRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        setDragOffset({
-          x: x - node.x,
-          y: y - node.y
-        });
-      }
-    }
-  };
-  const handleCanvasMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (!isDragging || !selectedNode || !svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - dragOffset.x;
-    const y = e.clientY - rect.top - dragOffset.y;
-    setNodes(prev => prev.map(n => n.id === selectedNode.id ? {
-      ...n,
-      x,
-      y
-    } : n));
-  };
-  const handleCanvasMouseUp = () => {
-    setIsDragging(false);
-    setSelectedNode(null);
-  };
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const label = e.dataTransfer.getData('text/plain');
-    if (!label || !svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - NODE_WIDTH / 2;
-    const y = e.clientY - rect.top - NODE_HEIGHT / 2;
-    const newNode: WorkflowNode = {
-      id: `node_${Date.now()}`,
-      label,
-      x,
-      y
-    };
-    const updatedNodes = [...nodes, newNode];
-    setNodes(updatedNodes);
-    setPrompt(updatedNodes.map(n => n.label).join(' → '));
-  };
   return <section className="py-20 px-4 bg-background-soft">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -212,14 +234,8 @@ export const WorkflowStudio = () => {
             <p className="text-sm text-foreground-muted mt-1">
               Seret langkah-langkah ini ke canvas.
             </p>
-            <div className="mt-4 grid grid-cols-2 gap-2 text-sm font-medium">
-              {toolboxItems.map((item, idx) => {
-              const Icon = item.icon;
-              return <div key={idx} draggable onDragStart={e => e.dataTransfer.setData('text/plain', item.label)} className="flex items-center gap-2 p-2.5 rounded-lg bg-surface-muted hover:bg-surface-muted/80 cursor-grab active:cursor-grabbing transition-colors">
-                    <Icon className="w-4 h-4 text-foreground-muted" />
-                    {item.label}
-                  </div>;
-            })}
+            <div className="mt-4">
+              <ToolboxPanel onAddNode={handleAddNode} />
             </div>
           </div>
         </div>
@@ -229,44 +245,17 @@ export const WorkflowStudio = () => {
           <div className="border-b border-border px-4 py-3 font-semibold flex justify-between items-center text-foreground">
             <span>Workflow Canvas</span>
             <span className="text-xs text-foreground-light font-normal">
-              Drag nodes to reposition
+              {nodes.length} node{nodes.length !== 1 ? 's' : ''} | Drag to reposition | Click to connect
             </span>
           </div>
-          <div className="relative flex-1 rounded-b-2xl overflow-hidden bg-background-soft" onDragOver={e => e.preventDefault()} onDrop={handleDrop}>
-            <svg ref={svgRef} className="w-full h-full" onMouseDown={handleCanvasMouseDown} onMouseMove={handleCanvasMouseMove} onMouseUp={handleCanvasMouseUp} onMouseLeave={handleCanvasMouseUp}>
-              <defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="hsl(var(--foreground-light))" />
-                </marker>
-              </defs>
-
-              {/* Draw connectors */}
-              {nodes.map((node, i) => {
-              if (i < nodes.length - 1) {
-                const nextNode = nodes[i + 1];
-                return <path key={`connector-${i}`} d={`M ${node.x + NODE_WIDTH} ${node.y + NODE_HEIGHT / 2} L ${nextNode.x} ${nextNode.y + NODE_HEIGHT / 2}`} stroke="hsl(var(--foreground-light))" strokeWidth="2" fill="none" markerEnd="url(#arrow)" />;
-              }
-              return null;
-            })}
-
-              {/* Draw nodes */}
-              {nodes.map(node => <g key={node.id} transform={`translate(${node.x}, ${node.y})`} data-node-id={node.id} className="cursor-grab hover:opacity-90 transition-opacity">
-                  <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx="12" fill="hsl(var(--brand-secondary) / 0.1)" stroke="hsl(var(--brand-secondary) / 0.3)" strokeWidth="2" />
-                  <text x={NODE_WIDTH / 2} y={NODE_HEIGHT / 2} dy="0.3em" textAnchor="middle" fill="hsl(var(--foreground))" fontWeight="600" fontSize="14" style={{
-                pointerEvents: 'none'
-              }}>
-                    {node.label.length > 20 ? node.label.substring(0, 18) + '...' : node.label}
-                  </text>
-                </g>)}
-            </svg>
-
-            {nodes.length === 0 && <div className="absolute inset-0 grid place-items-center text-center text-foreground-muted p-4">
-                <div>
-                  <Workflow className="w-16 h-16 mx-auto text-foreground-light" />
-                  <p className="mt-2 font-medium">Canvas Kosong</p>
-                  <p className="text-sm">Mulai dengan prompt atau seret node dari toolbox.</p>
-                </div>
-              </div>}
+          <div className="relative flex-1 rounded-b-2xl overflow-hidden">
+            <WorkflowCanvas
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+            />
           </div>
         </div>
 
@@ -311,4 +300,12 @@ export const WorkflowStudio = () => {
         </div>
       </div>
     </section>;
+};
+
+export const WorkflowStudio = () => {
+  return (
+    <ReactFlowProvider>
+      <WorkflowStudioContent />
+    </ReactFlowProvider>
+  );
 };
