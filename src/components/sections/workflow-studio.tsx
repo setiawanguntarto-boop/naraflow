@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Node, Edge, ReactFlowProvider } from '@xyflow/react';
 import { WorkflowCanvas } from '@/components/canvas/WorkflowCanvas';
 import { ToolboxPanel } from '@/components/canvas/ToolboxPanel';
+import { MetricsInputPanel } from '@/components/canvas/MetricsInputPanel';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
 import '@xyflow/react/dist/style.css';
 const scenarios = [
@@ -44,6 +45,9 @@ const WorkflowStudioContent = () => {
     onEdgesChange,
     onConnect,
     clearCanvas: clearWorkflowCanvas,
+    selectedNode,
+    setSelectedNode,
+    updateNodeMetrics,
   } = useWorkflowState();
   const extractSteps = (text: string): string[] => {
     return text.split(/→|->|,/).map(s => s.trim()).filter(Boolean);
@@ -255,6 +259,7 @@ const WorkflowStudioContent = () => {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
+              onNodeClick={(node) => setSelectedNode(node)}
             />
           </div>
         </div>
@@ -299,6 +304,12 @@ const WorkflowStudioContent = () => {
           </div>
         </div>
       </div>
+
+      <MetricsInputPanel
+        node={selectedNode}
+        onClose={() => setSelectedNode(null)}
+        onUpdateMetrics={updateNodeMetrics}
+      />
     </section>;
 };
 

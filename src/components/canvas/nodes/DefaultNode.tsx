@@ -13,11 +13,12 @@ const iconMap: Record<string, React.ElementType> = {
 
 export const DefaultNode = memo(({ data, selected }: NodeProps) => {
   const Icon = data.icon && iconMap[data.icon as string] ? iconMap[data.icon as string] : Database;
+  const metricsCount = (data.metrics as string[] | undefined)?.length || 0;
   
   return (
     <div
       className={`
-        px-4 py-3 rounded-xl border-2 bg-card shadow-soft
+        relative px-4 py-3 rounded-xl border-2 bg-card shadow-soft
         transition-all duration-200
         min-w-[160px] max-w-[200px]
         ${selected 
@@ -26,6 +27,11 @@ export const DefaultNode = memo(({ data, selected }: NodeProps) => {
         }
       `}
     >
+      {metricsCount > 0 && (
+        <div className="absolute -top-2 -right-2 bg-brand-secondary text-white text-xs font-semibold w-6 h-6 rounded-full flex items-center justify-center shadow-soft">
+          {metricsCount}
+        </div>
+      )}
       <Handle
         type="target"
         position={Position.Left}

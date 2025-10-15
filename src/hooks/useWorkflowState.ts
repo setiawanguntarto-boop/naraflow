@@ -13,6 +13,7 @@ interface WorkflowState {
   onConnect: (connection: Connection) => void;
   addNode: (node: Node) => void;
   clearCanvas: () => void;
+  updateNodeMetrics: (nodeId: string, metrics: string[]) => void;
 }
 
 export const useWorkflowState = create<WorkflowState>((set, get) => ({
@@ -61,6 +62,16 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
       nodes: [],
       edges: [],
       selectedNode: null,
+    });
+  },
+  
+  updateNodeMetrics: (nodeId, metrics) => {
+    set({
+      nodes: get().nodes.map(node =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, metrics } }
+          : node
+      ),
     });
   },
 }));
