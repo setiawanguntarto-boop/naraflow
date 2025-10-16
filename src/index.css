@@ -217,6 +217,16 @@
       transform: translateY(0);
     }
   }
+
+  /* Drag & Drop Visual Feedback */
+  .workflow-canvas {
+    transition: background-color 0.2s ease;
+  }
+
+  .dragging-over {
+    background-color: hsl(var(--brand-primary) / 0.05) !important;
+    border: 2px dashed hsl(var(--brand-primary) / 0.3);
+  }
 }
 
 @layer base {

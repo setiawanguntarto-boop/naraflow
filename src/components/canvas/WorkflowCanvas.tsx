@@ -14,6 +14,7 @@ import {
   applyEdgeChanges,
   Connection,
   BackgroundVariant,
+  useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { DefaultNode } from './nodes/DefaultNode';
@@ -35,6 +36,7 @@ interface WorkflowCanvasProps {
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
   onNodeClick?: (node: Node) => void;
+  onDrop?: (nodeData: any, position: { x: number; y: number }) => void;
 }
 
 export const WorkflowCanvas = ({
@@ -44,7 +46,10 @@ export const WorkflowCanvas = ({
   onEdgesChange,
   onConnect,
   onNodeClick,
+  onDrop,
 }: WorkflowCanvasProps) => {
+  const { screenToFlowPosition } = useReactFlow();
+  
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
       onNodeClick?.(node);
@@ -52,8 +57,35 @@ export const WorkflowCanvas = ({
     [onNodeClick]
   );
 
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  }, []);
+
+  const handleDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const nodeDataString = event.dataTransfer.getData('application/reactflow');
+      if (!nodeDataString || !onDrop) return;
+
+      try {
+        const nodeData = JSON.parse(nodeDataString);
+        const position = screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+
+        onDrop(nodeData, position);
+      } catch (error) {
+        console.error('Failed to parse dropped node data:', error);
+      }
+    },
+    [screenToFlowPosition, onDrop]
+  );
+
   return (
-    <div className="w-full h-full bg-background-soft">
+    <div className="w-full h-full bg-background-soft" onDrop={handleDrop} onDragOver={handleDragOver}>
       <ReactFlow
         nodes={nodes}
         edges={edges}

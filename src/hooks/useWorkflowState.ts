@@ -52,8 +52,41 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
   },
   
   addNode: (node) => {
+    const currentNodes = get().nodes;
+    const currentEdges = get().edges;
+    
+    // Check if we need to create a start node
+    const hasStartNode = currentNodes.some(n => n.type === 'start');
+    const newNodes = [...currentNodes];
+    const newEdges = [...currentEdges];
+    
+    if (!hasStartNode && node.type === 'default') {
+      // Create start node
+      const startNode: Node = {
+        id: 'start',
+        type: 'start',
+        position: { x: node.position.x - 250, y: node.position.y },
+        data: { label: 'Mulai' },
+      };
+      newNodes.push(startNode);
+      
+      // Connect start to new node
+      newEdges.push({
+        id: `e-start-${node.id}`,
+        source: 'start',
+        target: node.id,
+        type: 'smoothstep',
+        animated: true,
+        style: { stroke: 'hsl(var(--brand-primary))', strokeWidth: 2 },
+      });
+    }
+    
+    // Add the new node
+    newNodes.push(node);
+    
     set({
-      nodes: [...get().nodes, node],
+      nodes: newNodes,
+      edges: newEdges,
     });
   },
   

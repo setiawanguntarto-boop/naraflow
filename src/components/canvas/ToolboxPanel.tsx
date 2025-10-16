@@ -11,14 +11,21 @@ const toolboxItems = [
   { label: 'Keputusan', icon: 'help-circle', IconComponent: HelpCircle, type: 'decision' },
 ];
 
-interface ToolboxPanelProps {
-  onAddNode: (node: Partial<Node>) => void;
-}
-
-export const ToolboxPanel = ({ onAddNode }: ToolboxPanelProps) => {
+export const ToolboxPanel = () => {
   const handleDragStart = (event: React.DragEvent, nodeData: any) => {
-    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.effectAllowed = 'copy';
     event.dataTransfer.setData('application/reactflow', JSON.stringify(nodeData));
+    
+    // Add visual feedback
+    if (event.currentTarget instanceof HTMLElement) {
+      event.currentTarget.style.opacity = '0.5';
+    }
+  };
+
+  const handleDragEnd = (event: React.DragEvent) => {
+    if (event.currentTarget instanceof HTMLElement) {
+      event.currentTarget.style.opacity = '1';
+    }
   };
 
   return (
@@ -34,6 +41,7 @@ export const ToolboxPanel = ({ onAddNode }: ToolboxPanelProps) => {
               icon: item.icon,
               type: item.type,
             })}
+            onDragEnd={handleDragEnd}
             className={`
               flex items-center gap-2 p-2.5 rounded-lg 
               cursor-grab active:cursor-grabbing transition-all

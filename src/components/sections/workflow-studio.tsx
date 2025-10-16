@@ -44,6 +44,7 @@ const WorkflowStudioContent = () => {
     onNodesChange,
     onEdgesChange,
     onConnect,
+    addNode,
     clearCanvas: clearWorkflowCanvas,
     selectedNode,
     setSelectedNode,
@@ -172,19 +173,20 @@ const WorkflowStudioContent = () => {
       }, msg.delay);
     });
   }, []);
-  const handleAddNode = useCallback((nodeData: Partial<Node>) => {
+  const handleCanvasDrop = useCallback((nodeData: any, position: { x: number; y: number }) => {
     const newNode: Node = {
       id: `node_${Date.now()}`,
       type: nodeData.type || 'default',
-      position: { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
+      position,
       data: {
-        label: nodeData.data?.label || 'New Node',
-        icon: nodeData.data?.icon,
+        label: nodeData.label,
+        icon: nodeData.icon,
+        ...(nodeData.label === 'Input Data' && { metrics: [] }),
       },
     };
     
-    setNodes([...nodes, newNode]);
-  }, [nodes, setNodes]);
+    addNode(newNode);
+  }, [addNode]);
 
   useEffect(() => {
     if (chatRef.current) {
@@ -239,7 +241,7 @@ const WorkflowStudioContent = () => {
               Seret langkah-langkah ini ke canvas.
             </p>
             <div className="mt-4">
-              <ToolboxPanel onAddNode={handleAddNode} />
+              <ToolboxPanel />
             </div>
           </div>
         </div>
@@ -260,6 +262,7 @@ const WorkflowStudioContent = () => {
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               onNodeClick={(node) => setSelectedNode(node)}
+              onDrop={handleCanvasDrop}
             />
           </div>
         </div>
