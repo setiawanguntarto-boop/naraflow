@@ -49,6 +49,7 @@ const WorkflowStudioContent = () => {
     selectedNode,
     setSelectedNode,
     updateNodeMetrics,
+    deleteEdge,
   } = useWorkflowState();
   const extractSteps = (text: string): string[] => {
     return text.split(/→|->|,/).map(s => s.trim()).filter(Boolean);
@@ -263,6 +264,7 @@ const WorkflowStudioContent = () => {
               onConnect={onConnect}
               onNodeClick={(node) => setSelectedNode(node)}
               onDrop={handleCanvasDrop}
+              onDeleteEdge={deleteEdge}
             />
           </div>
         </div>

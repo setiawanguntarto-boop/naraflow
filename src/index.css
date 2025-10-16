@@ -227,6 +227,26 @@
     background-color: hsl(var(--brand-primary) / 0.05) !important;
     border: 2px dashed hsl(var(--brand-primary) / 0.3);
   }
+
+  /* React Flow Edge Styling */
+  .react-flow__edge-path {
+    cursor: pointer;
+    transition: stroke 0.2s ease, stroke-width 0.2s ease;
+  }
+
+  .react-flow__edge-path:hover {
+    stroke: hsl(var(--brand-secondary)) !important;
+    stroke-width: 3 !important;
+  }
+
+  .react-flow__edge.selected-edge .react-flow__edge-path {
+    stroke: hsl(var(--brand-secondary)) !important;
+    stroke-width: 3 !important;
+  }
+
+  .react-flow__edge.selected-edge {
+    z-index: 1000;
+  }
 }
 
 @layer base {

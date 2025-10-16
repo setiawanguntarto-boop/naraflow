@@ -14,6 +14,7 @@ interface WorkflowState {
   addNode: (node: Node) => void;
   clearCanvas: () => void;
   updateNodeMetrics: (nodeId: string, metrics: string[]) => void;
+  deleteEdge: (edgeId: string) => void;
 }
 
 export const useWorkflowState = create<WorkflowState>((set, get) => ({
@@ -105,6 +106,12 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
           ? { ...node, data: { ...node.data, metrics } }
           : node
       ),
+    });
+  },
+  
+  deleteEdge: (edgeId) => {
+    set({
+      edges: get().edges.filter(edge => edge.id !== edgeId),
     });
   },
 }));

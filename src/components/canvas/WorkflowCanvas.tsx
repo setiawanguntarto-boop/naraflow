@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -15,6 +15,8 @@ import {
   Connection,
   BackgroundVariant,
   useReactFlow,
+  EdgeProps,
+  getBezierPath,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { DefaultNode } from './nodes/DefaultNode';
@@ -37,6 +39,7 @@ interface WorkflowCanvasProps {
   onConnect: OnConnect;
   onNodeClick?: (node: Node) => void;
   onDrop?: (nodeData: any, position: { x: number; y: number }) => void;
+  onDeleteEdge?: (edgeId: string) => void;
 }
 
 export const WorkflowCanvas = ({
@@ -47,8 +50,10 @@ export const WorkflowCanvas = ({
   onConnect,
   onNodeClick,
   onDrop,
+  onDeleteEdge,
 }: WorkflowCanvasProps) => {
   const { screenToFlowPosition } = useReactFlow();
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -84,15 +89,42 @@ export const WorkflowCanvas = ({
     [screenToFlowPosition, onDrop]
   );
 
+  const handleEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
+    setSelectedEdgeId(edge.id);
+  }, []);
+
+  // Keyboard shortcut for edge deletion
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEdgeId && onDeleteEdge) {
+        // Prevent default backspace navigation
+        e.preventDefault();
+        onDeleteEdge(selectedEdgeId);
+        setSelectedEdgeId(null);
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedEdgeId, onDeleteEdge]);
+
   return (
     <div className="w-full h-full bg-background-soft" onDrop={handleDrop} onDragOver={handleDragOver}>
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={edges.map(edge => ({
+          ...edge,
+          style: {
+            ...edge.style,
+            strokeWidth: selectedEdgeId === edge.id ? 3 : 2,
+          },
+          className: selectedEdgeId === edge.id ? 'selected-edge' : '',
+        }))}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={handleNodeClick}
+        onEdgeClick={handleEdgeClick}
         nodeTypes={nodeTypes}
         fitView
         attributionPosition="bottom-right"
