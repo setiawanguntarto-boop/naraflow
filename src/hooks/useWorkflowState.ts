@@ -5,15 +5,25 @@ interface WorkflowState {
   nodes: Node[];
   edges: Edge[];
   selectedNode: Node | null;
+  defaultEdgeType: 'smoothstep' | 'straight' | 'step' | 'default';
+  defaultEdgeStyle: 'solid' | 'dashed' | 'dotted';
+  defaultEdgeAnimated: boolean;
+  defaultEdgeWidth: number;
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
   setSelectedNode: (node: Node | null) => void;
+  setDefaultEdgeType: (type: 'smoothstep' | 'straight' | 'step' | 'default') => void;
+  setDefaultEdgeStyle: (style: 'solid' | 'dashed' | 'dotted') => void;
+  setDefaultEdgeAnimated: (animated: boolean) => void;
+  setDefaultEdgeWidth: (width: number) => void;
   onNodesChange: (changes: any) => void;
   onEdgesChange: (changes: any) => void;
   onConnect: (connection: Connection) => void;
   addNode: (node: Node) => void;
   clearCanvas: () => void;
   updateNodeMetrics: (nodeId: string, metrics: string[]) => void;
+  updateEdgeStyle: (edgeId: string, updates: Partial<Edge>) => void;
+  applyStyleToAllEdges: (style: any) => void;
   deleteEdge: (edgeId: string) => void;
 }
 
@@ -21,10 +31,18 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
   nodes: [],
   edges: [],
   selectedNode: null,
+  defaultEdgeType: 'smoothstep',
+  defaultEdgeStyle: 'solid',
+  defaultEdgeAnimated: true,
+  defaultEdgeWidth: 2,
   
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
   setSelectedNode: (node) => set({ selectedNode: node }),
+  setDefaultEdgeType: (type) => set({ defaultEdgeType: type }),
+  setDefaultEdgeStyle: (style) => set({ defaultEdgeStyle: style }),
+  setDefaultEdgeAnimated: (animated) => set({ defaultEdgeAnimated: animated }),
+  setDefaultEdgeWidth: (width) => set({ defaultEdgeWidth: width }),
   
   onNodesChange: (changes) => {
     set({
@@ -39,13 +57,29 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
   },
   
   onConnect: (connection) => {
+    const { defaultEdgeType, defaultEdgeStyle, defaultEdgeAnimated, defaultEdgeWidth } = get();
+    
+    let strokeDasharray = undefined;
+    if (defaultEdgeStyle === 'dashed') {
+      strokeDasharray = '5, 5';
+    } else if (defaultEdgeStyle === 'dotted') {
+      strokeDasharray = '2, 4';
+    }
+    
     set({
       edges: addEdge(
         {
           ...connection,
-          type: 'smoothstep',
-          animated: true,
-          style: { stroke: 'hsl(var(--brand-primary))', strokeWidth: 2 },
+          type: defaultEdgeType,
+          animated: defaultEdgeAnimated,
+          style: { 
+            stroke: 'hsl(var(--brand-primary))', 
+            strokeWidth: defaultEdgeWidth,
+            strokeDasharray,
+          },
+          data: {
+            lineStyle: defaultEdgeStyle,
+          },
         },
         get().edges
       ),
@@ -122,6 +156,25 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
         }
         return node;
       }),
+    });
+  },
+  
+  updateEdgeStyle: (edgeId, updates) => {
+    set({
+      edges: get().edges.map(edge => 
+        edge.id === edgeId 
+          ? { ...edge, ...updates }
+          : edge
+      ),
+    });
+  },
+  
+  applyStyleToAllEdges: (style) => {
+    set({
+      edges: get().edges.map(edge => ({
+        ...edge,
+        ...style,
+      })),
     });
   },
   

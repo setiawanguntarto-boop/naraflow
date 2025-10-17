@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Sparkles, Trash2, Smartphone, Edit3, Box } from 'lucide-react';
+import { Sparkles, Trash2, Smartphone, Edit3, Box, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Node, Edge, ReactFlowProvider } from '@xyflow/react';
 import { WorkflowCanvas } from '@/components/canvas/WorkflowCanvas';
 import { ToolboxPanel } from '@/components/canvas/ToolboxPanel';
 import { MetricsInputPanel } from '@/components/canvas/MetricsInputPanel';
+import { EdgeSettingsPanel } from '@/components/canvas/EdgeSettingsPanel';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
 import '@xyflow/react/dist/style.css';
 const scenarios = [
@@ -29,6 +30,7 @@ const iconMap: Record<string, string> = {
 };
 const WorkflowStudioContent = () => {
   const [prompt, setPrompt] = useState('');
+  const [showEdgeSettings, setShowEdgeSettings] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{
     content: string;
     type: 'agent' | 'user';
@@ -49,6 +51,7 @@ const WorkflowStudioContent = () => {
     selectedNode,
     setSelectedNode,
     updateNodeMetrics,
+    updateEdgeStyle,
     deleteEdge,
   } = useWorkflowState();
   const extractSteps = (text: string): string[] => {
@@ -247,26 +250,47 @@ const WorkflowStudioContent = () => {
           </div>
         </div>
 
-        {/* Canvas */}
-        <div className="bg-card rounded-2xl border border-border-light shadow-soft h-[600px] flex flex-col mb-6">
-          <div className="border-b border-border px-4 py-3 font-semibold flex justify-between items-center text-foreground">
-            <span>Workflow Canvas</span>
-            <span className="text-xs text-foreground-light font-normal">
-              {nodes.length} node{nodes.length !== 1 ? 's' : ''} | Drag to reposition | Click to connect
-            </span>
+        {/* Canvas with Edge Settings */}
+        <div className="bg-card rounded-2xl border border-border-light shadow-soft h-[600px] flex mb-6">
+          <div className="flex-1 flex flex-col">
+            <div className="border-b border-border px-4 py-3 font-semibold flex justify-between items-center text-foreground">
+              <span>Workflow Canvas</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowEdgeSettings(!showEdgeSettings)}
+                  className={showEdgeSettings ? 'bg-brand-primary/10' : ''}
+                >
+                  <Settings2 className="w-4 h-4 mr-1" />
+                  Edge Settings
+                </Button>
+                <span className="text-xs text-foreground-light font-normal">
+                  {nodes.length} node{nodes.length !== 1 ? 's' : ''} | {edges.length} edge{edges.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+            <div className="relative flex-1 rounded-bl-2xl overflow-hidden">
+              <WorkflowCanvas
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onNodeClick={(node) => setSelectedNode(node)}
+                onDrop={handleCanvasDrop}
+                onDeleteEdge={deleteEdge}
+                onUpdateEdge={updateEdgeStyle}
+              />
+            </div>
           </div>
-          <div className="relative flex-1 rounded-b-2xl overflow-hidden">
-            <WorkflowCanvas
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onNodeClick={(node) => setSelectedNode(node)}
-              onDrop={handleCanvasDrop}
-              onDeleteEdge={deleteEdge}
-            />
-          </div>
+          
+          {/* Edge Settings Panel */}
+          {showEdgeSettings && (
+            <div className="w-80 flex-shrink-0">
+              <EdgeSettingsPanel />
+            </div>
+          )}
         </div>
 
         {/* WhatsApp Simulation */}

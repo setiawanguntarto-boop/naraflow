@@ -9,20 +9,15 @@ import {
   OnNodesChange,
   OnEdgesChange,
   OnConnect,
-  addEdge,
-  applyNodeChanges,
-  applyEdgeChanges,
-  Connection,
   BackgroundVariant,
   useReactFlow,
-  EdgeProps,
-  getBezierPath,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { DefaultNode } from './nodes/DefaultNode';
 import { DecisionNode } from './nodes/DecisionNode';
 import { StartNode } from './nodes/StartNode';
 import { EndNode } from './nodes/EndNode';
+import { EdgeContextMenu } from './EdgeContextMenu';
 
 const nodeTypes = {
   default: DefaultNode,
@@ -40,6 +35,7 @@ interface WorkflowCanvasProps {
   onNodeClick?: (node: Node) => void;
   onDrop?: (nodeData: any, position: { x: number; y: number }) => void;
   onDeleteEdge?: (edgeId: string) => void;
+  onUpdateEdge?: (edgeId: string, updates: Partial<Edge>) => void;
 }
 
 export const WorkflowCanvas = ({
@@ -51,9 +47,11 @@ export const WorkflowCanvas = ({
   onNodeClick,
   onDrop,
   onDeleteEdge,
+  onUpdateEdge,
 }: WorkflowCanvasProps) => {
   const { screenToFlowPosition } = useReactFlow();
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [contextMenuEdge, setContextMenuEdge] = useState<Edge | null>(null);
   
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -93,38 +91,118 @@ export const WorkflowCanvas = ({
     setSelectedEdgeId(edge.id);
   }, []);
 
-  // Keyboard shortcut for edge deletion
+  const handleEdgeContextMenu = useCallback(
+    (event: React.MouseEvent, edge: Edge) => {
+      event.preventDefault();
+      setContextMenuEdge(edge);
+      setSelectedEdgeId(edge.id);
+    },
+    []
+  );
+
+  // Keyboard shortcuts for edge operations
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEdgeId && onDeleteEdge) {
-        // Prevent default backspace navigation
+      if (!selectedEdgeId) return;
+      
+      // Prevent if user is typing in input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
+      // Delete/Backspace - Delete edge
+      if ((e.key === 'Delete' || e.key === 'Backspace') && onDeleteEdge) {
         e.preventDefault();
         onDeleteEdge(selectedEdgeId);
         setSelectedEdgeId(null);
+        return;
+      }
+      
+      // Keyboard shortcuts for edge type
+      if (onUpdateEdge) {
+        switch(e.key) {
+          case '1':
+            onUpdateEdge(selectedEdgeId, { type: 'smoothstep' });
+            break;
+          case '2':
+            onUpdateEdge(selectedEdgeId, { type: 'straight' });
+            break;
+          case '3':
+            onUpdateEdge(selectedEdgeId, { type: 'step' });
+            break;
+          case '4':
+            onUpdateEdge(selectedEdgeId, { type: 'default' });
+            break;
+          case 'd':
+          case 'D':
+            e.preventDefault();
+            const currentEdge = edges.find(edge => edge.id === selectedEdgeId);
+            const isDashed = currentEdge?.data?.lineStyle === 'dashed';
+            onUpdateEdge(selectedEdgeId, {
+              style: {
+                ...currentEdge?.style,
+                strokeDasharray: isDashed ? undefined : '5, 5',
+              },
+              data: {
+                ...currentEdge?.data,
+                lineStyle: isDashed ? 'solid' : 'dashed',
+              },
+            });
+            break;
+          case 'a':
+          case 'A':
+            e.preventDefault();
+            const edge = edges.find(e => e.id === selectedEdgeId);
+            onUpdateEdge(selectedEdgeId, { animated: !edge?.animated });
+            break;
+        }
       }
     };
     
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedEdgeId, onDeleteEdge]);
+  }, [selectedEdgeId, onDeleteEdge, onUpdateEdge, edges]);
+
+  // Apply dynamic styling to edges
+  const styledEdges = edges.map(edge => {
+    const lineStyle = edge.data?.lineStyle || 'solid';
+    const className = `
+      ${selectedEdgeId === edge.id ? 'selected-edge' : ''}
+      ${lineStyle === 'dashed' ? 'edge-dashed' : ''}
+      ${lineStyle === 'dotted' ? 'edge-dotted' : ''}
+    `.trim();
+    
+    return {
+      ...edge,
+      className,
+      style: {
+        ...edge.style,
+        strokeWidth: selectedEdgeId === edge.id ? 3 : (edge.style?.strokeWidth || 2),
+      },
+    };
+  });
 
   return (
     <div className="w-full h-full bg-background-soft" onDrop={handleDrop} onDragOver={handleDragOver}>
+      {contextMenuEdge && onUpdateEdge && onDeleteEdge && (
+        <EdgeContextMenu
+          edge={contextMenuEdge}
+          onDeleteEdge={onDeleteEdge}
+          onUpdateEdge={onUpdateEdge}
+        >
+          <div className="absolute inset-0 pointer-events-none" onClick={() => setContextMenuEdge(null)} />
+        </EdgeContextMenu>
+      )}
+      
       <ReactFlow
         nodes={nodes}
-        edges={edges.map(edge => ({
-          ...edge,
-          style: {
-            ...edge.style,
-            strokeWidth: selectedEdgeId === edge.id ? 3 : 2,
-          },
-          className: selectedEdgeId === edge.id ? 'selected-edge' : '',
-        }))}
+        edges={styledEdges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
+        onEdgeContextMenu={handleEdgeContextMenu}
         nodeTypes={nodeTypes}
         fitView
         attributionPosition="bottom-right"

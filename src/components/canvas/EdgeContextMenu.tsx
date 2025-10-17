@@ -4,18 +4,27 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { Trash2, Info } from 'lucide-react';
+import { Trash2, Info, Waves, Minus, Square, Move, Zap, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface EdgeContextMenuProps {
   edge: Edge;
   onDeleteEdge: (edgeId: string) => void;
+  onUpdateEdge: (edgeId: string, updates: Partial<Edge>) => void;
   children: React.ReactNode;
 }
 
-export const EdgeContextMenu = ({ edge, onDeleteEdge, children }: EdgeContextMenuProps) => {
+export const EdgeContextMenu = ({ edge, onDeleteEdge, onUpdateEdge, children }: EdgeContextMenuProps) => {
+  const isAnimated = edge.animated ?? false;
+  const currentType = edge.type || 'smoothstep';
+  const currentStyle = edge.data?.lineStyle || 'solid';
+
   const handleDelete = useCallback(() => {
     onDeleteEdge(edge.id);
     toast.success('Connection deleted', {
@@ -23,19 +32,128 @@ export const EdgeContextMenu = ({ edge, onDeleteEdge, children }: EdgeContextMen
     });
   }, [edge.id, onDeleteEdge]);
 
+  const handleEdgeTypeChange = useCallback((type: string) => {
+    onUpdateEdge(edge.id, { type: type as any });
+    toast.success('Edge type updated', {
+      description: `Changed to ${type}`,
+    });
+  }, [edge.id, onUpdateEdge]);
+
+  const handleLineStyleChange = useCallback((style: string) => {
+    let strokeDasharray = undefined;
+    if (style === 'dashed') {
+      strokeDasharray = '5, 5';
+    } else if (style === 'dotted') {
+      strokeDasharray = '2, 4';
+    }
+
+    onUpdateEdge(edge.id, {
+      style: {
+        ...edge.style,
+        strokeDasharray,
+      },
+      data: {
+        ...edge.data,
+        lineStyle: style,
+      },
+    });
+    toast.success('Line style updated', {
+      description: `Changed to ${style}`,
+    });
+  }, [edge, onUpdateEdge]);
+
+  const handleToggleAnimation = useCallback(() => {
+    onUpdateEdge(edge.id, { animated: !isAnimated });
+    toast.success(isAnimated ? 'Animation disabled' : 'Animation enabled');
+  }, [edge.id, isAnimated, onUpdateEdge]);
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         {children}
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-48">
+      <ContextMenuContent className="w-56">
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <Settings2 className="w-4 h-4 mr-2" />
+            Edge Type
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            <ContextMenuItem 
+              onClick={() => handleEdgeTypeChange('smoothstep')}
+              className={currentType === 'smoothstep' ? 'bg-brand-primary/10' : ''}
+            >
+              <Waves className="w-4 h-4 mr-2" />
+              Smooth Step
+            </ContextMenuItem>
+            <ContextMenuItem 
+              onClick={() => handleEdgeTypeChange('straight')}
+              className={currentType === 'straight' ? 'bg-brand-primary/10' : ''}
+            >
+              <Minus className="w-4 h-4 mr-2" />
+              Straight
+            </ContextMenuItem>
+            <ContextMenuItem 
+              onClick={() => handleEdgeTypeChange('step')}
+              className={currentType === 'step' ? 'bg-brand-primary/10' : ''}
+            >
+              <Square className="w-4 h-4 mr-2" />
+              Step
+            </ContextMenuItem>
+            <ContextMenuItem 
+              onClick={() => handleEdgeTypeChange('default')}
+              className={currentType === 'default' ? 'bg-brand-primary/10' : ''}
+            >
+              <Move className="w-4 h-4 mr-2" />
+              Bezier
+            </ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <Settings2 className="w-4 h-4 mr-2" />
+            Line Style
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            <ContextMenuItem 
+              onClick={() => handleLineStyleChange('solid')}
+              className={currentStyle === 'solid' ? 'bg-brand-primary/10' : ''}
+            >
+              ━━━ Solid
+            </ContextMenuItem>
+            <ContextMenuItem 
+              onClick={() => handleLineStyleChange('dashed')}
+              className={currentStyle === 'dashed' ? 'bg-brand-primary/10' : ''}
+            >
+              ┈┈┈ Dashed
+            </ContextMenuItem>
+            <ContextMenuItem 
+              onClick={() => handleLineStyleChange('dotted')}
+              className={currentStyle === 'dotted' ? 'bg-brand-primary/10' : ''}
+            >
+              ⋯⋯⋯ Dotted
+            </ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+
+        <ContextMenuSeparator />
+
+        <ContextMenuItem onClick={handleToggleAnimation}>
+          <Zap className="w-4 h-4 mr-2" />
+          {isAnimated ? 'Disable' : 'Enable'} Animation
+        </ContextMenuItem>
+
+        <ContextMenuSeparator />
+
         <ContextMenuItem 
           onClick={handleDelete}
-          className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+          className="text-destructive focus:text-destructive cursor-pointer"
         >
           <Trash2 className="w-4 h-4 mr-2" />
           Delete Connection
         </ContextMenuItem>
+        
         <ContextMenuItem className="cursor-default opacity-60">
           <Info className="w-4 h-4 mr-2" />
           Edge ID: {edge.id.slice(0, 8)}...
