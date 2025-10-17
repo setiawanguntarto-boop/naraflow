@@ -101,11 +101,27 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
   
   updateNodeMetrics: (nodeId, metrics) => {
     set({
-      nodes: get().nodes.map(node =>
-        node.id === nodeId
-          ? { ...node, data: { ...node.data, metrics } }
-          : node
-      ),
+      nodes: get().nodes.map(node => {
+        if (node.id === nodeId) {
+          // Generate new label based on metrics
+          const newLabel = metrics.length > 0 
+            ? metrics.length === 1
+              ? metrics[0] // Show first metric only
+              : `${metrics[0]} (+${metrics.length - 1})` // Show first + count
+            : node.data.originalLabel || node.data.label || 'Input Data'; // Fallback to original label
+          
+          return { 
+            ...node, 
+            data: { 
+              ...node.data, 
+              metrics,
+              label: newLabel,
+              originalLabel: node.data.originalLabel || node.data.label // Preserve original label
+            } 
+          };
+        }
+        return node;
+      }),
     });
   },
   

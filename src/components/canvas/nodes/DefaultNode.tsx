@@ -18,9 +18,9 @@ export const DefaultNode = memo(({ data, selected }: NodeProps) => {
   return (
     <div
       className={`
-        relative px-4 py-3 rounded-xl border-2 bg-card shadow-soft
-        transition-all duration-200
-        min-w-[160px] max-w-[200px]
+      relative px-4 py-3 rounded-xl border-2 bg-card shadow-soft
+      transition-all duration-200
+      min-w-[160px] max-w-[280px]
         ${selected 
           ? 'border-brand-primary shadow-glow scale-105' 
           : 'border-brand-primary/30 hover:border-brand-primary/50'

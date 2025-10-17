@@ -64,6 +64,12 @@ export const MetricsInputPanel = ({ node, onClose, onUpdateMetrics }: MetricsInp
     
     const updatedMetrics = [...metrics, newMetric];
     setMetrics(updatedMetrics);
+    
+    // Update node label immediately
+    if (node) {
+      onUpdateMetrics(node.id, updatedMetrics);
+    }
+    
     setInputValue('');
   };
 
