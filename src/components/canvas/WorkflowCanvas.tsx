@@ -36,6 +36,13 @@ interface WorkflowCanvasProps {
   onDrop?: (nodeData: any, position: { x: number; y: number }) => void;
   onDeleteEdge?: (edgeId: string) => void;
   onUpdateEdge?: (edgeId: string, updates: Partial<Edge>) => void;
+  onCopy?: () => void;
+  onPaste?: () => void;
+  onDuplicate?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: () => boolean;
+  canRedo?: () => boolean;
 }
 
 export const WorkflowCanvas = ({
@@ -48,10 +55,18 @@ export const WorkflowCanvas = ({
   onDrop,
   onDeleteEdge,
   onUpdateEdge,
+  onCopy,
+  onPaste,
+  onDuplicate,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }: WorkflowCanvasProps) => {
   const { screenToFlowPosition } = useReactFlow();
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [contextMenuEdge, setContextMenuEdge] = useState<Edge | null>(null);
+  const [selectedCount, setSelectedCount] = useState(0);
   
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -100,15 +115,73 @@ export const WorkflowCanvas = ({
     []
   );
 
-  // Keyboard shortcuts for edge operations
+  // Track selection changes
+  useEffect(() => {
+    const selectedNodes = nodes.filter(n => n.selected).length;
+    const selectedEdges = edges.filter(e => e.selected).length;
+    setSelectedCount(selectedNodes + selectedEdges);
+  }, [nodes, edges]);
+
+  // Keyboard shortcuts for all operations
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedEdgeId) return;
-      
       // Prevent if user is typing in input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
+      
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+      
+      // Copy: Ctrl/Cmd + C
+      if (cmdKey && e.key === 'c') {
+        e.preventDefault();
+        const selectedNodesCount = nodes.filter(n => n.selected).length;
+        if (selectedNodesCount > 0 && onCopy) {
+          onCopy();
+        }
+        return;
+      }
+      
+      // Paste: Ctrl/Cmd + V
+      if (cmdKey && e.key === 'v') {
+        e.preventDefault();
+        if (onPaste) {
+          onPaste();
+        }
+        return;
+      }
+      
+      // Duplicate: Ctrl/Cmd + D
+      if (cmdKey && e.key === 'd') {
+        e.preventDefault();
+        const selectedNodesCount = nodes.filter(n => n.selected).length;
+        if (selectedNodesCount > 0 && onDuplicate) {
+          onDuplicate();
+        }
+        return;
+      }
+      
+      // Undo: Ctrl/Cmd + Z (without Shift)
+      if (cmdKey && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (canUndo?.() && onUndo) {
+          onUndo();
+        }
+        return;
+      }
+      
+      // Redo: Ctrl/Cmd + Shift + Z OR Ctrl/Cmd + Y
+      if ((cmdKey && e.shiftKey && e.key === 'z') || (cmdKey && e.key === 'y')) {
+        e.preventDefault();
+        if (canRedo?.() && onRedo) {
+          onRedo();
+        }
+        return;
+      }
+      
+      // Edge operations (only when edge is selected)
+      if (!selectedEdgeId) return;
       
       // Delete/Backspace - Delete edge
       if ((e.key === 'Delete' || e.key === 'Backspace') && onDeleteEdge) {
@@ -161,7 +234,7 @@ export const WorkflowCanvas = ({
     
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedEdgeId, onDeleteEdge, onUpdateEdge, edges]);
+  }, [selectedEdgeId, onDeleteEdge, onUpdateEdge, edges, nodes, onCopy, onPaste, onDuplicate, onUndo, onRedo, canUndo, canRedo]);
 
   // Apply dynamic styling to edges
   const styledEdges = edges.map(edge => {
@@ -184,6 +257,13 @@ export const WorkflowCanvas = ({
 
   return (
     <div className="w-full h-full bg-background-soft" onDrop={handleDrop} onDragOver={handleDragOver}>
+      {/* Selection counter badge */}
+      {selectedCount > 1 && (
+        <div className="selection-count">
+          {selectedCount} items selected
+        </div>
+      )}
+      
       {contextMenuEdge && onUpdateEdge && onDeleteEdge && (
         <EdgeContextMenu
           edge={contextMenuEdge}
@@ -207,6 +287,9 @@ export const WorkflowCanvas = ({
         fitView
         attributionPosition="bottom-right"
         className="workflow-canvas"
+        multiSelectionKeyCode="Shift"
+        panOnDrag={[1, 2]}
+        selectionOnDrag
       >
         <Background 
           variant={BackgroundVariant.Dots} 

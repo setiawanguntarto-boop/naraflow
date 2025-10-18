@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Sparkles, Trash2, Smartphone, Edit3, Box, Settings2 } from 'lucide-react';
+import { Sparkles, Trash2, Smartphone, Edit3, Box, Settings2, Undo2, Redo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Node, Edge, ReactFlowProvider } from '@xyflow/react';
@@ -7,6 +7,7 @@ import { WorkflowCanvas } from '@/components/canvas/WorkflowCanvas';
 import { ToolboxPanel } from '@/components/canvas/ToolboxPanel';
 import { MetricsInputPanel } from '@/components/canvas/MetricsInputPanel';
 import { EdgeSettingsPanel } from '@/components/canvas/EdgeSettingsPanel';
+import { KeyboardShortcutsPanel } from '@/components/canvas/KeyboardShortcutsPanel';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
 import '@xyflow/react/dist/style.css';
 const scenarios = [
@@ -53,6 +54,13 @@ const WorkflowStudioContent = () => {
     updateNodeMetrics,
     updateEdgeStyle,
     deleteEdge,
+    copySelection,
+    pasteSelection,
+    duplicateSelection,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   } = useWorkflowState();
   const extractSteps = (text: string): string[] => {
     return text.split(/→|->|,/).map(s => s.trim()).filter(Boolean);
@@ -256,6 +264,30 @@ const WorkflowStudioContent = () => {
             <div className="border-b border-border px-4 py-3 font-semibold flex justify-between items-center text-foreground">
               <span>Workflow Canvas</span>
               <div className="flex items-center gap-2">
+                {/* Undo/Redo buttons */}
+                <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={undo}
+                    disabled={!canUndo()}
+                    title="Undo (Ctrl+Z)"
+                  >
+                    <Undo2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={redo}
+                    disabled={!canRedo()}
+                    title="Redo (Ctrl+Shift+Z)"
+                  >
+                    <Redo2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <KeyboardShortcutsPanel />
+                
                 <Button
                   variant="outline"
                   size="sm"
@@ -281,6 +313,13 @@ const WorkflowStudioContent = () => {
                 onDrop={handleCanvasDrop}
                 onDeleteEdge={deleteEdge}
                 onUpdateEdge={updateEdgeStyle}
+                onCopy={copySelection}
+                onPaste={pasteSelection}
+                onDuplicate={duplicateSelection}
+                onUndo={undo}
+                onRedo={redo}
+                canUndo={canUndo}
+                canRedo={canRedo}
               />
             </div>
           </div>

@@ -9,6 +9,21 @@ interface WorkflowState {
   defaultEdgeStyle: 'solid' | 'dashed' | 'dotted';
   defaultEdgeAnimated: boolean;
   defaultEdgeWidth: number;
+  
+  // Copy/Paste
+  clipboard: {
+    nodes: Node[];
+    edges: Edge[];
+  };
+  
+  // Undo/Redo
+  history: Array<{
+    nodes: Node[];
+    edges: Edge[];
+  }>;
+  historyIndex: number;
+  maxHistorySize: number;
+  
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
   setSelectedNode: (node: Node | null) => void;
@@ -25,6 +40,18 @@ interface WorkflowState {
   updateEdgeStyle: (edgeId: string, updates: Partial<Edge>) => void;
   applyStyleToAllEdges: (style: any) => void;
   deleteEdge: (edgeId: string) => void;
+  
+  // Copy/Paste functions
+  copySelection: () => void;
+  pasteSelection: () => void;
+  duplicateSelection: () => void;
+  
+  // Undo/Redo functions
+  undo: () => void;
+  redo: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
+  saveHistory: () => void;
 }
 
 export const useWorkflowState = create<WorkflowState>((set, get) => ({
@@ -36,8 +63,25 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
   defaultEdgeAnimated: true,
   defaultEdgeWidth: 2,
   
-  setNodes: (nodes) => set({ nodes }),
-  setEdges: (edges) => set({ edges }),
+  // Copy/Paste state
+  clipboard: {
+    nodes: [],
+    edges: [],
+  },
+  
+  // Undo/Redo state
+  history: [],
+  historyIndex: -1,
+  maxHistorySize: 50,
+  
+  setNodes: (nodes) => {
+    set({ nodes });
+    setTimeout(() => get().saveHistory(), 0);
+  },
+  setEdges: (edges) => {
+    set({ edges });
+    setTimeout(() => get().saveHistory(), 0);
+  },
   setSelectedNode: (node) => set({ selectedNode: node }),
   setDefaultEdgeType: (type) => set({ defaultEdgeType: type }),
   setDefaultEdgeStyle: (style) => set({ defaultEdgeStyle: style }),
@@ -48,12 +92,14 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
     set({
       nodes: applyNodeChanges(changes, get().nodes),
     });
+    setTimeout(() => get().saveHistory(), 300);
   },
   
   onEdgesChange: (changes) => {
     set({
       edges: applyEdgeChanges(changes, get().edges),
     });
+    setTimeout(() => get().saveHistory(), 300);
   },
   
   onConnect: (connection) => {
@@ -182,5 +228,157 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
     set({
       edges: get().edges.filter(edge => edge.id !== edgeId),
     });
+    setTimeout(() => get().saveHistory(), 0);
   },
+  
+  // Copy/Paste Implementation
+  copySelection: () => {
+    const { nodes, edges } = get();
+    const selectedNodes = nodes.filter(n => n.selected);
+    const selectedNodeIds = selectedNodes.map(n => n.id);
+    
+    // Copy edges that connect selected nodes
+    const selectedEdges = edges.filter(e => 
+      selectedNodeIds.includes(e.source) && selectedNodeIds.includes(e.target)
+    );
+    
+    set({
+      clipboard: {
+        nodes: selectedNodes,
+        edges: selectedEdges,
+      },
+    });
+    
+    console.log(`Copied ${selectedNodes.length} nodes and ${selectedEdges.length} edges`);
+  },
+  
+  pasteSelection: () => {
+    const { clipboard, nodes, edges } = get();
+    
+    if (clipboard.nodes.length === 0) {
+      console.log('Nothing to paste');
+      return;
+    }
+    
+    // Generate new IDs for pasted nodes
+    const idMap = new Map<string, string>();
+    const timestamp = Date.now();
+    
+    const newNodes = clipboard.nodes.map((node, index) => {
+      const newId = `${node.id}_copy_${timestamp}_${index}`;
+      idMap.set(node.id, newId);
+      
+      return {
+        ...node,
+        id: newId,
+        position: {
+          x: node.position.x + 50,
+          y: node.position.y + 50,
+        },
+        selected: true,
+      };
+    });
+    
+    // Create edges with updated IDs
+    const newEdges = clipboard.edges.map((edge, index) => {
+      const newSourceId = idMap.get(edge.source);
+      const newTargetId = idMap.get(edge.target);
+      
+      if (!newSourceId || !newTargetId) return null;
+      
+      return {
+        ...edge,
+        id: `e_copy_${timestamp}_${index}`,
+        source: newSourceId,
+        target: newTargetId,
+        selected: true,
+      };
+    }).filter(Boolean) as Edge[];
+    
+    // Deselect existing nodes
+    const updatedNodes = nodes.map(n => ({ ...n, selected: false }));
+    const updatedEdges = edges.map(e => ({ ...e, selected: false }));
+    
+    set({
+      nodes: [...updatedNodes, ...newNodes],
+      edges: [...updatedEdges, ...newEdges],
+    });
+    
+    setTimeout(() => get().saveHistory(), 0);
+    console.log(`Pasted ${newNodes.length} nodes and ${newEdges.length} edges`);
+  },
+  
+  duplicateSelection: () => {
+    get().copySelection();
+    get().pasteSelection();
+  },
+  
+  // Undo/Redo Implementation
+  saveHistory: () => {
+    const { nodes, edges, history, historyIndex, maxHistorySize } = get();
+    
+    // Create snapshot of current state
+    const snapshot = {
+      nodes: JSON.parse(JSON.stringify(nodes)),
+      edges: JSON.parse(JSON.stringify(edges)),
+    };
+    
+    // Remove future history if we're in the middle
+    const newHistory = history.slice(0, historyIndex + 1);
+    
+    // Add new snapshot
+    newHistory.push(snapshot);
+    
+    // Limit history size
+    if (newHistory.length > maxHistorySize) {
+      newHistory.shift();
+    } else {
+      set({ historyIndex: historyIndex + 1 });
+    }
+    
+    set({ history: newHistory });
+  },
+  
+  undo: () => {
+    const { history, historyIndex } = get();
+    
+    if (historyIndex <= 0) {
+      console.log('Nothing to undo');
+      return;
+    }
+    
+    const newIndex = historyIndex - 1;
+    const snapshot = history[newIndex];
+    
+    set({
+      nodes: JSON.parse(JSON.stringify(snapshot.nodes)),
+      edges: JSON.parse(JSON.stringify(snapshot.edges)),
+      historyIndex: newIndex,
+    });
+    
+    console.log(`Undo: Restored to state ${newIndex + 1}/${history.length}`);
+  },
+  
+  redo: () => {
+    const { history, historyIndex } = get();
+    
+    if (historyIndex >= history.length - 1) {
+      console.log('Nothing to redo');
+      return;
+    }
+    
+    const newIndex = historyIndex + 1;
+    const snapshot = history[newIndex];
+    
+    set({
+      nodes: JSON.parse(JSON.stringify(snapshot.nodes)),
+      edges: JSON.parse(JSON.stringify(snapshot.edges)),
+      historyIndex: newIndex,
+    });
+    
+    console.log(`Redo: Restored to state ${newIndex + 1}/${history.length}`);
+  },
+  
+  canUndo: () => get().historyIndex > 0,
+  canRedo: () => get().historyIndex < get().history.length - 1,
 }));

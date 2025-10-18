@@ -278,6 +278,50 @@
   .react-flow__edge.animated .react-flow__edge-path {
     animation: edge-pulse 2s ease-in-out infinite;
   }
+
+  /* Multi-selection box styling */
+  .react-flow__selection {
+    background: hsl(var(--brand-primary) / 0.1);
+    border: 2px dashed hsl(var(--brand-primary));
+  }
+
+  /* Multiple nodes selected */
+  .react-flow__node.selected {
+    box-shadow: 0 0 0 3px hsl(var(--brand-secondary) / 0.5);
+  }
+
+  /* Multiple edges selected */
+  .react-flow__edge.selected .react-flow__edge-path {
+    stroke: hsl(var(--brand-secondary)) !important;
+    stroke-width: 3 !important;
+    filter: drop-shadow(0 0 8px hsl(var(--brand-secondary) / 0.6));
+  }
+
+  /* Selection counter badge */
+  .selection-count {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: hsl(var(--brand-primary));
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    z-index: 10;
+    animation: fadeInScale 0.3s ease;
+  }
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 }
 
 @layer base {
