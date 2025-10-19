@@ -10,8 +10,9 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { Trash2, Info, Waves, Minus, Square, Move, Zap, Settings2 } from 'lucide-react';
+import { Trash2, Info, Waves, Minus, Square, Move, Zap, Settings2, Tag, CheckCircle, XCircle, AlertTriangle, GitBranch } from 'lucide-react';
 import { toast } from 'sonner';
+import { EdgeConditionType } from '@/types/workflow';
 
 interface EdgeContextMenuProps {
   edge: Edge;
@@ -24,6 +25,45 @@ export const EdgeContextMenu = ({ edge, onDeleteEdge, onUpdateEdge, children }: 
   const isAnimated = edge.animated ?? false;
   const currentType = edge.type || 'smoothstep';
   const currentStyle = edge.data?.lineStyle || 'solid';
+
+  const handleAddLabel = useCallback(() => {
+    const label = prompt('Enter edge label:', (edge.data?.label as string) || '');
+    if (label !== null) {
+      onUpdateEdge(edge.id, {
+        data: {
+          ...edge.data,
+          label,
+        },
+      });
+      toast.success('Label updated');
+    }
+  }, [edge, onUpdateEdge]);
+  
+  const handleConditionChange = useCallback((conditionType: EdgeConditionType) => {
+    const getConditionColor = (type: EdgeConditionType): string => {
+      switch (type) {
+        case 'success': return '#22c55e';
+        case 'error': return '#ef4444';
+        case 'warning': return '#eab308';
+        case 'conditional': return '#3b82f6';
+        default: return 'hsl(var(--brand-primary))';
+      }
+    };
+    
+    onUpdateEdge(edge.id, {
+      style: {
+        ...edge.style,
+        stroke: getConditionColor(conditionType),
+      },
+      data: {
+        ...edge.data,
+        conditionType,
+      },
+    });
+    toast.success('Condition type updated', {
+      description: `Changed to ${conditionType}`,
+    });
+  }, [edge, onUpdateEdge]);
 
   const handleDelete = useCallback(() => {
     onDeleteEdge(edge.id);
@@ -73,6 +113,42 @@ export const EdgeContextMenu = ({ edge, onDeleteEdge, onUpdateEdge, children }: 
         {children}
       </ContextMenuTrigger>
       <ContextMenuContent className="w-56">
+        <ContextMenuItem onClick={handleAddLabel}>
+          <Tag className="w-4 h-4 mr-2" />
+          {edge.data?.label ? 'Edit Label' : 'Add Label'}
+        </ContextMenuItem>
+        
+        <ContextMenuSeparator />
+        
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <GitBranch className="w-4 h-4 mr-2" />
+            Condition Type
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            <ContextMenuItem onClick={() => handleConditionChange('default')}>
+              <div className="w-4 h-0.5 bg-gray-500 mr-2" />
+              Default Flow
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => handleConditionChange('success')}>
+              <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+              Success Path
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => handleConditionChange('error')}>
+              <XCircle className="w-4 h-4 mr-2 text-red-500" />
+              Error Path
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => handleConditionChange('warning')}>
+              <AlertTriangle className="w-4 h-4 mr-2 text-yellow-500" />
+              Warning Path
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => handleConditionChange('conditional')}>
+              <GitBranch className="w-4 h-4 mr-2 text-blue-500" />
+              Conditional
+            </ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+        
         <ContextMenuSub>
           <ContextMenuSubTrigger>
             <Settings2 className="w-4 h-4 mr-2" />

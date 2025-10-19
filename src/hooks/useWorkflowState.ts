@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Node, Edge, applyNodeChanges, applyEdgeChanges, addEdge, Connection } from '@xyflow/react';
+import { EdgeConditionType, ValidationOptions } from '@/types/workflow';
 
 interface WorkflowState {
   nodes: Node[];
@@ -23,6 +24,15 @@ interface WorkflowState {
   }>;
   historyIndex: number;
   maxHistorySize: number;
+  
+  // Edge Labels and Conditions
+  updateEdgeLabel: (edgeId: string, label: string) => void;
+  defaultEdgeCondition: EdgeConditionType;
+  setDefaultEdgeCondition: (condition: EdgeConditionType) => void;
+  
+  // Validation
+  validationOptions: ValidationOptions;
+  setValidationOptions: (options: ValidationOptions) => void;
   
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
@@ -73,6 +83,14 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
   history: [],
   historyIndex: -1,
   maxHistorySize: 50,
+  
+  // Edge condition and validation
+  defaultEdgeCondition: 'default',
+  validationOptions: {
+    allowCircular: false,
+    preventDuplicates: true,
+    preventSelfConnections: true,
+  },
   
   setNodes: (nodes) => {
     set({ nodes });
@@ -381,4 +399,28 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
   
   canUndo: () => get().historyIndex > 0,
   canRedo: () => get().historyIndex < get().history.length - 1,
+  
+  // Edge Labels
+  updateEdgeLabel: (edgeId, label) => {
+    set({
+      edges: get().edges.map(edge =>
+        edge.id === edgeId
+          ? {
+              ...edge,
+              data: {
+                ...edge.data,
+                label,
+              },
+            }
+          : edge
+      ),
+    });
+    setTimeout(() => get().saveHistory(), 0);
+  },
+  
+  // Edge Conditions
+  setDefaultEdgeCondition: (condition) => set({ defaultEdgeCondition: condition }),
+  
+  // Validation
+  setValidationOptions: (options) => set({ validationOptions: options }),
 }));

@@ -11,6 +11,7 @@ import {
   OnConnect,
   BackgroundVariant,
   useReactFlow,
+  Connection,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { DefaultNode } from './nodes/DefaultNode';
@@ -18,12 +19,23 @@ import { DecisionNode } from './nodes/DecisionNode';
 import { StartNode } from './nodes/StartNode';
 import { EndNode } from './nodes/EndNode';
 import { EdgeContextMenu } from './EdgeContextMenu';
+import { CustomEdge } from './edges/CustomEdge';
+import { EdgeValidator } from '@/utils/edgeValidation';
+import { toast } from 'sonner';
+import { useWorkflowState } from '@/hooks/useWorkflowState';
 
 const nodeTypes = {
   default: DefaultNode,
   decision: DecisionNode,
   start: StartNode,
   end: EndNode,
+};
+
+const edgeTypes = {
+  smoothstep: CustomEdge,
+  straight: CustomEdge,
+  step: CustomEdge,
+  default: CustomEdge,
 };
 
 interface WorkflowCanvasProps {
@@ -67,6 +79,7 @@ export const WorkflowCanvas = ({
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [contextMenuEdge, setContextMenuEdge] = useState<Edge | null>(null);
   const [selectedCount, setSelectedCount] = useState(0);
+  const { validationOptions } = useWorkflowState();
   
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -121,6 +134,27 @@ export const WorkflowCanvas = ({
     const selectedEdges = edges.filter(e => e.selected).length;
     setSelectedCount(selectedNodes + selectedEdges);
   }, [nodes, edges]);
+  
+  // Validation function for React Flow
+  const isValidConnection = useCallback(
+    (connection: Connection) => {
+      const result = EdgeValidator.validateConnection(
+        connection,
+        nodes,
+        edges,
+        validationOptions
+      );
+      
+      if (!result.isValid) {
+        toast.error('Invalid Connection', {
+          description: result.message,
+        });
+      }
+      
+      return result.isValid;
+    },
+    [nodes, edges, validationOptions]
+  );
 
   // Keyboard shortcuts for all operations
   useEffect(() => {
@@ -284,6 +318,8 @@ export const WorkflowCanvas = ({
         onEdgeClick={handleEdgeClick}
         onEdgeContextMenu={handleEdgeContextMenu}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        isValidConnection={isValidConnection}
         fitView
         attributionPosition="bottom-right"
         className="workflow-canvas"
