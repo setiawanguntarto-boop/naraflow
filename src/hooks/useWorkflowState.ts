@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Node, Edge, applyNodeChanges, applyEdgeChanges, addEdge, Connection } from '@xyflow/react';
 import { EdgeConditionType, ValidationOptions } from '@/types/workflow';
+import { WorkflowValidator, ValidationError } from '@/utils/workflowValidation';
 
 interface WorkflowState {
   nodes: Node[];
@@ -33,6 +34,21 @@ interface WorkflowState {
   // Validation
   validationOptions: ValidationOptions;
   setValidationOptions: (options: ValidationOptions) => void;
+  validationErrors: ValidationError[];
+  showValidation: boolean;
+  validateWorkflow: () => ValidationError[];
+  toggleValidation: () => void;
+  getNodeErrors: (nodeId: string) => ValidationError[];
+  
+  // Node Groups
+  createGroup: (nodeIds: string[], label?: string) => void;
+  ungroupNodes: (groupId: string) => void;
+  addNodeToGroup: (nodeId: string, groupId: string) => void;
+  removeNodeFromGroup: (nodeId: string) => void;
+  
+  // Export/Import
+  exportWorkflowJSON: () => string;
+  importWorkflowJSON: (json: string) => void;
   
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
@@ -91,6 +107,8 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
     preventDuplicates: true,
     preventSelfConnections: true,
   },
+  validationErrors: [],
+  showValidation: false,
   
   setNodes: (nodes) => {
     set({ nodes });
@@ -110,6 +128,12 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
     set({
       nodes: applyNodeChanges(changes, get().nodes),
     });
+    
+    // Auto-validate if validation is enabled
+    if (get().showValidation) {
+      setTimeout(() => get().validateWorkflow(), 100);
+    }
+    
     setTimeout(() => get().saveHistory(), 300);
   },
   
@@ -117,11 +141,24 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
     set({
       edges: applyEdgeChanges(changes, get().edges),
     });
+    
+    // Auto-validate if validation is enabled
+    if (get().showValidation) {
+      setTimeout(() => get().validateWorkflow(), 100);
+    }
+    
     setTimeout(() => get().saveHistory(), 300);
   },
   
   onConnect: (connection) => {
-    const { defaultEdgeType, defaultEdgeStyle, defaultEdgeAnimated, defaultEdgeWidth } = get();
+    const { 
+      defaultEdgeType, 
+      defaultEdgeStyle, 
+      defaultEdgeAnimated, 
+      defaultEdgeWidth,
+      defaultEdgeCondition,
+      nodes,
+    } = get();
     
     let strokeDasharray = undefined;
     if (defaultEdgeStyle === 'dashed') {
@@ -130,6 +167,28 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
       strokeDasharray = '2, 4';
     }
     
+    // Auto-label decision node edges
+    const sourceNode = nodes.find(n => n.id === connection.source);
+    let autoLabel = '';
+    if (sourceNode?.type === 'decision') {
+      if (connection.sourceHandle === 'yes') {
+        autoLabel = 'Yes';
+      } else if (connection.sourceHandle === 'no') {
+        autoLabel = 'No';
+      }
+    }
+    
+    // Get condition color
+    const getConditionColor = (conditionType: EdgeConditionType): string => {
+      switch (conditionType) {
+        case 'success': return '#22c55e';
+        case 'error': return '#ef4444';
+        case 'warning': return '#eab308';
+        case 'conditional': return '#3b82f6';
+        default: return 'hsl(var(--brand-primary))';
+      }
+    };
+    
     set({
       edges: addEdge(
         {
@@ -137,12 +196,17 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
           type: defaultEdgeType,
           animated: defaultEdgeAnimated,
           style: { 
-            stroke: 'hsl(var(--brand-primary))', 
+            stroke: getConditionColor(defaultEdgeCondition),
             strokeWidth: defaultEdgeWidth,
             strokeDasharray,
           },
           data: {
             lineStyle: defaultEdgeStyle,
+            label: autoLabel,
+            conditionType: defaultEdgeCondition,
+            onUpdateLabel: (edgeId: string, label: string) => {
+              get().updateEdgeLabel(edgeId, label);
+            },
           },
         },
         get().edges
@@ -423,4 +487,202 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
   
   // Validation
   setValidationOptions: (options) => set({ validationOptions: options }),
+  
+  validateWorkflow: () => {
+    const { nodes, edges } = get();
+    const errors = WorkflowValidator.validateWorkflow(nodes, edges);
+    set({ validationErrors: errors });
+    return errors;
+  },
+  
+  toggleValidation: () => {
+    const newShowValidation = !get().showValidation;
+    set({ showValidation: newShowValidation });
+    
+    if (newShowValidation) {
+      get().validateWorkflow();
+    }
+  },
+  
+  getNodeErrors: (nodeId) => {
+    return get().validationErrors.filter(e => e.nodeId === nodeId);
+  },
+  
+  // Node Groups
+  createGroup: (nodeIds, label = 'New Group') => {
+    const { nodes } = get();
+    const selectedNodes = nodes.filter(n => nodeIds.includes(n.id));
+    
+    if (selectedNodes.length === 0) return;
+    
+    // Calculate bounding box
+    const minX = Math.min(...selectedNodes.map(n => n.position.x)) - 20;
+    const minY = Math.min(...selectedNodes.map(n => n.position.y)) - 50;
+    const maxX = Math.max(...selectedNodes.map(n => n.position.x + (n.width || 150)));
+    const maxY = Math.max(...selectedNodes.map(n => n.position.y + (n.height || 50)));
+    
+    const groupId = `group_${Date.now()}`;
+    
+    // Create group node
+    const groupNode: Node = {
+      id: groupId,
+      type: 'group',
+      position: { x: minX, y: minY },
+      data: { label },
+      style: {
+        width: maxX - minX + 40,
+        height: maxY - minY + 70,
+      },
+    };
+    
+    // Update child nodes to be inside group
+    const updatedNodes = nodes.map(n => {
+      if (nodeIds.includes(n.id)) {
+        return {
+          ...n,
+          parentId: groupId,
+          extent: 'parent' as const,
+          position: {
+            x: n.position.x - minX,
+            y: n.position.y - minY,
+          },
+        };
+      }
+      return n;
+    });
+    
+    set({
+      nodes: [...updatedNodes, groupNode],
+    });
+    
+    setTimeout(() => get().saveHistory(), 0);
+  },
+  
+  ungroupNodes: (groupId) => {
+    const { nodes } = get();
+    const group = nodes.find(n => n.id === groupId);
+    
+    if (!group) return;
+    
+    // Remove group and unparent children
+    set({
+      nodes: nodes
+        .filter(n => n.id !== groupId)
+        .map(n => {
+          if (n.parentId === groupId) {
+            return {
+              ...n,
+              parentId: undefined,
+              extent: undefined,
+              position: {
+                x: n.position.x + group.position.x,
+                y: n.position.y + group.position.y,
+              },
+            };
+          }
+          return n;
+        }),
+    });
+    
+    setTimeout(() => get().saveHistory(), 0);
+  },
+  
+  addNodeToGroup: (nodeId, groupId) => {
+    const { nodes } = get();
+    const node = nodes.find(n => n.id === nodeId);
+    const group = nodes.find(n => n.id === groupId);
+    
+    if (!node || !group || group.type !== 'group') return;
+    
+    set({
+      nodes: nodes.map(n => {
+        if (n.id === nodeId) {
+          return {
+            ...n,
+            parentId: groupId,
+            extent: 'parent' as const,
+            position: {
+              x: n.position.x - group.position.x,
+              y: n.position.y - group.position.y,
+            },
+          };
+        }
+        return n;
+      }),
+    });
+  },
+  
+  removeNodeFromGroup: (nodeId) => {
+    const { nodes } = get();
+    const node = nodes.find(n => n.id === nodeId);
+    
+    if (!node || !node.parentId) return;
+    
+    const parent = nodes.find(n => n.id === node.parentId);
+    if (!parent) return;
+    
+    set({
+      nodes: nodes.map(n => {
+        if (n.id === nodeId) {
+          return {
+            ...n,
+            parentId: undefined,
+            extent: undefined,
+            position: {
+              x: n.position.x + parent.position.x,
+              y: n.position.y + parent.position.y,
+            },
+          };
+        }
+        return n;
+      }),
+    });
+  },
+  
+  // Export/Import
+  exportWorkflowJSON: () => {
+    const { nodes, edges } = get();
+    
+    const workflow = {
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      metadata: {
+        nodeCount: nodes.length,
+        edgeCount: edges.length,
+      },
+      nodes: nodes.map(node => ({
+        ...node,
+        selected: false,
+        dragging: false,
+      })),
+      edges: edges.map(edge => ({
+        ...edge,
+        selected: false,
+      })),
+    };
+    
+    return JSON.stringify(workflow, null, 2);
+  },
+  
+  importWorkflowJSON: (json) => {
+    try {
+      const workflow = JSON.parse(json);
+      
+      if (!workflow.nodes || !workflow.edges) {
+        throw new Error('Invalid workflow format');
+      }
+      
+      set({
+        nodes: workflow.nodes,
+        edges: workflow.edges,
+        history: [],
+        historyIndex: -1,
+      });
+      
+      console.log('Workflow imported successfully');
+    } catch (error) {
+      console.error('Failed to import workflow:', error);
+      throw error;
+    }
+  },
 }));

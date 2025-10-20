@@ -1,4 +1,4 @@
-import { MapPin, Database, Wifi, CheckSquare, FileText, Send, HelpCircle } from 'lucide-react';
+import { MapPin, Database, Wifi, CheckSquare, FileText, Send, HelpCircle, Folder } from 'lucide-react';
 import { Node } from '@xyflow/react';
 
 const toolboxItems = [
@@ -9,6 +9,7 @@ const toolboxItems = [
   { label: 'Buat PDF', icon: 'file-text', IconComponent: FileText, type: 'default' },
   { label: 'Notifikasi', icon: 'send', IconComponent: Send, type: 'default' },
   { label: 'Keputusan', icon: 'help-circle', IconComponent: HelpCircle, type: 'decision' },
+  { label: 'Group', icon: 'folder', IconComponent: Folder, type: 'group' },
 ];
 
 export const ToolboxPanel = () => {
@@ -47,6 +48,8 @@ export const ToolboxPanel = () => {
               cursor-grab active:cursor-grabbing transition-all
               ${item.type === 'decision' 
                 ? 'bg-brand-secondary/10 hover:bg-brand-secondary/20 text-brand-secondary' 
+                : item.type === 'group'
+                ? 'bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary'
                 : 'bg-surface-muted hover:bg-surface-muted/80 text-foreground'
               }
             `}

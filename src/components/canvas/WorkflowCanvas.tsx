@@ -18,6 +18,7 @@ import { DefaultNode } from './nodes/DefaultNode';
 import { DecisionNode } from './nodes/DecisionNode';
 import { StartNode } from './nodes/StartNode';
 import { EndNode } from './nodes/EndNode';
+import { GroupNode } from './nodes/GroupNode';
 import { EdgeContextMenu } from './EdgeContextMenu';
 import { CustomEdge } from './edges/CustomEdge';
 import { EdgeValidator } from '@/utils/edgeValidation';
@@ -29,6 +30,7 @@ const nodeTypes = {
   decision: DecisionNode,
   start: StartNode,
   end: EndNode,
+  group: GroupNode,
 };
 
 const edgeTypes = {
@@ -79,7 +81,7 @@ export const WorkflowCanvas = ({
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [contextMenuEdge, setContextMenuEdge] = useState<Edge | null>(null);
   const [selectedCount, setSelectedCount] = useState(0);
-  const { validationOptions } = useWorkflowState();
+  const { validationOptions, createGroup, ungroupNodes } = useWorkflowState();
   
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -214,6 +216,28 @@ export const WorkflowCanvas = ({
         return;
       }
       
+      // Group: Ctrl/Cmd + G
+      if (cmdKey && e.key === 'g' && !e.shiftKey) {
+        e.preventDefault();
+        const selectedNodeIds = nodes.filter(n => n.selected).map(n => n.id);
+        if (selectedNodeIds.length >= 2) {
+          createGroup(selectedNodeIds, 'New Group');
+          toast.success('Nodes grouped');
+        }
+        return;
+      }
+      
+      // Ungroup: Ctrl/Cmd + Shift + G
+      if (cmdKey && e.shiftKey && e.key === 'G') {
+        e.preventDefault();
+        const selectedGroups = nodes.filter(n => n.selected && n.type === 'group');
+        selectedGroups.forEach(group => ungroupNodes(group.id));
+        if (selectedGroups.length > 0) {
+          toast.success('Groups ungrouped');
+        }
+        return;
+      }
+      
       // Edge operations (only when edge is selected)
       if (!selectedEdgeId) return;
       
@@ -268,7 +292,7 @@ export const WorkflowCanvas = ({
     
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedEdgeId, onDeleteEdge, onUpdateEdge, edges, nodes, onCopy, onPaste, onDuplicate, onUndo, onRedo, canUndo, canRedo]);
+  }, [selectedEdgeId, onDeleteEdge, onUpdateEdge, edges, nodes, onCopy, onPaste, onDuplicate, onUndo, onRedo, canUndo, canRedo, createGroup, ungroupNodes]);
 
   // Apply dynamic styling to edges
   const styledEdges = edges.map(edge => {

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Sparkles, Trash2, Smartphone, Edit3, Box, Settings2, Undo2, Redo2 } from 'lucide-react';
+import { Sparkles, Trash2, Smartphone, Edit3, Box, Settings2, Undo2, Redo2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Node, Edge, ReactFlowProvider } from '@xyflow/react';
@@ -8,6 +8,8 @@ import { ToolboxPanel } from '@/components/canvas/ToolboxPanel';
 import { MetricsInputPanel } from '@/components/canvas/MetricsInputPanel';
 import { EdgeSettingsPanel } from '@/components/canvas/EdgeSettingsPanel';
 import { KeyboardShortcutsPanel } from '@/components/canvas/KeyboardShortcutsPanel';
+import { ValidationPanel } from '@/components/canvas/ValidationPanel';
+import { ExportImportPanel } from '@/components/canvas/ExportImportPanel';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
 import '@xyflow/react/dist/style.css';
 const scenarios = [
@@ -61,6 +63,8 @@ const WorkflowStudioContent = () => {
     redo,
     canUndo,
     canRedo,
+    showValidation,
+    toggleValidation,
   } = useWorkflowState();
   const extractSteps = (text: string): string[] => {
     return text.split(/→|->|,/).map(s => s.trim()).filter(Boolean);
@@ -291,6 +295,16 @@ const WorkflowStudioContent = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={toggleValidation}
+                  className={showValidation ? 'bg-brand-primary/10' : ''}
+                >
+                  <Shield className="w-4 h-4 mr-1" />
+                  Validate
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setShowEdgeSettings(!showEdgeSettings)}
                   className={showEdgeSettings ? 'bg-brand-primary/10' : ''}
                 >
@@ -321,6 +335,12 @@ const WorkflowStudioContent = () => {
                 canUndo={canUndo}
                 canRedo={canRedo}
               />
+              
+              {/* Validation Panel */}
+              <ValidationPanel />
+              
+              {/* Export/Import Panel */}
+              <ExportImportPanel />
             </div>
           </div>
           
