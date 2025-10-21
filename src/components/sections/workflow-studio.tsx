@@ -213,7 +213,12 @@ const WorkflowStudioContent = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-brand-primary mb-4">Workflow Studio</h2>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-brand-primary">Workflow Studio</h2>
+            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/20">
+              BETA
+            </span>
+          </div>
           <p className="text-lg text-foreground-muted">
             Prompt → Workflow → WhatsApp Agent
           </p>
