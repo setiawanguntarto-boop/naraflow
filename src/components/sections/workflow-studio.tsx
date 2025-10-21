@@ -220,7 +220,7 @@ const WorkflowStudioContent = () => {
             </span>
           </div>
           <p className="text-lg text-foreground-muted">
-            Prompt → Workflow → WhatsApp Agent
+            Ubah deskripsi kerja menjadi alur otomatis, dari ide ke WhatsApp agent.
           </p>
         </div>
 
