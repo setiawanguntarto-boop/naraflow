@@ -1,5 +1,6 @@
 import { MapPin, Database, Wifi, CheckSquare, FileText, Send, HelpCircle, Folder } from 'lucide-react';
 import { Node } from '@xyflow/react';
+import { NODE_COLORS, NodeIconType } from '@/types/workflow';
 
 const toolboxItems = [
   { label: 'Pilih Lokasi', icon: 'map-pin', IconComponent: MapPin, type: 'default' },
@@ -50,7 +51,7 @@ export const ToolboxPanel = () => {
                 ? 'bg-brand-secondary/10 hover:bg-brand-secondary/20 text-brand-secondary' 
                 : item.type === 'group'
                 ? 'bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary'
-                : 'bg-surface-muted hover:bg-surface-muted/80 text-foreground'
+                : NODE_COLORS[item.icon as NodeIconType]?.toolbox || 'bg-surface-muted hover:bg-surface-muted/80 text-foreground'
               }
             `}
           >
