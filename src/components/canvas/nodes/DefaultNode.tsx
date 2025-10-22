@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, Node } from '@xyflow/react';
 import { Database, MapPin, Wifi, CheckSquare, FileText, Send, AlertCircle } from 'lucide-react';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
 import { NODE_COLORS, NodeIconType } from '@/types/workflow';
@@ -13,7 +13,11 @@ const iconMap: Record<string, React.ElementType> = {
   send: Send,
 };
 
-export const DefaultNode = memo(({ id, data, selected }: NodeProps) => {
+interface DefaultNodeProps extends NodeProps {
+  onContextMenu?: (event: React.MouseEvent, node: Node) => void;
+}
+
+export const DefaultNode = memo(({ id, data, selected, onContextMenu }: DefaultNodeProps) => {
   const { getNodeErrors } = useWorkflowState();
   const Icon = data.icon && iconMap[data.icon as string] ? iconMap[data.icon as string] : Database;
   const nodeColors = NODE_COLORS[data.icon as NodeIconType];
@@ -24,6 +28,7 @@ export const DefaultNode = memo(({ id, data, selected }: NodeProps) => {
   
   return (
     <div
+      onContextMenu={(e) => onContextMenu?.(e, { id, data, selected } as Node)}
       className={`
         relative px-4 py-3 rounded-xl border-2 shadow-soft
         transition-all duration-200

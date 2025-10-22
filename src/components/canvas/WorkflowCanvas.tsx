@@ -24,14 +24,25 @@ import { CustomEdge } from './edges/CustomEdge';
 import { EdgeValidator } from '@/utils/edgeValidation';
 import { toast } from 'sonner';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
+import { useContextMenu } from '@/hooks/useContextMenu';
+import { UniversalContextMenu } from './UniversalContextMenu';
+import { WorkflowActions } from '@/lib/workflowActions';
+import {
+  Settings2, Copy, Trash2, Edit3, Box, 
+  AlignHorizontalSpaceAround, AlignVerticalSpaceAround,
+  AlignHorizontalJustifyCenter, AlignVerticalJustifyCenter,
+  FolderPlus, ZoomIn, ZoomOut, RotateCcw, Eraser,
+  Maximize2, Camera, FileJson
+} from 'lucide-react';
 
-const nodeTypes = {
-  default: DefaultNode,
+// We'll create wrapped node types to inject context menu handlers
+const createNodeTypes = (handleNodeContextMenu: (e: React.MouseEvent, node: Node) => void) => ({
+  default: (props: any) => <DefaultNode {...props} onContextMenu={handleNodeContextMenu} />,
   decision: DecisionNode,
   start: StartNode,
   end: EndNode,
   group: GroupNode,
-};
+});
 
 const edgeTypes = {
   smoothstep: CustomEdge,
@@ -77,11 +88,113 @@ export const WorkflowCanvas = ({
   canUndo,
   canRedo,
 }: WorkflowCanvasProps) => {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow();
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [contextMenuEdge, setContextMenuEdge] = useState<Edge | null>(null);
   const [selectedCount, setSelectedCount] = useState(0);
   const { validationOptions, createGroup, ungroupNodes } = useWorkflowState();
+  const { contextMenu, showContextMenu, closeContextMenu } = useContextMenu();
+  
+  // Node context menu handler (defined early for use in nodeTypes)
+  const handleNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      event.preventDefault();
+      
+      // Base menu items for all nodes
+      const baseItems = [
+        {
+          label: 'Configure Node',
+          icon: <Settings2 className="w-4 h-4" />,
+          onClick: () => {
+            onNodeClick?.(node);
+            toast.info('Node configuration opened');
+          },
+        },
+        {
+          label: 'Duplicate Node',
+          icon: <Copy className="w-4 h-4" />,
+          onClick: () => {
+            onDuplicate?.();
+            toast.success('Node duplicated');
+          },
+          shortcut: '⌘D',
+        },
+        { label: '---' },
+      ];
+      
+      // Type-specific menu items
+      const typeSpecificItems: any[] = [];
+      
+      if (node.type === 'default') {
+        const nodeIcon = node.data.icon;
+        
+        // Input Data specific
+        if (nodeIcon === 'database') {
+          typeSpecificItems.push(
+            {
+              label: 'Edit Data Metrics',
+              icon: <Edit3 className="w-4 h-4" />,
+              onClick: () => {
+                onNodeClick?.(node);
+                toast.info('Opening metrics editor');
+              },
+            },
+            {
+              label: 'Export Node Data',
+              icon: <Box className="w-4 h-4" />,
+              onClick: () => {
+                WorkflowActions.exportNodeAsJSON(node);
+                toast.success('Node data exported');
+              },
+            }
+          );
+        }
+        
+        // Sensor/IoT specific
+        if (nodeIcon === 'wifi') {
+          typeSpecificItems.push(
+            {
+              label: 'Configure Sensor',
+              icon: <Settings2 className="w-4 h-4" />,
+              onClick: () => {
+                toast.info('Sensor configuration (coming soon)');
+              },
+            },
+            {
+              label: 'View Sensor Data',
+              icon: <FileJson className="w-4 h-4" />,
+              onClick: () => {
+                toast.info('Sensor data viewer (coming soon)');
+              },
+            }
+          );
+        }
+        
+        if (typeSpecificItems.length > 0) {
+          typeSpecificItems.push({ label: '---' });
+        }
+      }
+      
+      // Delete item (always at bottom)
+      const deleteItem = {
+        label: 'Delete Node',
+        icon: <Trash2 className="w-4 h-4" />,
+        onClick: () => {
+          const removeChanges = [{ type: 'remove' as const, id: node.id }];
+          onNodesChange?.(removeChanges);
+          toast.success('Node deleted');
+        },
+        variant: 'destructive' as const,
+        shortcut: 'Del',
+      };
+      
+      showContextMenu(event, [...baseItems, ...typeSpecificItems, deleteItem]);
+    },
+    [onNodeClick, onDuplicate, onNodesChange, showContextMenu]
+  );
+
+  // Create node types with context menu handler
+  const nodeTypes = createNodeTypes(handleNodeContextMenu);
   
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -128,6 +241,221 @@ export const WorkflowCanvas = ({
       setSelectedEdgeId(edge.id);
     },
     []
+  );
+
+  // Canvas context menu handler
+  const handleCanvasContextMenu = useCallback(
+    (event: React.MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.classList.contains('react-flow__pane')) {
+        return;
+      }
+      
+      event.preventDefault();
+      
+      showContextMenu(event, [
+        {
+          label: 'Zoom In',
+          icon: <ZoomIn className="w-4 h-4" />,
+          onClick: () => {
+            zoomIn();
+            toast.info('Zoomed in');
+          },
+          shortcut: '+',
+        },
+        {
+          label: 'Zoom Out',
+          icon: <ZoomOut className="w-4 h-4" />,
+          onClick: () => {
+            zoomOut();
+            toast.info('Zoomed out');
+          },
+          shortcut: '-',
+        },
+        {
+          label: 'Fit View',
+          icon: <Maximize2 className="w-4 h-4" />,
+          onClick: () => {
+            fitView({ padding: 0.2 });
+            toast.info('View fitted to workflow');
+          },
+          shortcut: '0',
+        },
+        {
+          label: 'Reset View',
+          icon: <RotateCcw className="w-4 h-4" />,
+          onClick: () => {
+            fitView({ padding: 0.5, duration: 500 });
+            toast.info('View reset');
+          },
+        },
+        { label: '---' },
+        {
+          label: 'Clear Canvas',
+          icon: <Eraser className="w-4 h-4" />,
+          onClick: () => {
+            if (confirm('Are you sure you want to clear the entire canvas?')) {
+              onNodesChange?.([]);
+              onEdgesChange?.([]);
+              toast.success('Canvas cleared');
+            }
+          },
+          variant: 'destructive' as const,
+        },
+      ]);
+    },
+    [showContextMenu, fitView, zoomIn, zoomOut, onNodesChange, onEdgesChange]
+  );
+
+  // Multi-selection context menu handler
+  const handleMultiSelectContextMenu = useCallback(
+    (event: React.MouseEvent) => {
+      const selectedNodes = nodes.filter(n => n.selected);
+      
+      if (selectedNodes.length < 2) return;
+      
+      event.preventDefault();
+      
+      showContextMenu(event, [
+        {
+          label: `${selectedNodes.length} nodes selected`,
+          icon: <Box className="w-4 h-4" />,
+          onClick: () => {},
+          disabled: true,
+        },
+        { label: '---' },
+        {
+          label: 'Align Horizontally',
+          icon: <AlignHorizontalJustifyCenter className="w-4 h-4" />,
+          onClick: () => {
+            const aligned = WorkflowActions.alignHorizontally(selectedNodes);
+            const updatedNodes = nodes.map(n => {
+              const found = aligned.find(a => a.id === n.id);
+              return found || n;
+            });
+            onNodesChange?.(updatedNodes.map((n, i) => ({
+              type: 'position' as const,
+              id: n.id,
+              position: n.position,
+            })));
+            toast.success('Nodes aligned horizontally');
+          },
+        },
+        {
+          label: 'Align Vertically',
+          icon: <AlignVerticalJustifyCenter className="w-4 h-4" />,
+          onClick: () => {
+            const aligned = WorkflowActions.alignVertically(selectedNodes);
+            const updatedNodes = nodes.map(n => {
+              const found = aligned.find(a => a.id === n.id);
+              return found || n;
+            });
+            onNodesChange?.(updatedNodes.map((n, i) => ({
+              type: 'position' as const,
+              id: n.id,
+              position: n.position,
+            })));
+            toast.success('Nodes aligned vertically');
+          },
+        },
+        {
+          label: 'Distribute Horizontally',
+          icon: <AlignHorizontalSpaceAround className="w-4 h-4" />,
+          onClick: () => {
+            const distributed = WorkflowActions.distributeHorizontally(selectedNodes);
+            const updatedNodes = nodes.map(n => {
+              const found = distributed.find(d => d.id === n.id);
+              return found || n;
+            });
+            onNodesChange?.(updatedNodes.map((n, i) => ({
+              type: 'position' as const,
+              id: n.id,
+              position: n.position,
+            })));
+            toast.success('Nodes distributed horizontally');
+          },
+          disabled: selectedNodes.length < 3,
+        },
+        {
+          label: 'Distribute Vertically',
+          icon: <AlignVerticalSpaceAround className="w-4 h-4" />,
+          onClick: () => {
+            const distributed = WorkflowActions.distributeVertically(selectedNodes);
+            const updatedNodes = nodes.map(n => {
+              const found = distributed.find(d => d.id === n.id);
+              return found || n;
+            });
+            onNodesChange?.(updatedNodes.map((n, i) => ({
+              type: 'position' as const,
+              id: n.id,
+              position: n.position,
+            })));
+            toast.success('Nodes distributed vertically');
+          },
+          disabled: selectedNodes.length < 3,
+        },
+        { label: '---' },
+        {
+          label: 'Group Nodes',
+          icon: <FolderPlus className="w-4 h-4" />,
+          onClick: () => {
+            const nodeIds = selectedNodes.map(n => n.id);
+            createGroup(nodeIds, 'New Group');
+            toast.success('Nodes grouped');
+          },
+          shortcut: '⌘G',
+        },
+        { label: '---' },
+        {
+          label: 'Delete Selected',
+          icon: <Trash2 className="w-4 h-4" />,
+          onClick: () => {
+            const nodeIds = selectedNodes.map(n => n.id);
+            onNodesChange?.(
+              nodeIds.map(id => ({ type: 'remove' as const, id }))
+            );
+            toast.success(`${nodeIds.length} nodes deleted`);
+          },
+          variant: 'destructive' as const,
+          shortcut: 'Del',
+        },
+      ]);
+    },
+    [nodes, showContextMenu, onNodesChange, createGroup]
+  );
+
+  // Mini-map context menu handler
+  const handleMiniMapContextMenu = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      
+      showContextMenu(event, [
+        {
+          label: 'Reset View',
+          icon: <RotateCcw className="w-4 h-4" />,
+          onClick: () => {
+            fitView({ padding: 0.5, duration: 500 });
+            toast.info('View reset from mini-map');
+          },
+        },
+        {
+          label: 'Fit to Workflow',
+          icon: <Maximize2 className="w-4 h-4" />,
+          onClick: () => {
+            fitView({ padding: 0.2, duration: 500 });
+            toast.info('View fitted to workflow');
+          },
+        },
+        {
+          label: 'Export Snapshot',
+          icon: <Camera className="w-4 h-4" />,
+          onClick: () => {
+            toast.success('Mini-map snapshot exported (feature coming soon)');
+          },
+        },
+      ]);
+    },
+    [showContextMenu, fitView]
   );
 
   // Track selection changes
@@ -341,6 +669,8 @@ export const WorkflowCanvas = ({
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
         onEdgeContextMenu={handleEdgeContextMenu}
+        onPaneContextMenu={handleCanvasContextMenu}
+        onSelectionContextMenu={handleMultiSelectContextMenu}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         isValidConnection={isValidConnection}
@@ -361,22 +691,31 @@ export const WorkflowCanvas = ({
           className="bg-card border border-border rounded-lg shadow-soft"
           showInteractive={false}
         />
-        <MiniMap 
-          className="bg-card border border-border rounded-lg shadow-soft"
-          nodeColor={(node) => {
-            switch (node.type) {
-              case 'start':
-                return 'hsl(var(--brand-secondary))';
-              case 'end':
-                return 'hsl(var(--brand-primary))';
-              case 'decision':
-                return 'hsl(142 76% 55%)';
-              default:
-                return 'hsl(var(--brand-primary-light))';
-            }
-          }}
-        />
+        <div onContextMenu={handleMiniMapContextMenu}>
+          <MiniMap 
+            className="bg-card border border-border rounded-lg shadow-soft"
+            nodeColor={(node) => {
+              switch (node.type) {
+                case 'start':
+                  return 'hsl(var(--brand-secondary))';
+                case 'end':
+                  return 'hsl(var(--brand-primary))';
+                case 'decision':
+                  return 'hsl(142 76% 55%)';
+                default:
+                  return 'hsl(var(--brand-primary-light))';
+              }
+            }}
+          />
+        </div>
       </ReactFlow>
+      
+      {contextMenu && (
+        <UniversalContextMenu
+          menu={contextMenu}
+          onClose={closeContextMenu}
+        />
+      )}
     </div>
   );
 };
