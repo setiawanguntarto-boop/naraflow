@@ -244,8 +244,17 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
       });
     }
     
+    // Ensure icon exists in node data
+    const nodeWithIcon = {
+      ...node,
+      data: {
+        ...node.data,
+        icon: node.data.icon || 'database', // Default icon if not provided
+      },
+    };
+    
     // Add the new node
-    newNodes.push(node);
+    newNodes.push(nodeWithIcon);
     
     set({
       nodes: newNodes,

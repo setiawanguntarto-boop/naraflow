@@ -23,13 +23,29 @@ const scenarios = [
   }
 ];
 
-const iconMap: Record<string, string> = {
-  'Pilih Lokasi': 'map-pin',
-  'Input Data': 'database',
-  'Timbang (IoT)': 'wifi',
-  'Validasi Data': 'check-square',
-  'Buat PDF': 'file-text',
-  'Notifikasi': 'send',
+const getIconForLabel = (label: string): string => {
+  const lowerLabel = label.toLowerCase();
+  
+  if (lowerLabel.includes('lokasi') || lowerLabel.includes('kandang') || lowerLabel.includes('tambak') || lowerLabel.includes('pilih')) {
+    return 'map-pin';
+  }
+  if (lowerLabel.includes('input') || lowerLabel.includes('data') || lowerLabel.includes('catat')) {
+    return 'database';
+  }
+  if (lowerLabel.includes('timbang') || lowerLabel.includes('iot') || lowerLabel.includes('sensor') || lowerLabel.includes('cek air') || lowerLabel.includes('kualitas')) {
+    return 'wifi';
+  }
+  if (lowerLabel.includes('validasi') || lowerLabel.includes('cek') || lowerLabel.includes('verify')) {
+    return 'check-square';
+  }
+  if (lowerLabel.includes('pdf') || lowerLabel.includes('laporan') || lowerLabel.includes('report') || lowerLabel.includes('buat')) {
+    return 'file-text';
+  }
+  if (lowerLabel.includes('notif') || lowerLabel.includes('kirim') || lowerLabel.includes('send') || lowerLabel.includes('pakan') || lowerLabel.includes('kematian')) {
+    return 'send';
+  }
+  
+  return 'database'; // Default fallback
 };
 const WorkflowStudioContent = () => {
   const [prompt, setPrompt] = useState('');
@@ -94,7 +110,7 @@ const WorkflowStudioContent = () => {
         position: { x: 300 + i * 250, y: 200 },
         data: { 
           label,
-          icon: iconMap[label] || 'database',
+          icon: getIconForLabel(label),
         },
       });
 
