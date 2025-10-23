@@ -3,6 +3,7 @@ import { Handle, Position, NodeProps, Node } from '@xyflow/react';
 import { Database, MapPin, Wifi, CheckSquare, FileText, Send, AlertCircle } from 'lucide-react';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
 import { NODE_COLORS, NodeIconType } from '@/types/workflow';
+import { getCategoryForNode, CATEGORY_COLORS } from '@/data/nodeCategories';
 
 const iconMap: Record<string, React.ElementType> = {
   database: Database,
@@ -26,6 +27,10 @@ export const DefaultNode = memo(({ id, data, selected, onContextMenu }: DefaultN
   const hasErrors = errors.filter(e => e.type === 'error').length > 0;
   const hasWarnings = errors.filter(e => e.type === 'warning').length > 0;
   
+  // Get category-based coloring
+  const category = getCategoryForNode(String(data.label || ''));
+  const categoryColors = category ? CATEGORY_COLORS[category] : null;
+  
   return (
     <div
       onContextMenu={(e) => onContextMenu?.(e, { id, data, selected } as Node)}
@@ -33,14 +38,14 @@ export const DefaultNode = memo(({ id, data, selected, onContextMenu }: DefaultN
         relative px-4 py-3 rounded-xl border-2 shadow-soft
         transition-all duration-200
         min-w-[160px] max-w-[280px]
-        ${nodeColors?.bg || 'bg-card'}
+        ${categoryColors ? categoryColors.bg : (nodeColors?.bg || 'bg-card')}
         ${hasErrors 
           ? 'border-red-500 border-2' 
           : hasWarnings 
           ? 'border-yellow-500 border-2'
           : selected 
-          ? `${nodeColors?.border || 'border-brand-primary'} shadow-glow scale-105`
-          : `${nodeColors?.border || 'border-brand-primary/30'} ${nodeColors?.borderHover || 'hover:border-brand-primary/50'}`
+          ? `${categoryColors ? categoryColors.border : (nodeColors?.border || 'border-brand-primary')} shadow-glow scale-105`
+          : `${categoryColors ? categoryColors.border : (nodeColors?.border || 'border-brand-primary/30')} ${nodeColors?.borderHover || 'hover:border-brand-primary/50'}`
         }
       `}
     >
@@ -66,7 +71,7 @@ export const DefaultNode = memo(({ id, data, selected, onContextMenu }: DefaultN
         {Icon && <Icon className={`w-4 h-4 flex-shrink-0 ${nodeColors?.icon || 'text-brand-primary'}`} />}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground truncate">
-            {String(data.label || '')}
+            {String(data.title || data.label || '')}
           </p>
           {data.description && (
             <p className="text-xs text-foreground-muted truncate">

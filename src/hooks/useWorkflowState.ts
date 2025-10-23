@@ -80,6 +80,45 @@ interface WorkflowState {
   saveHistory: () => void;
 }
 
+// Migration helper for old node labels
+const migrateOldNodes = (nodes: Node[]): Node[] => {
+  const labelMap: Record<string, string> = {
+    'Pilih Lokasi': 'Ask Input',
+    'Pilih Kandang': 'Ask Input',
+    'Pilih Tambak': 'Ask Input',
+    'Input Data': 'Process Data',
+    'Input Pakan': 'Process Data',
+    'Catat Bobot': 'Process Data',
+    'Catat Kematian': 'Process Data',
+    'Timbang (IoT)': 'Sensor (IoT)',
+    'Cek Air': 'Sensor (IoT)',
+    'Cek Kualitas Air': 'Sensor (IoT)',
+    'Validasi Data': 'Filter Data',
+    'Validasi': 'Filter Data',
+    'Buat PDF': 'Report (PDF)',
+    'Buat Laporan': 'Report (PDF)',
+    'Notifikasi': 'WhatsApp Message',
+    'Notifikasi SPV': 'WhatsApp Message',
+    'Kirim Notifikasi': 'WhatsApp Message',
+    'Keputusan': 'Condition',
+  };
+
+  return nodes.map(node => {
+    const oldLabel = String(node.data?.label || '');
+    if (labelMap[oldLabel]) {
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          label: labelMap[oldLabel],
+          _migratedFrom: oldLabel,
+        },
+      };
+    }
+    return node;
+  });
+};
+
 export const useWorkflowState = create<WorkflowState>((set, get) => ({
   nodes: [],
   edges: [],
@@ -681,14 +720,17 @@ export const useWorkflowState = create<WorkflowState>((set, get) => ({
         throw new Error('Invalid workflow format');
       }
       
+      // Apply migration to imported nodes
+      const migratedNodes = migrateOldNodes(workflow.nodes);
+      
       set({
-        nodes: workflow.nodes,
+        nodes: migratedNodes,
         edges: workflow.edges,
         history: [],
         historyIndex: -1,
       });
       
-      console.log('Workflow imported successfully');
+      console.log('Workflow imported successfully with migration');
     } catch (error) {
       console.error('Failed to import workflow:', error);
       throw error;

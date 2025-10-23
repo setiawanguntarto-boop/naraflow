@@ -77,3 +77,31 @@ export const NODE_COLORS = {
 } as const;
 
 export type NodeIconType = keyof typeof NODE_COLORS;
+
+// Execution types
+export interface ExecutionLog {
+  timestamp: Date;
+  level: 'info' | 'warn' | 'error';
+  message: string;
+  nodeId: string;
+}
+
+export interface ExecutionResult {
+  outputs: Record<string, any>;
+  logs: ExecutionLog[];
+  error?: string;
+}
+
+export interface ExecutionContext {
+  workflowId: string;
+  timestamp: Date;
+  variables: Record<string, any>;
+}
+
+export interface NodeExecutor {
+  nodeType: string;
+  execute: (node: any, inputs: Record<string, any>, context: ExecutionContext) => Promise<ExecutionResult>;
+  validate: (node: any) => { valid: boolean; error?: string };
+  getRequiredInputs: () => string[];
+  getOutputSchema: () => Record<string, string>;
+}

@@ -4,49 +4,32 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Node, Edge, ReactFlowProvider } from '@xyflow/react';
 import { WorkflowCanvas } from '@/components/canvas/WorkflowCanvas';
-import { ToolboxPanel } from '@/components/canvas/ToolboxPanel';
+import { NodeLibrary } from '@/components/workflow/NodeLibrary';
+import { NodeConfigPanel } from '@/components/workflow/NodeConfigPanel';
+import { NodeExecutionPanel } from '@/components/workflow/NodeExecutionPanel';
 import { MetricsInputPanel } from '@/components/canvas/MetricsInputPanel';
 import { EdgeSettingsPanel } from '@/components/canvas/EdgeSettingsPanel';
 import { KeyboardShortcutsPanel } from '@/components/canvas/KeyboardShortcutsPanel';
 import { ValidationPanel } from '@/components/canvas/ValidationPanel';
 import { ExportImportPanel } from '@/components/canvas/ExportImportPanel';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
+import { getIconForLabel } from '@/data/nodeIcons';
+import { WorkflowEngine } from '@/lib/workflowEngine';
+import { ExecutionResult } from '@/types/workflow';
+import { toast } from 'sonner';
 import '@xyflow/react/dist/style.css';
 const scenarios = [
   {
-    label: '🐔 Manajemen Unggas',
-    prompt: 'Mulai → Pilih Kandang → Input Pakan → Catat Bobot → Validasi → Notifikasi SPV'
+    label: '💬 WhatsApp Welcome Flow',
+    prompt: 'Ask Input → WhatsApp Message → Process Data → WhatsApp Message'
   },
   {
-    label: '🦐 Manajemen Udang',
-    prompt: 'Mulai → Pilih Tambak → Cek Air → Input Pakan → Catat Kematian → Buat Laporan'
+    label: '📊 Data Collection Flow',
+    prompt: 'Receive Update → Process Data → Filter Data → Report (PDF) → Email'
   }
 ];
 
-const getIconForLabel = (label: string): string => {
-  const lowerLabel = label.toLowerCase();
-  
-  if (lowerLabel.includes('lokasi') || lowerLabel.includes('kandang') || lowerLabel.includes('tambak') || lowerLabel.includes('pilih')) {
-    return 'map-pin';
-  }
-  if (lowerLabel.includes('input') || lowerLabel.includes('data') || lowerLabel.includes('catat')) {
-    return 'database';
-  }
-  if (lowerLabel.includes('timbang') || lowerLabel.includes('iot') || lowerLabel.includes('sensor') || lowerLabel.includes('cek air') || lowerLabel.includes('kualitas')) {
-    return 'wifi';
-  }
-  if (lowerLabel.includes('validasi') || lowerLabel.includes('cek') || lowerLabel.includes('verify')) {
-    return 'check-square';
-  }
-  if (lowerLabel.includes('pdf') || lowerLabel.includes('laporan') || lowerLabel.includes('report') || lowerLabel.includes('buat')) {
-    return 'file-text';
-  }
-  if (lowerLabel.includes('notif') || lowerLabel.includes('kirim') || lowerLabel.includes('send') || lowerLabel.includes('pakan') || lowerLabel.includes('kematian')) {
-    return 'send';
-  }
-  
-  return 'database'; // Default fallback
-};
+// Removed getIconForLabel - now using from @/data/nodeIcons
 const WorkflowStudioContent = () => {
   const [prompt, setPrompt] = useState('');
   const [showEdgeSettings, setShowEdgeSettings] = useState(false);
@@ -56,6 +39,12 @@ const WorkflowStudioContent = () => {
     showTyping?: boolean;
   }>>([]);
   const chatRef = useRef<HTMLDivElement>(null);
+  
+  // New state for config and execution panels
+  const [configNode, setConfigNode] = useState<Node | null>(null);
+  const [executionNode, setExecutionNode] = useState<Node | null>(null);
+  const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
   
   const {
     nodes,
@@ -110,7 +99,7 @@ const WorkflowStudioContent = () => {
         position: { x: 300 + i * 250, y: 200 },
         data: { 
           label,
-          icon: getIconForLabel(label),
+          icon: 'database',
         },
       });
 
@@ -176,7 +165,7 @@ const WorkflowStudioContent = () => {
     let delay = 0;
 
     messages.push({
-      content: 'Halo! Saya Agen Rahayu. Mari kita mulai alur kerjanya.',
+      content: 'Hi! I\'m your WhatsApp automation agent. Let\'s get started!',
       type: 'agent',
       delay
     });
@@ -184,14 +173,14 @@ const WorkflowStudioContent = () => {
 
     steps.forEach((label, i) => {
       messages.push({
-        content: `Langkah ${i + 1}: ${label}`,
+        content: `Step ${i + 1}: ${label}`,
         type: 'agent',
         showTyping: true,
         delay
       });
       delay += 1500;
       messages.push({
-        content: `Siap, ${label} sudah selesai.`,
+        content: `✓ ${label} completed.`,
         type: 'user',
         delay
       });
@@ -212,13 +201,22 @@ const WorkflowStudioContent = () => {
       position,
       data: {
         label: nodeData.label,
-        icon: nodeData.icon,
-        ...(nodeData.label === 'Input Data' && { metrics: [] }),
+        icon: getIconForLabel(nodeData.label)?.displayName,
       },
     };
     
     addNode(newNode);
   }, [addNode]);
+
+  const handleExecuteNode = useCallback(async () => {
+    if (!executionNode) return;
+    
+    setIsExecuting(true);
+    const engine = new WorkflowEngine();
+    const results = await engine.executeWorkflow(nodes, edges, executionNode.id);
+    setExecutionResult(results.get(executionNode.id) || null);
+    setIsExecuting(false);
+  }, [executionNode, nodes, edges]);
 
   useEffect(() => {
     if (chatRef.current) {
@@ -236,7 +234,7 @@ const WorkflowStudioContent = () => {
             </span>
           </div>
           <p className="text-lg text-foreground-muted">
-            Ubah deskripsi kerja menjadi alur otomatis, dari ide ke WhatsApp agent.
+            Build WhatsApp automation workflows visually—from concept to deployed agent.
           </p>
         </div>
 
@@ -249,9 +247,9 @@ const WorkflowStudioContent = () => {
               1. Describe Workflow
             </h3>
             <p className="text-sm text-foreground-muted mt-1">
-              Gunakan prompt atau skenario siap pakai.
+              Use prompts or ready-made scenarios.
             </p>
-            <Textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="mt-4" rows={5} placeholder="Contoh: Mulai → Pilih Tambak → Cek Kualitas Air → Beri Pakan → Catat Kematian → Buat Laporan → Kirim Notifikasi" />
+            <Textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="mt-4" rows={5} placeholder="Example: Ask Input → WhatsApp Message → Process Data → Notification" />
             <div className="mt-3 flex flex-wrap gap-2">
               {scenarios.map((scenario, idx) => <button key={idx} onClick={() => setPrompt(scenario.prompt)} className="bg-brand-secondary/10 text-brand-secondary hover:bg-brand-secondary/20 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
                   {scenario.label}
@@ -268,17 +266,22 @@ const WorkflowStudioContent = () => {
             </div>
           </div>
 
-          {/* Toolbox */}
+          {/* Node Library */}
           <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5">
             <h3 className="font-semibold text-foreground flex items-center gap-2">
               <Box className="w-5 h-5 text-brand-primary" />
-              2. Drag & Drop Toolbox
+              2. Node Library
             </h3>
             <p className="text-sm text-foreground-muted mt-1">
-              Seret langkah-langkah ini ke canvas.
+              Drag nodes to the canvas to build your WhatsApp automation.
             </p>
             <div className="mt-4">
-              <ToolboxPanel />
+              <NodeLibrary 
+                onNodeDragStart={(e, label) => {
+                  e.dataTransfer.effectAllowed = 'copy';
+                  e.dataTransfer.setData('application/reactflow', JSON.stringify({ label }));
+                }}
+              />
             </div>
           </div>
         </div>
@@ -345,6 +348,7 @@ const WorkflowStudioContent = () => {
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 onNodeClick={(node) => setSelectedNode(node)}
+                onOpenConfig={(node) => setConfigNode(node)}
                 onDrop={handleCanvasDrop}
                 onDeleteEdge={deleteEdge}
                 onUpdateEdge={updateEdgeStyle}
@@ -378,7 +382,7 @@ const WorkflowStudioContent = () => {
           <div className="bg-card rounded-2xl border border-border-light p-5 shadow-soft w-full max-w-md">
             <h3 className="font-semibold flex items-center gap-2 text-foreground mb-4">
               <Smartphone className="w-5 h-5 text-foreground-muted" />
-              Simulasi WhatsApp
+              WhatsApp Simulation
             </h3>
             <div className="grid place-items-center">
               <div className="w-[320px] h-[640px] rounded-[40px] border-[10px] border-foreground bg-[#0b141a] shadow-strong relative overflow-hidden">
@@ -391,7 +395,7 @@ const WorkflowStudioContent = () => {
                     R
                   </div>
                   <div>
-                    <div className="text-base font-semibold">Agen Rahayu</div>
+                    <div className="text-base font-semibold">WhatsApp Agent</div>
                     <div className="text-xs text-gray-400">online</div>
                   </div>
                 </header>
@@ -419,6 +423,33 @@ const WorkflowStudioContent = () => {
         onClose={() => setSelectedNode(null)}
         onUpdateMetrics={updateNodeMetrics}
       />
+
+      {/* Node Config Panel */}
+      {configNode && (
+        <NodeConfigPanel
+          node={configNode}
+          onClose={() => setConfigNode(null)}
+          onSave={(nodeId, title, description) => {
+            updateNodeMetrics(nodeId, { title, description } as any);
+            setConfigNode(null);
+            toast.success('Node configuration saved');
+          }}
+        />
+      )}
+
+      {/* Node Execution Panel */}
+      {executionNode && (
+        <NodeExecutionPanel
+          node={executionNode}
+          result={executionResult}
+          isExecuting={isExecuting}
+          onClose={() => {
+            setExecutionNode(null);
+            setExecutionResult(null);
+          }}
+          onExecute={handleExecuteNode}
+        />
+      )}
     </section>;
 };
 

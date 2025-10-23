@@ -68,6 +68,7 @@ interface WorkflowCanvasProps {
   onRedo?: () => void;
   canUndo?: () => boolean;
   canRedo?: () => boolean;
+  onOpenConfig?: (node: Node) => void;
 }
 
 export const WorkflowCanvas = ({
@@ -87,6 +88,7 @@ export const WorkflowCanvas = ({
   onRedo,
   canUndo,
   canRedo,
+  onOpenConfig,
 }: WorkflowCanvasProps) => {
   const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow();
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
@@ -106,7 +108,7 @@ export const WorkflowCanvas = ({
           label: 'Configure Node',
           icon: <Settings2 className="w-4 h-4" />,
           onClick: () => {
-            onNodeClick?.(node);
+            onOpenConfig?.(node);
             toast.info('Node configuration opened');
           },
         },
