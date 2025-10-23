@@ -1,10 +1,6 @@
 import { useEffect } from 'react';
-import {
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-} from '@/components/ui/context-menu';
 import { ContextMenuState } from '@/hooks/useContextMenu';
+import { Separator } from '@/components/ui/separator';
 
 interface UniversalContextMenuProps {
   menu: ContextMenuState;
@@ -40,14 +36,15 @@ export const UniversalContextMenu = ({ menu, onClose }: UniversalContextMenuProp
         zIndex: 9999,
       }}
       className="animate-in fade-in-0 zoom-in-95 duration-200"
+      onClick={(e) => e.stopPropagation()}
     >
-      <ContextMenuContent className="w-56">
+      <div className="w-56 rounded-md border border-border bg-popover p-1 shadow-md">
         {menu.items.map((item, idx) => (
           <div key={idx}>
             {item.label === '---' ? (
-              <ContextMenuSeparator />
+              <Separator className="my-1" />
             ) : (
-              <ContextMenuItem
+              <button
                 onClick={() => {
                   if (item.onClick) {
                     item.onClick();
@@ -55,24 +52,31 @@ export const UniversalContextMenu = ({ menu, onClose }: UniversalContextMenuProp
                   onClose();
                 }}
                 disabled={item.disabled}
-                className={
-                  item.variant === 'destructive'
-                    ? 'text-destructive focus:text-destructive'
-                    : ''
-                }
+                className={`
+                  relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none
+                  transition-colors
+                  ${item.disabled 
+                    ? 'pointer-events-none opacity-50' 
+                    : 'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'
+                  }
+                  ${item.variant === 'destructive'
+                    ? 'text-destructive focus:text-destructive hover:text-destructive'
+                    : 'text-popover-foreground'
+                  }
+                `}
               >
                 {item.icon && <span className="mr-2">{item.icon}</span>}
-                {item.label}
+                <span className="flex-1 text-left">{item.label}</span>
                 {item.shortcut && (
                   <span className="ml-auto text-xs text-muted-foreground">
                     {item.shortcut}
                   </span>
                 )}
-              </ContextMenuItem>
+              </button>
             )}
           </div>
         ))}
-      </ContextMenuContent>
+      </div>
     </div>
   );
 };
