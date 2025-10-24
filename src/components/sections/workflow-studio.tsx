@@ -238,44 +238,44 @@ const WorkflowStudioContent = () => {
           </p>
         </div>
 
-        {/* Top Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Describe Workflow */}
-          <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5">
-            <h3 className="font-semibold text-foreground flex items-center gap-2">
-              <Edit3 className="w-5 h-5 text-brand-secondary" />
-              1. Describe Workflow
-            </h3>
-            <p className="text-sm text-foreground-muted mt-1">
-              Use prompts or ready-made scenarios.
-            </p>
-            <Textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="mt-4" rows={5} placeholder="Example: Ask Input → WhatsApp Message → Process Data → Notification" />
-            <div className="mt-3 flex flex-wrap gap-2">
-              {scenarios.map((scenario, idx) => <button key={idx} onClick={() => setPrompt(scenario.prompt)} className="bg-brand-secondary/10 text-brand-secondary hover:bg-brand-secondary/20 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
-                  {scenario.label}
-                </button>)}
-            </div>
-            <div className="mt-4 flex items-center gap-2">
-              <Button onClick={generateWorkflow} className="flex-1 bg-brand-secondary hover:bg-brand-secondary-light text-white">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Generate
-              </Button>
-              <Button onClick={clearCanvas} variant="outline" size="icon" title="Clear Canvas">
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
+        {/* Describe Workflow - Full Width */}
+        <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5 mb-6">
+          <h3 className="font-semibold text-foreground flex items-center gap-2">
+            <Edit3 className="w-5 h-5 text-brand-secondary" />
+            1. Describe Workflow
+          </h3>
+          <p className="text-sm text-foreground-muted mt-1">
+            Use prompts or ready-made scenarios to quickly generate a workflow.
+          </p>
+          <Textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="mt-4" rows={4} placeholder="Example: Ask Input → WhatsApp Message → Process Data → Notification" />
+          <div className="mt-3 flex flex-wrap gap-2">
+            {scenarios.map((scenario, idx) => <button key={idx} onClick={() => setPrompt(scenario.prompt)} className="bg-brand-secondary/10 text-brand-secondary hover:bg-brand-secondary/20 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
+                {scenario.label}
+              </button>)}
           </div>
+          <div className="mt-4 flex items-center gap-2">
+            <Button onClick={generateWorkflow} className="flex-1 bg-brand-secondary hover:bg-brand-secondary-light text-white">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Generate
+            </Button>
+            <Button onClick={clearCanvas} variant="outline" size="icon" title="Clear Canvas">
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
 
-          {/* Node Library */}
-          <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5">
-            <h3 className="font-semibold text-foreground flex items-center gap-2">
-              <Box className="w-5 h-5 text-brand-primary" />
-              2. Node Library
-            </h3>
-            <p className="text-sm text-foreground-muted mt-1">
-              Drag nodes to the canvas to build your WhatsApp automation.
-            </p>
-            <div className="mt-4">
+        {/* Canvas + Node Library Side by Side */}
+        <div className="flex flex-col md:flex-row gap-6 mb-6">
+          {/* Node Library Sidebar */}
+          <div className="w-full md:w-80 flex-shrink-0">
+            <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5 sticky top-4">
+              <h3 className="font-semibold text-foreground flex items-center gap-2 mb-1">
+                <Box className="w-5 h-5 text-brand-primary" />
+                2. Node Library
+              </h3>
+              <p className="text-sm text-foreground-muted mb-4">
+                Drag nodes to the canvas below.
+              </p>
               <NodeLibrary 
                 onNodeDragStart={(e, label) => {
                   e.dataTransfer.effectAllowed = 'copy';
@@ -284,10 +284,10 @@ const WorkflowStudioContent = () => {
               />
             </div>
           </div>
-        </div>
 
-        {/* Canvas with Edge Settings */}
-        <div className="bg-card rounded-2xl border border-border-light shadow-soft h-[600px] flex mb-6">
+          {/* Canvas with Edge Settings */}
+          <div className="flex-1">
+            <div className="bg-card rounded-2xl border border-border-light shadow-soft h-[600px] flex">
           <div className="flex-1 flex flex-col">
             <div className="border-b border-border px-4 py-3 font-semibold flex justify-between items-center text-foreground">
               <span>Workflow Canvas</span>
@@ -369,12 +369,14 @@ const WorkflowStudioContent = () => {
             </div>
           </div>
           
-          {/* Edge Settings Panel */}
-          {showEdgeSettings && (
-            <div className="w-80 flex-shrink-0">
-              <EdgeSettingsPanel />
+              {/* Edge Settings Panel */}
+              {showEdgeSettings && (
+                <div className="w-80 flex-shrink-0">
+                  <EdgeSettingsPanel />
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* WhatsApp Simulation */}
