@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Sparkles, Trash2, Smartphone, Edit3, Box, Settings2, Undo2, Redo2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Node, Edge, ReactFlowProvider } from '@xyflow/react';
 import { WorkflowCanvas } from '@/components/canvas/WorkflowCanvas';
 import { NodeLibrary } from '@/components/workflow/NodeLibrary';
@@ -268,20 +269,27 @@ const WorkflowStudioContent = () => {
         <div className="flex flex-col md:flex-row gap-6 mb-6">
           {/* Node Library Sidebar */}
           <div className="w-full md:w-80 flex-shrink-0">
-            <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5 sticky top-4">
-              <h3 className="font-semibold text-foreground flex items-center gap-2 mb-1">
-                <Box className="w-5 h-5 text-brand-primary" />
-                2. Node Library
-              </h3>
-              <p className="text-sm text-foreground-muted mb-4">
-                Drag nodes to the canvas below.
-              </p>
-              <NodeLibrary 
-                onNodeDragStart={(e, label) => {
-                  e.dataTransfer.effectAllowed = 'copy';
-                  e.dataTransfer.setData('application/reactflow', JSON.stringify({ label }));
-                }}
-              />
+            <div className="bg-card rounded-2xl border border-border-light shadow-soft h-[600px] flex flex-col">
+              {/* Header - Fixed */}
+              <div className="p-5 border-b border-border flex-shrink-0">
+                <h3 className="font-semibold text-foreground flex items-center gap-2 mb-1">
+                  <Box className="w-5 h-5 text-brand-primary" />
+                  2. Node Library
+                </h3>
+                <p className="text-sm text-foreground-muted">
+                  Drag nodes to the canvas below.
+                </p>
+              </div>
+              
+              {/* Scrollable Content */}
+              <ScrollArea className="flex-1 p-5">
+                <NodeLibrary 
+                  onNodeDragStart={(e, label) => {
+                    e.dataTransfer.effectAllowed = 'copy';
+                    e.dataTransfer.setData('application/reactflow', JSON.stringify({ label }));
+                  }}
+                />
+              </ScrollArea>
             </div>
           </div>
 
