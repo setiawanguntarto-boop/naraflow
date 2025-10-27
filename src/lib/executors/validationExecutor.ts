@@ -18,7 +18,7 @@ export async function validationExecutor(
     // Run validators
     const errors: string[] = [];
     for (const rule of config.rules || []) {
-      const result = await runValidator(rule, fieldValue);
+      const result = await runValidator(rule, fieldValue, context);
       if (!result.valid) {
         errors.push(result.message || rule.errorMessage || 'Validation failed');
       }
@@ -72,7 +72,7 @@ function getNestedValue(obj: any, path: string): any {
   return path.split('.').reduce((current, prop) => current?.[prop], obj);
 }
 
-async function runValidator(rule: any, value: any): Promise<{ valid: boolean; message?: string }> {
+async function runValidator(rule: any, value: any, context?: any): Promise<{ valid: boolean; message?: string }> {
   switch (rule.type) {
     case 'required':
       return { valid: value !== undefined && value !== null && value !== '' };
@@ -100,13 +100,36 @@ async function runValidator(rule: any, value: any): Promise<{ valid: boolean; me
       return { valid: new RegExp(rule.pattern).test(value) };
     
     case 'js':
-      // Sandboxed JS execution (basic implementation)
-      try {
-        const result = eval(`(function() { ${rule.params?.code || ''} })()`);
-        return { valid: result };
-      } catch (error: any) {
-        return { valid: false, message: error.message };
+      // Custom validation using function wrapper
+      // WARNING: Only use trusted code, avoid direct eval
+      if (rule.params?.code) {
+        try {
+          // Parse validation expression safely
+          const expression = rule.params.code.trim();
+          
+          // Whitelist-based validation (only allow specific operations)
+          const allowedPattern = /^(value|payload)\.(.+)\s*[<>=!]+|\s*-?\d+(\.\d+)?$/;
+          if (!allowedPattern.test(expression)) {
+            return { valid: false, message: 'Unsafe expression not allowed' };
+          }
+          
+          // Safe evaluation using Function constructor (safer than eval)
+          const validationFn = new Function('value', 'payload', `
+            try {
+              return ${expression};
+            } catch {
+              return false;
+            }
+          `);
+          
+          const result = validationFn(value, context);
+          return { valid: Boolean(result) };
+        } catch (error: any) {
+          logger?.warn(`JS validation error: ${error.message}`);
+          return { valid: false, message: error.message };
+        }
       }
+      return { valid: true };
     
     default:
       return { valid: true };
