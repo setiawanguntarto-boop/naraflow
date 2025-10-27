@@ -24,7 +24,7 @@ export function planNotificationWorkflow(analysis: PromptAnalysis): NodePlan[] {
   };
 
   let currentX = 100;
-  let currentY = 300;
+  const currentY = 300;
 
   // Start node
   plans.push({

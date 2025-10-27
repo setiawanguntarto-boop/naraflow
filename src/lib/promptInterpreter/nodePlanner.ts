@@ -40,7 +40,7 @@ export function planNodes(analysis: PromptAnalysis): NodePlan[] {
 
   // Start position
   let currentX = 100;
-  let currentY = 300;
+  const currentY = 300;
 
   // Node 1: Start
   plans.push({

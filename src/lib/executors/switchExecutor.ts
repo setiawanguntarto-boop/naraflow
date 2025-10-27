@@ -52,7 +52,7 @@ function evaluateExpression(expression: string, context: any): any {
 
   try {
     // Replace context references
-    let safeExpression = expression
+    const safeExpression = expression
       .replace(/payload\./g, "context.payload.")
       .replace(/memory\./g, "context.memory.")
       .replace(/vars\./g, "context.vars.");

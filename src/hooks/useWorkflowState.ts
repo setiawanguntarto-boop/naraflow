@@ -902,7 +902,7 @@ export const useWorkflowState = create<WorkflowState>()(
         });
 
         set(state => {
-          let newState = { ...state };
+          const newState = { ...state };
 
           if (updates.nodes) {
             // REPLACE all nodes instead of merging
