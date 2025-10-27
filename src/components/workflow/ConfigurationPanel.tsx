@@ -143,14 +143,14 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
               <SelectTrigger id="environment">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800">
                 <SelectItem value="staging">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                     <span>🔧 Staging</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="production">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
                     <span>🚀 Production</span>
                   </div>
                 </SelectItem>
@@ -189,12 +189,12 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
           </div>
 
           {/* Workflow Summary */}
-          <div className="rounded-lg bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 p-3">
+          <div className="rounded-lg bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-3">
             <div className="flex items-start gap-2">
               <div className="text-indigo-600 dark:text-indigo-400 mt-0.5">ℹ️</div>
-              <div className="text-sm text-indigo-800 dark:text-indigo-300">
-                <p className="font-medium mb-1">Workflow Summary:</p>
-                <ul className="list-disc list-inside space-y-1 text-xs">
+              <div className="text-sm text-gray-900 dark:text-gray-100">
+                <p className="font-semibold mb-1 text-gray-900 dark:text-gray-100">Workflow Summary:</p>
+                <ul className="list-disc list-inside space-y-1 text-xs text-gray-700 dark:text-gray-300">
                   <li>{nodes.length} nodes</li>
                   <li>{edges.length} connections</li>
                   <li>Runtime configuration</li>
