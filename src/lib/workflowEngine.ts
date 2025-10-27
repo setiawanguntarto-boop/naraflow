@@ -1,12 +1,12 @@
-import { Edge } from '@xyflow/react';
-import { ExecutionResult, ExecutionContext } from '@/types/workflow';
-import { getExecutorForNode } from './nodeExecutors';
+import { Edge } from "@xyflow/react";
+import { ExecutionResult, ExecutionContext } from "@/types/workflow";
+import { getExecutorForNode } from "./nodeExecutors";
 
 export class WorkflowEngine {
   async executeWorkflow(
     nodes: any[],
     edges: Edge[],
-    startNodeId: string = 'start',
+    startNodeId: string = "start",
     llamaConfig?: any,
     appendLlamaLog?: (entry: any) => void
   ): Promise<Map<string, ExecutionResult>> {
@@ -32,12 +32,14 @@ export class WorkflowEngine {
         if (!executor) {
           results.set(nodeId, {
             outputs: {},
-            logs: [{
-              timestamp: new Date(),
-              level: 'warn',
-              message: `No executor found for node type: ${node.data.label}`,
-              nodeId,
-            }],
+            logs: [
+              {
+                timestamp: new Date(),
+                level: "warn",
+                message: `No executor found for node type: ${node.data.label}`,
+                nodeId,
+              },
+            ],
           });
           executed.add(nodeId);
           continue;
@@ -70,13 +72,15 @@ export class WorkflowEngine {
       } catch (error) {
         results.set(nodeId, {
           outputs: {},
-          logs: [{
-            timestamp: new Date(),
-            level: 'error',
-            message: `Execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            nodeId,
-          }],
-          error: error instanceof Error ? error.message : 'Unknown error',
+          logs: [
+            {
+              timestamp: new Date(),
+              level: "error",
+              message: `Execution failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+              nodeId,
+            },
+          ],
+          error: error instanceof Error ? error.message : "Unknown error",
         });
         executed.add(nodeId);
       }

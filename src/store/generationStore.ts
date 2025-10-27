@@ -33,7 +33,7 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
 
   messages: [],
   pushMessage: (m: GenerationMessage) =>
-    set((state) => ({
+    set(state => ({
       messages: [...state.messages, { ...m, timestamp: m.timestamp || new Date() }],
     })),
 
@@ -41,7 +41,5 @@ export const useGenerationStore = create<GenerationState>((set, get) => ({
   setWorkflow: (wf: WorkflowOutput | null) => set({ workflow: wf }),
 
   /** Reset session */
-  reset: () =>
-    set({ prompt: "", isGenerating: false, messages: [], workflow: null }),
+  reset: () => set({ prompt: "", isGenerating: false, messages: [], workflow: null }),
 }));
-

@@ -2,18 +2,18 @@
  * Layout Controller - Main orchestrator for the auto-layout system
  */
 
-import { Node, Edge } from '@xyflow/react';
-import { GraphBuilder } from './graphBuilder';
-import { DagreEngine } from './engines/dagreEngine';
-import { ElkEngine } from './engines/elkEngine';
-import { 
-  LayoutOptions, 
-  LayoutResult, 
-  LayoutHistory, 
+import { Node, Edge } from "@xyflow/react";
+import { GraphBuilder } from "./graphBuilder";
+import { DagreEngine } from "./engines/dagreEngine";
+import { ElkEngine } from "./engines/elkEngine";
+import {
+  LayoutOptions,
+  LayoutResult,
+  LayoutHistory,
   LayoutController as ILayoutController,
-  LayoutEvent 
-} from './types';
-import { globalCanvasEventBus } from '@/hooks/useCanvasEventBus';
+  LayoutEvent,
+} from "./types";
+import { globalCanvasEventBus } from "@/hooks/useCanvasEventBus";
 
 export class LayoutController implements ILayoutController {
   private history: LayoutHistory[] = [];
@@ -31,9 +31,12 @@ export class LayoutController implements ILayoutController {
   /**
    * Execute auto-layout with given options and optional partial layout
    */
-  async autoLayout(options: Partial<LayoutOptions> = {}, selectedNodeIds?: string[]): Promise<void> {
+  async autoLayout(
+    options: Partial<LayoutOptions> = {},
+    selectedNodeIds?: string[]
+  ): Promise<void> {
     if (this.isLayouting || this.layoutMutex) {
-      throw new Error('Layout already in progress');
+      throw new Error("Layout already in progress");
     }
 
     this.isLayouting = true;
@@ -41,9 +44,9 @@ export class LayoutController implements ILayoutController {
 
     try {
       // Emit start event
-      this.emitEvent('layout:start', {
-        engine: options.engine || 'dagre',
-        direction: options.direction || 'LR',
+      this.emitEvent("layout:start", {
+        engine: options.engine || "dagre",
+        direction: options.direction || "LR",
         nodeCount: this.getNodes().length,
       });
 
@@ -51,7 +54,7 @@ export class LayoutController implements ILayoutController {
       const nodes = this.getNodes();
       const edges = this.getEdges();
       let graph = GraphBuilder.buildGraph(nodes, edges);
-      
+
       // Apply partial layout filtering if selectedNodeIds provided
       if (selectedNodeIds && selectedNodeIds.length > 0) {
         graph = GraphBuilder.filterForPartialLayout(graph, selectedNodeIds);
@@ -60,18 +63,18 @@ export class LayoutController implements ILayoutController {
       // Validate graph
       const validation = GraphBuilder.validateGraph(graph);
       if (!validation.valid) {
-        throw new Error(`Invalid graph: ${validation.errors.join(', ')}`);
+        throw new Error(`Invalid graph: ${validation.errors.join(", ")}`);
       }
 
       // Apply partial layout filter if needed
-      const filteredGraph = options.partialLayout 
+      const filteredGraph = options.partialLayout
         ? GraphBuilder.filterForPartialLayout(graph, options.partialLayout)
         : graph;
 
       // Merge with default options
       const layoutOptions: LayoutOptions = {
-        engine: 'dagre',
-        direction: 'LR',
+        engine: "dagre",
+        direction: "LR",
         spacing: { node: 50, level: 100 },
         groupAware: true,
         gridSnap: false,
@@ -83,20 +86,20 @@ export class LayoutController implements ILayoutController {
       this.saveToHistory(nodes, layoutOptions);
 
       // Emit progress event
-      this.emitEvent('layout:progress', {
-        stage: 'calculating',
+      this.emitEvent("layout:progress", {
+        stage: "calculating",
         progress: 25,
-        message: 'Calculating optimal layout...',
+        message: "Calculating optimal layout...",
       });
 
       // Execute layout
       const result = await this.executeLayout(filteredGraph, layoutOptions);
 
       // Emit progress event
-      this.emitEvent('layout:progress', {
-        stage: 'applying',
+      this.emitEvent("layout:progress", {
+        stage: "applying",
         progress: 75,
-        message: 'Applying layout to canvas...',
+        message: "Applying layout to canvas...",
       });
 
       // Apply grid snapping if enabled
@@ -111,17 +114,16 @@ export class LayoutController implements ILayoutController {
       this.updateViewport();
 
       // Emit completion event
-      this.emitEvent('layout:complete', {
+      this.emitEvent("layout:complete", {
         engine: layoutOptions.engine,
         direction: layoutOptions.direction,
         nodeCount: result.positions.length,
         executionTime: result.metadata?.executionTime,
         layoutQuality: this.calculateLayoutQuality(result.positions, filteredGraph),
       });
-
     } catch (error) {
-      this.emitEvent('layout:error', {
-        error: error instanceof Error ? error : new Error('Unknown layout error'),
+      this.emitEvent("layout:error", {
+        error: error instanceof Error ? error : new Error("Unknown layout error"),
       });
       throw error;
     } finally {
@@ -135,7 +137,7 @@ export class LayoutController implements ILayoutController {
    */
   restoreLayout(): void {
     if (this.history.length === 0) {
-      throw new Error('No layout history to restore');
+      throw new Error("No layout history to restore");
     }
 
     const lastLayout = this.history.pop()!;
@@ -156,7 +158,7 @@ export class LayoutController implements ILayoutController {
     this.setNodes(updatedNodes);
     this.updateViewport();
 
-    this.emitEvent('layout:restore', {
+    this.emitEvent("layout:restore", {
       engine: lastLayout.metadata.engine,
       direction: lastLayout.metadata.direction,
       nodeCount: lastLayout.metadata.nodeCount,
@@ -189,11 +191,11 @@ export class LayoutController implements ILayoutController {
    */
   private async executeLayout(graph: any, options: LayoutOptions): Promise<LayoutResult> {
     switch (options.engine) {
-      case 'dagre':
+      case "dagre":
         return await new DagreEngine().layout(graph, options);
-      case 'elk':
+      case "elk":
         return await new ElkEngine().layout(graph, options);
-      case 'group':
+      case "group":
         return await this.executeGroupLayout(graph, options);
       default:
         throw new Error(`Unknown layout engine: ${options.engine}`);
@@ -212,8 +214,12 @@ export class LayoutController implements ILayoutController {
   /**
    * Update node positions in ReactFlow with smooth transitions
    */
-  private updateNodePositions(positions: any[], options: LayoutOptions, selectedNodeIds?: string[]): void {
-    this.setNodes(prevNodes => 
+  private updateNodePositions(
+    positions: any[],
+    options: LayoutOptions,
+    selectedNodeIds?: string[]
+  ): void {
+    this.setNodes(prevNodes =>
       prevNodes.map(node => {
         const newPosition = positions.find(p => p.id === node.id);
         if (newPosition) {
@@ -222,8 +228,8 @@ export class LayoutController implements ILayoutController {
             position: newPosition.position,
             style: {
               ...node.style,
-              transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-              transform: 'scale(1.05)', // Slight scale for glow effect
+              transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+              transform: "scale(1.05)", // Slight scale for glow effect
             },
             data: {
               ...node.data,
@@ -241,12 +247,12 @@ export class LayoutController implements ILayoutController {
 
     // Remove glow effect after animation
     setTimeout(() => {
-      this.setNodes(prevNodes => 
+      this.setNodes(prevNodes =>
         prevNodes.map(node => ({
           ...node,
           style: {
             ...node.style,
-            transform: 'scale(1)',
+            transform: "scale(1)",
           },
         }))
       );
@@ -309,7 +315,7 @@ export class LayoutController implements ILayoutController {
    */
   private calculateLayoutQuality(positions: any[], graph: any): number {
     let score = 100;
-    
+
     // Check for edge crossings (simplified)
     const edges = graph.edges || [];
     for (let i = 0; i < edges.length; i++) {
@@ -319,21 +325,21 @@ export class LayoutController implements ILayoutController {
         }
       }
     }
-    
+
     // Check for optimal spacing
     const nodes = positions;
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
         const distance = Math.sqrt(
           Math.pow(nodes[i].position.x - nodes[j].position.x, 2) +
-          Math.pow(nodes[i].position.y - nodes[j].position.y, 2)
+            Math.pow(nodes[i].position.y - nodes[j].position.y, 2)
         );
         if (distance < 50) {
           score -= 2; // Penalty for nodes too close
         }
       }
     }
-    
+
     return Math.max(0, Math.min(100, score));
   }
 
@@ -345,34 +351,34 @@ export class LayoutController implements ILayoutController {
     const p2 = positions.find(p => p.id === edge1.target)?.position;
     const p3 = positions.find(p => p.id === edge2.source)?.position;
     const p4 = positions.find(p => p.id === edge2.target)?.position;
-    
+
     if (!p1 || !p2 || !p3 || !p4) return false;
-    
+
     // Simple bounding box intersection check
     const minX1 = Math.min(p1.x, p2.x);
     const maxX1 = Math.max(p1.x, p2.x);
     const minY1 = Math.min(p1.y, p2.y);
     const maxY1 = Math.max(p1.y, p2.y);
-    
+
     const minX2 = Math.min(p3.x, p4.x);
     const maxX2 = Math.max(p3.x, p4.x);
     const minY2 = Math.min(p3.y, p4.y);
     const maxY2 = Math.max(p3.y, p4.y);
-    
+
     return !(maxX1 < minX2 || maxX2 < minX1 || maxY1 < minY2 || maxY2 < minY1);
   }
 
   /**
    * Emit layout events
    */
-  private emitEvent(type: LayoutEvent['type'], payload: LayoutEvent['payload']): void {
+  private emitEvent(type: LayoutEvent["type"], payload: LayoutEvent["payload"]): void {
     try {
       globalCanvasEventBus.emit({
         type: type,
         payload,
       });
     } catch (error) {
-      console.warn('Failed to emit layout event:', error);
+      console.warn("Failed to emit layout event:", error);
     }
   }
 }

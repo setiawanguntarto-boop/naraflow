@@ -2,11 +2,11 @@
  * Visual Feedback System for Auto-Layout
  */
 
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Node } from '@xyflow/react';
-import { CheckCircle, AlertCircle, Loader2, Zap, X } from 'lucide-react';
-import { globalCanvasEventBus } from '@/hooks/useCanvasEventBus';
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Node } from "@xyflow/react";
+import { CheckCircle, AlertCircle, Loader2, Zap, X } from "lucide-react";
+import { globalCanvasEventBus } from "@/hooks/useCanvasEventBus";
 
 interface LayoutFeedbackProps {
   isLayouting: boolean;
@@ -21,43 +21,43 @@ interface LayoutFeedbackProps {
   onComplete?: () => void;
 }
 
-export function LayoutFeedback({ 
-  isLayouting, 
-  layoutResult, 
-  error, 
-  onComplete 
+export function LayoutFeedback({
+  isLayouting,
+  layoutResult,
+  error,
+  onComplete,
 }: LayoutFeedbackProps) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [progressMessage, setProgressMessage] = useState('');
+  const [progressMessage, setProgressMessage] = useState("");
   const [eventBusResult, setEventBusResult] = useState<any>(null);
   const [eventBusError, setEventBusError] = useState<Error | null>(null);
 
   useEffect(() => {
     // Subscribe to layout events from event bus
-    const unsubscribe = globalCanvasEventBus.subscribe((event) => {
-      if (event.type.startsWith('layout:')) {
+    const unsubscribe = globalCanvasEventBus.subscribe(event => {
+      if (event.type.startsWith("layout:")) {
         switch (event.type) {
-          case 'layout:start':
+          case "layout:start":
             setShowFeedback(true);
             setProgress(0);
-            setProgressMessage('Starting layout...');
+            setProgressMessage("Starting layout...");
             setEventBusError(null);
             break;
-          case 'layout:progress':
+          case "layout:progress":
             setProgress(event.payload.progress || 0);
-            setProgressMessage(event.payload.message || 'Processing...');
+            setProgressMessage(event.payload.message || "Processing...");
             break;
-          case 'layout:complete':
+          case "layout:complete":
             setEventBusResult(event.payload);
             setProgress(100);
-            setProgressMessage('Layout complete!');
+            setProgressMessage("Layout complete!");
             setEventBusError(null);
             break;
-          case 'layout:error':
+          case "layout:error":
             setEventBusError(event.payload.error);
             setProgress(0);
-            setProgressMessage('Layout failed');
+            setProgressMessage("Layout failed");
             break;
         }
       }
@@ -69,7 +69,7 @@ export function LayoutFeedback({
   useEffect(() => {
     if (layoutResult || error || eventBusResult || eventBusError) {
       setShowFeedback(true);
-      
+
       // Auto-hide after 5 seconds for better readability
       const timer = setTimeout(() => {
         setShowFeedback(false);
@@ -123,7 +123,7 @@ export function LayoutFeedback({
               <div className="flex items-center gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary" />
                 <div>
-                  <p className="font-medium">{progressMessage || 'Arranging workflow...'}</p>
+                  <p className="font-medium">{progressMessage || "Arranging workflow..."}</p>
                   <p className="text-sm text-muted-foreground">Please wait</p>
                 </div>
               </div>
@@ -132,7 +132,9 @@ export function LayoutFeedback({
                 <AlertCircle className="w-5 h-5 text-destructive" />
                 <div>
                   <p className="font-medium text-destructive">Layout failed</p>
-                  <p className="text-sm text-muted-foreground">{(error || eventBusError)?.message}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {(error || eventBusError)?.message}
+                  </p>
                 </div>
               </div>
             ) : layoutResult || eventBusResult ? (
@@ -174,20 +176,20 @@ export function NodeGlowEffect({ nodeId, isActive, duration = 2000 }: NodeGlowEf
       {isActive && (
         <motion.div
           initial={{ opacity: 0, scale: 1 }}
-          animate={{ 
+          animate={{
             opacity: [0, 0.8, 0],
             scale: [1, 1.05, 1],
           }}
           exit={{ opacity: 0, scale: 1 }}
-          transition={{ 
+          transition={{
             duration: duration / 1000,
             ease: "easeInOut",
-            times: [0, 0.5, 1]
+            times: [0, 0.5, 1],
           }}
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%)',
-            borderRadius: 'inherit',
+            background: "radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%)",
+            borderRadius: "inherit",
           }}
         />
       )}
@@ -216,10 +218,10 @@ export class LayoutAnimationController {
     if (this.activeAnimations.has(nodeId)) return;
 
     this.activeAnimations.add(nodeId);
-    
+
     // Dispatch custom event for the glow effect
-    const event = new CustomEvent('nodeGlow', {
-      detail: { nodeId, duration }
+    const event = new CustomEvent("nodeGlow", {
+      detail: { nodeId, duration },
     });
     window.dispatchEvent(event);
 
@@ -253,15 +255,15 @@ export class LayoutAnimationController {
  */
 interface LayoutProgressProps {
   progress: number;
-  stage: 'building' | 'calculating' | 'applying' | 'complete';
+  stage: "building" | "calculating" | "applying" | "complete";
 }
 
 export function LayoutProgress({ progress, stage }: LayoutProgressProps) {
   const stageLabels = {
-    building: 'Building graph structure...',
-    calculating: 'Calculating optimal layout...',
-    applying: 'Applying layout to canvas...',
-    complete: 'Layout complete!',
+    building: "Building graph structure...",
+    calculating: "Calculating optimal layout...",
+    applying: "Applying layout to canvas...",
+    complete: "Layout complete!",
   };
 
   return (
@@ -270,7 +272,7 @@ export function LayoutProgress({ progress, stage }: LayoutProgressProps) {
         <Zap className="w-4 h-4 text-primary" />
         <span className="text-sm font-medium">{stageLabels[stage]}</span>
       </div>
-      
+
       <div className="w-full bg-muted rounded-full h-2">
         <motion.div
           className="bg-primary h-2 rounded-full"
@@ -279,10 +281,8 @@ export function LayoutProgress({ progress, stage }: LayoutProgressProps) {
           transition={{ duration: 0.3, ease: "easeOut" }}
         />
       </div>
-      
-      <div className="text-xs text-muted-foreground mt-1">
-        {Math.round(progress)}% complete
-      </div>
+
+      <div className="text-xs text-muted-foreground mt-1">{Math.round(progress)}% complete</div>
     </div>
   );
 }

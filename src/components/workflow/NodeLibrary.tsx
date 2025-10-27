@@ -1,18 +1,23 @@
-import { useState, useMemo } from 'react';
-import { Search, ChevronDown, ChevronRight, Zap } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { NODE_CATEGORIES, CATEGORY_COLORS, type NodeCategory, getCategoryForNode } from '@/data/nodeCategories';
-import { getIconForLabel } from '@/data/nodeIcons';
-import { cn } from '@/lib/utils';
-import { nodeTypeRegistry } from '@/lib/nodeTypeRegistry';
-import { Badge } from '@/components/ui/badge';
+import { useState, useMemo } from "react";
+import { Search, ChevronDown, ChevronRight, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  NODE_CATEGORIES,
+  CATEGORY_COLORS,
+  type NodeCategory,
+  getCategoryForNode,
+} from "@/data/nodeCategories";
+import { getIconForLabel } from "@/data/nodeIcons";
+import { cn } from "@/lib/utils";
+import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
+import { Badge } from "@/components/ui/badge";
 
 interface NodeLibraryProps {
   onNodeDragStart: (event: React.DragEvent, label: string) => void;
 }
 
 export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<Set<NodeCategory>>(
     new Set(Object.keys(NODE_CATEGORIES) as NodeCategory[])
   );
@@ -20,48 +25,48 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
   // Get all nodes from v3 registry and group them
   const v3NodesByCategory = useMemo(() => {
     const grouped = nodeTypeRegistry.getAllNodeTypesGroupedByCategory();
-    
+
     // Map v3 categories to UI categories
     const categoryMap: Record<string, NodeCategory> = {
-      'trigger': 'Input',
-      'logic': 'Processing',
-      'control': 'Logic',
-      'output': 'Output',
-      'utility': 'Meta'
+      trigger: "Input",
+      logic: "Processing",
+      control: "Logic",
+      output: "Output",
+      utility: "Meta",
     };
-    
+
     const result: Record<NodeCategory, Array<{ id: string; label: string; isV3: boolean }>> = {
       Input: [],
       Processing: [],
       Logic: [],
       Output: [],
-      Meta: []
+      Meta: [],
     };
-    
+
     Object.entries(grouped).forEach(([v3Category, nodes]) => {
-      const uiCategory = categoryMap[v3Category] || 'Meta';
+      const uiCategory = categoryMap[v3Category] || "Meta";
       nodes.forEach(node => {
         result[uiCategory].push({
           id: node.id,
           label: node.label,
-          isV3: true
+          isV3: true,
         });
       });
     });
-    
+
     // Also add legacy v2 nodes
     Object.entries(NODE_CATEGORIES).forEach(([category, nodes]) => {
       nodes.forEach(node => {
         if (!result[category as NodeCategory].find(n => n.label === node)) {
           result[category as NodeCategory].push({
-            id: node.toLowerCase().replace(/\s+/g, '_'),
+            id: node.toLowerCase().replace(/\s+/g, "_"),
             label: node,
-            isV3: false
+            isV3: false,
           });
         }
       });
     });
-    
+
     return result;
   }, []);
 
@@ -77,9 +82,10 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
 
   const filterNodes = (nodes: Array<{ id: string; label: string; isV3: boolean }>) => {
     if (!searchTerm) return nodes;
-    return nodes.filter(node => 
-      node.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      node.id.toLowerCase().includes(searchTerm.toLowerCase())
+    return nodes.filter(
+      node =>
+        node.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        node.id.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
@@ -95,7 +101,7 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
         <Input
           placeholder="Search nodes..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={e => setSearchTerm(e.target.value)}
           className="pl-9"
         />
       </div>
@@ -117,7 +123,7 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
                 className={cn(
                   "w-full flex items-center justify-between px-4 py-3 font-semibold text-sm transition-all",
                   "bg-white border-l-4",
-                  colors.border.replace('border-', 'border-l-'),
+                  colors.border.replace("border-", "border-l-"),
                   colors.text,
                   "hover:bg-gray-50 hover:shadow-sm"
                 )}
@@ -142,31 +148,38 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
                     const Icon = getIconForLabel(node.label);
                     const nodeCategory = getCategoryForNode(node.label);
                     const nodeColors = nodeCategory ? CATEGORY_COLORS[nodeCategory] : null;
-                    
+
                     return (
                       <div
                         key={node.id}
                         draggable
-                        onDragStart={(e) => onNodeDragStart(e, node.label)}
+                        onDragStart={e => onNodeDragStart(e, node.label)}
                         className={cn(
                           "flex items-center gap-3 px-4 py-3 rounded-lg",
                           "cursor-grab active:cursor-grabbing",
                           "transition-all hover:scale-102",
                           "border-2",
-                          nodeColors?.bg || 'bg-white',
-                          nodeColors?.border || 'border-gray-200',
+                          nodeColors?.bg || "bg-white",
+                          nodeColors?.border || "border-gray-200",
                           "hover:shadow-md hover:border-opacity-80"
                         )}
                       >
-                        <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center",
-                          nodeColors?.bg || 'bg-gray-100',
-                          nodeColors?.border || 'border border-gray-200'
-                        )}>
-                          <Icon className={cn("w-4 h-4", nodeColors?.icon || 'text-gray-600')} />
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center",
+                            nodeColors?.bg || "bg-gray-100",
+                            nodeColors?.border || "border border-gray-200"
+                          )}
+                        >
+                          <Icon className={cn("w-4 h-4", nodeColors?.icon || "text-gray-600")} />
                         </div>
                         <div className="flex-1">
-                          <span className={cn("text-sm font-medium", nodeColors?.text || 'text-foreground')}>
+                          <span
+                            className={cn(
+                              "text-sm font-medium",
+                              nodeColors?.text || "text-foreground"
+                            )}
+                          >
                             {node.label}
                           </span>
                         </div>
@@ -181,11 +194,12 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
       </div>
 
       {/* Empty State */}
-      {searchTerm && !Object.keys(NODE_CATEGORIES).some(cat => hasVisibleNodes(cat as NodeCategory)) && (
-        <div className="text-center py-8 text-muted-foreground text-sm">
-          No nodes found for "{searchTerm}"
-        </div>
-      )}
+      {searchTerm &&
+        !Object.keys(NODE_CATEGORIES).some(cat => hasVisibleNodes(cat as NodeCategory)) && (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No nodes found for "{searchTerm}"
+          </div>
+        )}
     </div>
   );
 };

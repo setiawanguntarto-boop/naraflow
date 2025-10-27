@@ -4,14 +4,14 @@
  */
 
 export interface Intent {
-  type: 'whatsapp_data_entry' | 'workflow_automation' | 'data_processing';
+  type: "whatsapp_data_entry" | "workflow_automation" | "data_processing";
   confidence: number;
   rawPrompt: string;
 }
 
 export interface ExtractedEntity {
   field: string;
-  type: 'text' | 'number' | 'phone' | 'email' | 'date';
+  type: "text" | "number" | "phone" | "email" | "date";
   required: boolean;
   validation?: string[];
 }
@@ -19,8 +19,8 @@ export interface ExtractedEntity {
 export interface PromptAnalysis {
   intent: Intent;
   entities: ExtractedEntity[];
-  target: 'google_sheets' | 'database' | 'storage';
-  workflow_type: 'sequential' | 'parallel' | 'conditional';
+  target: "google_sheets" | "database" | "storage";
+  workflow_type: "sequential" | "parallel" | "conditional";
 }
 
 export interface NodePlan {
@@ -41,7 +41,7 @@ export interface WorkflowOutput {
   metadata: {
     title: string;
     description: string;
-    generated_by: 'prompt_interpreter';
+    generated_by: "prompt_interpreter";
     timestamp: string;
   };
   warnings: string[];

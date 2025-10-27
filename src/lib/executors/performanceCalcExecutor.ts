@@ -1,4 +1,4 @@
-import { ExecutionContext, NodeResult } from '@/core/nodeLibrary_v3';
+import { ExecutionContext, NodeResult } from "@/core/nodeLibrary_v3";
 
 /**
  * Performance Calculator Executor
@@ -9,8 +9,11 @@ export async function performanceCalcExecutor(
   nodeData: any
 ): Promise<NodeResult> {
   try {
-    const { inputKeys = ['feed', 'avg_weight', 'mortality', 'population_start'], outputKeys = ['FCR', 'ADG', 'mortality_pct'] } = nodeData.metadata || {};
-    
+    const {
+      inputKeys = ["feed", "avg_weight", "mortality", "population_start"],
+      outputKeys = ["FCR", "ADG", "mortality_pct"],
+    } = nodeData.metadata || {};
+
     // Extract values from input or memory
     const feed = ctx.payload?.feed || ctx.memory?.feed || 0;
     const avg_weight = ctx.payload?.avg_weight || ctx.memory?.avg_weight || 0;
@@ -32,7 +35,7 @@ export async function performanceCalcExecutor(
     const results = {
       FCR,
       ADG,
-      mortality_pct: Number(mortality_pct.toFixed(2))
+      mortality_pct: Number(mortality_pct.toFixed(2)),
     };
 
     // Store results in memory
@@ -41,31 +44,30 @@ export async function performanceCalcExecutor(
       lastPerformance: results,
       FCR,
       ADG,
-      mortality_pct
+      mortality_pct,
     };
 
-    ctx.services.logger.info('Performance calculated', {
+    ctx.services.logger.info("Performance calculated", {
       FCR,
       ADG,
       mortality_pct,
-      days
+      days,
     });
 
     return {
-      status: 'success',
+      status: "success",
       data: results,
-      updatedMemory
+      updatedMemory,
     };
   } catch (error: any) {
-    ctx.services.logger.error('Performance calculation failed', { error: error.message });
+    ctx.services.logger.error("Performance calculation failed", { error: error.message });
     return {
-      status: 'error',
+      status: "error",
       error: {
-        message: error.message || 'Performance calculation failed',
-        code: 'PERF_CALC_ERROR',
-        details: error
-      }
+        message: error.message || "Performance calculation failed",
+        code: "PERF_CALC_ERROR",
+        details: error,
+      },
     };
   }
 }
-

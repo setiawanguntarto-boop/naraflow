@@ -3,7 +3,7 @@
  * Supports versioning, security, runtime contracts, and WhatsApp data-entry agents
  */
 
-import { JSONSchema7 } from 'json-schema';
+import { JSONSchema7 } from "json-schema";
 
 export interface ExecutionContext {
   workflowId: string;
@@ -30,7 +30,7 @@ export interface ExecutionContext {
 }
 
 export interface NodeResult {
-  status: 'success' | 'error' | 'retry';
+  status: "success" | "error" | "retry";
   data?: any;
   next?: string;
   error?: {
@@ -43,14 +43,14 @@ export interface NodeResult {
 
 export interface InputPortDefinition {
   name: string;
-  type: 'data' | 'condition' | 'trigger' | 'message';
+  type: "data" | "condition" | "trigger" | "message";
   required: boolean;
   description?: string;
 }
 
 export interface OutputPortDefinition {
   name: string;
-  type: 'data' | 'route' | 'confirmation' | 'insights';
+  type: "data" | "route" | "confirmation" | "insights";
   description?: string;
 }
 
@@ -62,7 +62,7 @@ export interface AttachmentPortDefinition {
   id: string;
   label: string;
   description?: string;
-  position: 'bottom' | 'left' | 'right' | 'top';
+  position: "bottom" | "left" | "right" | "top";
   color?: string;
   icon?: string;
   allowedTypes?: string[]; // Restrict which node types can attach here
@@ -85,11 +85,11 @@ export interface NodeTypeDefinition {
   version: string;
   label: string;
   description: string;
-  category: 'trigger' | 'logic' | 'control' | 'output' | 'utility' | 'agent';
+  category: "trigger" | "logic" | "control" | "output" | "utility" | "agent";
   configSchema: JSONSchema7;
   inputs: Record<string, InputPortDefinition>;
   outputs: Record<string, OutputPortDefinition>;
-  
+
   /**
    * Attachment ports for sub-node connections (Langflow-style)
    * Key: port ID (e.g., 'model', 'memory', 'parser')
@@ -115,7 +115,7 @@ export interface NodeTypeDefinition {
     };
   };
   security?: {
-    authType: 'oauth2' | 'apiKey' | 'none';
+    authType: "oauth2" | "apiKey" | "none";
     scopes?: string[];
   };
   meta?: {
@@ -150,4 +150,3 @@ export interface Logger {
   warn: (message: string, ...args: any[]) => void;
   error: (message: string, ...args: any[]) => void;
 }
-

@@ -1,6 +1,6 @@
-import { globalCanvasEventBus } from '@/hooks/useCanvasEventBus';
-import { StorageAdapter, StorageFactory, LocalStorageAdapter } from '@/lib/storage/StorageAdapter';
-import * as LZString from 'lz-string';
+import { globalCanvasEventBus } from "@/hooks/useCanvasEventBus";
+import { StorageAdapter, StorageFactory, LocalStorageAdapter } from "@/lib/storage/StorageAdapter";
+import * as LZString from "lz-string";
 
 export interface SessionMetadata {
   id: string;
@@ -77,17 +77,17 @@ class LRUCache<T> {
 
 // Event types for SessionManager
 export interface SessionEvent {
-  type: 'create' | 'load' | 'save' | 'delete' | 'switch' | 'expire';
+  type: "create" | "load" | "save" | "delete" | "switch" | "expire";
   sessionId: string;
   data?: SessionData;
   error?: Error;
 }
 
 export class SessionManager {
-  private static readonly STORAGE_PREFIX = 'naraflow_session_';
-  private static readonly SESSION_INDEX_KEY = 'naraflow_sessions_index';
-  private static readonly CURRENT_SESSION_KEY = 'naraflow_current_session';
-  
+  private static readonly STORAGE_PREFIX = "naraflow_session_";
+  private static readonly SESSION_INDEX_KEY = "naraflow_sessions_index";
+  private static readonly CURRENT_SESSION_KEY = "naraflow_current_session";
+
   private static readonly DEFAULT_CONFIG: SessionConfig = {
     maxSessions: 10,
     sessionTimeout: 30 * 60 * 1000, // 30 minutes
@@ -124,7 +124,7 @@ export class SessionManager {
       const decompressed = LZString.decompress(compressedData);
       return decompressed ? JSON.parse(decompressed) : JSON.parse(compressedData);
     } catch (error) {
-      console.error('Decompression error:', error);
+      console.error("Decompression error:", error);
       return JSON.parse(compressedData);
     }
   }
@@ -139,16 +139,20 @@ export class SessionManager {
     try {
       const compressedData = await this.storageAdapter.get(`session_${sessionId}`);
       if (!compressedData) return null;
-      
+
       return this.decompress(compressedData);
     } catch (error) {
-      console.error('Failed to load session data:', error);
+      console.error("Failed to load session data:", error);
       return null;
     }
   }
 
   // Selective diff syncing methods
-  async getDiff(sessionId: string, currentNodes: any[], currentEdges: any[]): Promise<{
+  async getDiff(
+    sessionId: string,
+    currentNodes: any[],
+    currentEdges: any[]
+  ): Promise<{
     hasChanges: boolean;
     nodeChanges: { added: any[]; updated: any[]; removed: string[] };
     edgeChanges: { added: any[]; updated: any[]; removed: string[] };
@@ -169,7 +173,7 @@ export class SessionManager {
     const nodeChanges = this.compareNodes(savedNodes, currentNodes);
     const edgeChanges = this.compareEdges(savedEdges, currentEdges);
 
-    const hasChanges = 
+    const hasChanges =
       nodeChanges.added.length > 0 ||
       nodeChanges.updated.length > 0 ||
       nodeChanges.removed.length > 0 ||
@@ -184,7 +188,10 @@ export class SessionManager {
     };
   }
 
-  private compareNodes(savedNodes: any[], currentNodes: any[]): {
+  private compareNodes(
+    savedNodes: any[],
+    currentNodes: any[]
+  ): {
     added: any[];
     updated: any[];
     removed: string[];
@@ -216,7 +223,10 @@ export class SessionManager {
     return { added, updated, removed };
   }
 
-  private compareEdges(savedEdges: any[], currentEdges: any[]): {
+  private compareEdges(
+    savedEdges: any[],
+    currentEdges: any[]
+  ): {
     added: any[];
     updated: any[];
     removed: string[];
@@ -250,14 +260,14 @@ export class SessionManager {
 
   async syncToSession(sessionId: string, nodes: any[], edges: any[]): Promise<void> {
     const diff = await this.getDiff(sessionId, nodes, edges);
-    
+
     if (!diff.hasChanges) {
-      console.log('No changes to sync for session:', sessionId);
+      console.log("No changes to sync for session:", sessionId);
       return;
     }
 
-    console.log('Syncing changes to session:', sessionId, diff);
-    
+    console.log("Syncing changes to session:", sessionId, diff);
+
     // Load current session data
     const sessionData = await this.loadSessionData(sessionId);
     if (!sessionData) {
@@ -274,23 +284,23 @@ export class SessionManager {
 
     // Save updated session data
     await this.saveSessionData(sessionData);
-    
+
     // Update LRU cache
     this.lruCache.set(sessionId, sessionData.metadata);
-    
+
     // Update session index
     await this.updateSessionIndex(sessionData.metadata);
 
     // Emit save event
     this.emit({
-      type: 'save',
+      type: "save",
       sessionId,
       data: sessionData,
     });
   }
 
   // Event system methods
-  on(eventType: SessionEvent['type'], listener: (event: SessionEvent) => void): () => void {
+  on(eventType: SessionEvent["type"], listener: (event: SessionEvent) => void): () => void {
     if (!this.eventListeners.has(eventType)) {
       this.eventListeners.set(eventType, new Set());
     }
@@ -333,7 +343,7 @@ export class SessionManager {
   async createSession(name: string, description?: string): Promise<string> {
     const sessionId = this.generateSessionId();
     const now = new Date().toISOString();
-    
+
     const metadata: SessionMetadata = {
       id: sessionId,
       name,
@@ -344,7 +354,7 @@ export class SessionManager {
       nodeCount: 0,
       edgeCount: 0,
       isActive: true,
-      version: '1.0', // Schema version
+      version: "1.0", // Schema version
     };
 
     const sessionData: SessionData = {
@@ -357,26 +367,26 @@ export class SessionManager {
 
     // Save session data
     await this.saveSessionData(sessionData);
-    
+
     // Update session index
     await this.updateSessionIndex(metadata);
-    
+
     // Add to LRU cache
     this.lruCache.set(sessionId, metadata);
-    
+
     // Set as current session
     this.setCurrentSession(sessionId);
-    
+
     // Cleanup old sessions if needed
     await this.cleanupOldSessions();
-    
+
     // Emit create event
     this.emit({
-      type: 'create',
+      type: "create",
       sessionId,
       data: sessionData,
     });
-    
+
     console.log(`Session created: ${sessionId}`);
     return sessionId;
   }
@@ -394,13 +404,13 @@ export class SessionManager {
       // Update last accessed time
       sessionData.metadata.lastAccessedAt = new Date().toISOString();
       sessionData.metadata.isActive = true;
-      
+
       await this.saveSessionData(sessionData);
       await this.updateSessionIndex(sessionData.metadata);
-      
+
       // Set as current session
       this.setCurrentSession(sessionId);
-      
+
       console.log(`Session loaded: ${sessionId}`);
       return sessionData;
     } catch (error) {
@@ -412,7 +422,12 @@ export class SessionManager {
   /**
    * Save session data
    */
-  async saveSession(sessionId: string, nodes: any[], edges: any[], variables: Record<string, any> = {}): Promise<void> {
+  async saveSession(
+    sessionId: string,
+    nodes: any[],
+    edges: any[],
+    variables: Record<string, any> = {}
+  ): Promise<void> {
     try {
       const sessionData = await this.loadSessionData(sessionId);
       if (!sessionData) {
@@ -430,7 +445,7 @@ export class SessionManager {
 
       await this.saveSessionData(sessionData);
       await this.updateSessionIndex(sessionData.metadata);
-      
+
       console.log(`Session saved: ${sessionId}`);
     } catch (error) {
       console.error(`Failed to save session ${sessionId}:`, error);
@@ -446,15 +461,15 @@ export class SessionManager {
       // Remove session data
       const key = SessionManager.STORAGE_PREFIX + sessionId;
       localStorage.removeItem(key);
-      
+
       // Update session index
       await this.removeFromSessionIndex(sessionId);
-      
+
       // If this was the current session, clear it
       if (this.currentSessionId === sessionId) {
         this.clearCurrentSession();
       }
-      
+
       console.log(`Session deleted: ${sessionId}`);
     } catch (error) {
       console.error(`Failed to delete session ${sessionId}:`, error);
@@ -474,13 +489,13 @@ export class SessionManager {
 
       const index = JSON.parse(indexData);
       const sessions = Object.values(index) as SessionMetadata[];
-      
+
       // Sort by last accessed time (most recent first)
-      return sessions.sort((a, b) => 
-        new Date(b.lastAccessedAt).getTime() - new Date(a.lastAccessedAt).getTime()
+      return sessions.sort(
+        (a, b) => new Date(b.lastAccessedAt).getTime() - new Date(a.lastAccessedAt).getTime()
       );
     } catch (error) {
-      console.error('Failed to list sessions:', error);
+      console.error("Failed to list sessions:", error);
       return [];
     }
   }
@@ -534,7 +549,7 @@ export class SessionManager {
 
     const duplicatedName = newName || `${sessionData.metadata.name} (Copy)`;
     const newSessionId = await this.createSession(duplicatedName, sessionData.metadata.description);
-    
+
     // Copy session data
     const newSessionData = await this.loadSessionData(newSessionId);
     if (newSessionData) {
@@ -543,7 +558,7 @@ export class SessionManager {
       newSessionData.variables = { ...sessionData.variables };
       newSessionData.metadata.nodeCount = sessionData.metadata.nodeCount;
       newSessionData.metadata.edgeCount = sessionData.metadata.edgeCount;
-      
+
       await this.saveSessionData(newSessionData);
       await this.updateSessionIndex(newSessionData.metadata);
     }
@@ -569,16 +584,16 @@ export class SessionManager {
   async importSession(jsonString: string, name?: string): Promise<string> {
     try {
       const sessionData: SessionData = JSON.parse(jsonString);
-      
+
       // Validate session data structure
       if (!sessionData.metadata || !sessionData.nodes || !sessionData.edges) {
-        throw new Error('Invalid session data format');
+        throw new Error("Invalid session data format");
       }
 
       // Create new session with imported data
-      const sessionName = name || sessionData.metadata.name || 'Imported Session';
+      const sessionName = name || sessionData.metadata.name || "Imported Session";
       const newSessionId = await this.createSession(sessionName, sessionData.metadata.description);
-      
+
       // Load and update the new session
       const newSessionData = await this.loadSessionData(newSessionId);
       if (newSessionData) {
@@ -587,15 +602,17 @@ export class SessionManager {
         newSessionData.variables = sessionData.variables || {};
         newSessionData.metadata.nodeCount = sessionData.nodes.length;
         newSessionData.metadata.edgeCount = sessionData.edges.length;
-        
+
         await this.saveSessionData(newSessionData);
         await this.updateSessionIndex(newSessionData.metadata);
       }
 
       return newSessionId;
     } catch (error) {
-      console.error('Failed to import session:', error);
-      throw new Error(`Failed to import session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Failed to import session:", error);
+      throw new Error(
+        `Failed to import session: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -611,7 +628,7 @@ export class SessionManager {
   }> {
     const sessions = await this.listSessions();
     const activeSessions = sessions.filter(s => s.isActive);
-    
+
     let totalStorageUsed = 0;
     let oldestSession: string | null = null;
     let newestSession: string | null = null;
@@ -651,7 +668,7 @@ export class SessionManager {
   private async cleanupOldSessions(): Promise<void> {
     const sessions = await this.listSessions();
     const now = Date.now();
-    
+
     // Remove sessions older than maxSessionAge
     for (const session of sessions) {
       const createdAt = new Date(session.createdAt).getTime();
@@ -666,7 +683,7 @@ export class SessionManager {
       const sessionsToRemove = remainingSessions
         .sort((a, b) => new Date(a.lastAccessedAt).getTime() - new Date(b.lastAccessedAt).getTime())
         .slice(0, remainingSessions.length - this.config.maxSessions);
-      
+
       for (const session of sessionsToRemove) {
         await this.deleteSession(session.id);
       }
@@ -682,7 +699,6 @@ export class SessionManager {
     return `session_${timestamp}_${random}`;
   }
 
-
   /**
    * Update session index
    */
@@ -690,11 +706,11 @@ export class SessionManager {
     try {
       const indexData = localStorage.getItem(SessionManager.SESSION_INDEX_KEY);
       const index = indexData ? JSON.parse(indexData) : {};
-      
+
       index[metadata.id] = metadata;
       localStorage.setItem(SessionManager.SESSION_INDEX_KEY, JSON.stringify(index));
     } catch (error) {
-      console.error('Failed to update session index:', error);
+      console.error("Failed to update session index:", error);
     }
   }
 
@@ -710,7 +726,7 @@ export class SessionManager {
       delete index[sessionId];
       localStorage.setItem(SessionManager.SESSION_INDEX_KEY, JSON.stringify(index));
     } catch (error) {
-      console.error('Failed to remove session from index:', error);
+      console.error("Failed to remove session from index:", error);
     }
   }
 
@@ -724,7 +740,7 @@ export class SessionManager {
         this.currentSessionId = currentSessionId;
       }
     } catch (error) {
-      console.error('Failed to load current session:', error);
+      console.error("Failed to load current session:", error);
     }
   }
 
@@ -764,7 +780,7 @@ export class SessionManager {
   private startSessionTimeout(): void {
     this.stopSessionTimeout();
     this.sessionTimeoutTimer = setTimeout(() => {
-      console.log('Session timeout reached, clearing current session');
+      console.log("Session timeout reached, clearing current session");
       this.clearCurrentSession();
     }, this.config.sessionTimeout);
   }

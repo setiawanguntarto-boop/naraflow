@@ -2,11 +2,17 @@
  * LayoutPreview - Modal showing before/after layout comparison
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { LayoutOptions } from '../../core/layout/types';
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { LayoutOptions } from "../../core/layout/types";
 
 interface LayoutPreviewProps {
   isOpen: boolean;
@@ -37,14 +43,17 @@ export const LayoutPreview: React.FC<LayoutPreviewProps> = ({
         <DialogHeader>
           <DialogTitle>Layout Preview Test</DialogTitle>
         </DialogHeader>
-        
+
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-2">Preview Test</h3>
             <p className="text-gray-600 mb-4">
-              Current nodes: {currentNodes.length}<br/>
-              Current edges: {currentEdges.length}<br/>
-              Layout engine: {layoutOptions.engine}<br/>
+              Current nodes: {currentNodes.length}
+              <br />
+              Current edges: {currentEdges.length}
+              <br />
+              Layout engine: {layoutOptions.engine}
+              <br />
               Layout direction: {layoutOptions.direction}
             </p>
             <Button onClick={onApply} className="mr-2">

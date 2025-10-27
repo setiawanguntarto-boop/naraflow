@@ -1,22 +1,28 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Download, 
-  Wifi, 
-  WifiOff, 
-  CheckCircle, 
-  AlertTriangle, 
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import {
+  Download,
+  Wifi,
+  WifiOff,
+  CheckCircle,
+  AlertTriangle,
   Clock,
   HardDrive,
   X,
   RefreshCw,
   Smartphone,
-  Monitor
-} from 'lucide-react';
-import { toast } from 'sonner';
+  Monitor,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface PWAInstallPromptProps {
   open: boolean;
@@ -31,8 +37,10 @@ export const PWAInstallPrompt = ({ open, onOpenChange }: PWAInstallPromptProps) 
   useEffect(() => {
     // Check if app is already installed
     const checkInstalled = () => {
-      if (window.matchMedia('(display-mode: standalone)').matches || 
-          (window.navigator as any).standalone === true) {
+      if (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as any).standalone === true
+      ) {
         setIsInstalled(true);
       }
     };
@@ -49,62 +57,61 @@ export const PWAInstallPrompt = ({ open, onOpenChange }: PWAInstallPromptProps) 
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
-      toast.success('Naraflow has been installed successfully!');
+      toast.success("Naraflow has been installed successfully!");
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
   const handleInstall = async () => {
     if (!deferredPrompt) {
-      toast.error('Install prompt not available');
+      toast.error("Install prompt not available");
       return;
     }
 
     try {
       setInstallError(null);
-      
+
       // Show the install prompt
       deferredPrompt.prompt();
-      
+
       // Wait for the user to respond to the prompt
       const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
-        console.log('User accepted the install prompt');
+
+      if (outcome === "accepted") {
+        console.log("User accepted the install prompt");
       } else {
-        console.log('User dismissed the install prompt');
+        console.log("User dismissed the install prompt");
       }
-      
+
       // Clear the deferred prompt
       setDeferredPrompt(null);
       onOpenChange(false);
-      
     } catch (error) {
-      console.error('Installation failed:', error);
-      setInstallError(error instanceof Error ? error.message : 'Installation failed');
+      console.error("Installation failed:", error);
+      setInstallError(error instanceof Error ? error.message : "Installation failed");
     }
   };
 
   const handleManualInstall = () => {
     const userAgent = navigator.userAgent.toLowerCase();
-    
-    if (userAgent.includes('chrome')) {
-      toast.info('Click the install button in your browser\'s address bar');
-    } else if (userAgent.includes('firefox')) {
-      toast.info('Click the install button in your browser\'s address bar');
-    } else if (userAgent.includes('safari')) {
+
+    if (userAgent.includes("chrome")) {
+      toast.info("Click the install button in your browser's address bar");
+    } else if (userAgent.includes("firefox")) {
+      toast.info("Click the install button in your browser's address bar");
+    } else if (userAgent.includes("safari")) {
       toast.info('Tap the Share button and select "Add to Home Screen"');
-    } else if (userAgent.includes('edge')) {
-      toast.info('Click the install button in your browser\'s address bar');
+    } else if (userAgent.includes("edge")) {
+      toast.info("Click the install button in your browser's address bar");
     } else {
-      toast.info('Look for the install option in your browser\'s menu');
+      toast.info("Look for the install option in your browser's menu");
     }
   };
 
@@ -121,7 +128,7 @@ export const PWAInstallPrompt = ({ open, onOpenChange }: PWAInstallPromptProps) 
               Naraflow has been successfully installed on your device.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -131,7 +138,7 @@ export const PWAInstallPrompt = ({ open, onOpenChange }: PWAInstallPromptProps) 
                 You can now access Naraflow directly from your home screen or app drawer.
               </p>
             </div>
-            
+
             <div className="flex gap-2">
               <Button onClick={() => onOpenChange(false)} className="flex-1">
                 Got it
@@ -155,7 +162,7 @@ export const PWAInstallPrompt = ({ open, onOpenChange }: PWAInstallPromptProps) 
             Install Naraflow as a native app for a better experience.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
@@ -165,7 +172,7 @@ export const PWAInstallPrompt = ({ open, onOpenChange }: PWAInstallPromptProps) 
                 <p className="text-xs text-muted-foreground">Access from your home screen</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <Monitor className="w-5 h-5 text-brand-primary" />
               <div>
@@ -173,7 +180,7 @@ export const PWAInstallPrompt = ({ open, onOpenChange }: PWAInstallPromptProps) 
                 <p className="text-xs text-muted-foreground">Native desktop experience</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <HardDrive className="w-5 h-5 text-brand-primary" />
               <div>
@@ -182,13 +189,13 @@ export const PWAInstallPrompt = ({ open, onOpenChange }: PWAInstallPromptProps) 
               </div>
             </div>
           </div>
-          
+
           {installError && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600">{installError}</p>
             </div>
           )}
-          
+
           <div className="flex gap-2">
             {deferredPrompt ? (
               <Button onClick={handleInstall} className="flex-1">

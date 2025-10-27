@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { ConnectionLabel } from '@/types/connectionLabel.types';
-import { connectionLabelLibrary } from '@/core/connectionLabelLibrary';
-import { getAllConnectionLabels, getLabelsByCategory } from '@/builder/connectionRenderer';
-import { suggestLabel } from '@/builder/autoLabelSuggestor';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import React, { useState } from "react";
+import { ConnectionLabel } from "@/types/connectionLabel.types";
+import { connectionLabelLibrary } from "@/core/connectionLabelLibrary";
+import { getAllConnectionLabels, getLabelsByCategory } from "@/builder/connectionRenderer";
+import { suggestLabel } from "@/builder/autoLabelSuggestor";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { ChevronDown, Sparkles } from "lucide-react";
 
 interface ConnectionLabelSelectorProps {
   fromNodeType: string;
@@ -21,24 +21,23 @@ export const ConnectionLabelSelector: React.FC<ConnectionLabelSelectorProps> = (
   toNodeType,
   currentLabelId,
   onLabelSelect,
-  disabled = false
+  disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   // Get suggested label
   const suggestion = suggestLabel(fromNodeType, toNodeType);
-  
+
   // Get all labels or filter by category
   const allLabels = getAllConnectionLabels(connectionLabelLibrary);
-  const filteredLabels = selectedCategory === 'all' 
-    ? allLabels 
-    : getLabelsByCategory(selectedCategory, connectionLabelLibrary);
+  const filteredLabels =
+    selectedCategory === "all"
+      ? allLabels
+      : getLabelsByCategory(selectedCategory, connectionLabelLibrary);
 
   // Get current label
-  const currentLabel = currentLabelId 
-    ? allLabels.find(l => l.id === currentLabelId)
-    : null;
+  const currentLabel = currentLabelId ? allLabels.find(l => l.id === currentLabelId) : null;
 
   const handleLabelSelect = (labelId: string) => {
     onLabelSelect(labelId);
@@ -46,26 +45,21 @@ export const ConnectionLabelSelector: React.FC<ConnectionLabelSelectorProps> = (
   };
 
   const categories = [
-    { id: 'all', title: 'All Labels' },
+    { id: "all", title: "All Labels" },
     ...Object.entries(connectionLabelLibrary.categories).map(([id, cat]) => ({
       id,
-      title: cat.title
-    }))
+      title: cat.title,
+    })),
   ];
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={disabled}
-          className="h-8 px-2 text-xs"
-        >
+        <Button variant="outline" size="sm" disabled={disabled} className="h-8 px-2 text-xs">
           {currentLabel ? (
             <div className="flex items-center gap-1">
-              <div 
-                className="w-2 h-2 rounded-full" 
+              <div
+                className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: currentLabel.color }}
               />
               <span className="truncate max-w-20">{currentLabel.displayName}</span>
@@ -79,14 +73,14 @@ export const ConnectionLabelSelector: React.FC<ConnectionLabelSelectorProps> = (
           <ChevronDown className="w-3 h-3 ml-1" />
         </Button>
       </PopoverTrigger>
-      
+
       <PopoverContent className="w-80 p-0 bg-white border border-gray-200 shadow-lg" align="start">
         <div className="p-3 border-b">
           <h4 className="font-medium text-sm">Select Connection Label</h4>
           <p className="text-xs text-muted-foreground mt-1">
             {fromNodeType} → {toNodeType}
           </p>
-          
+
           {suggestion && (
             <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded-md">
               <div className="flex items-center gap-2">
@@ -98,9 +92,7 @@ export const ConnectionLabelSelector: React.FC<ConnectionLabelSelectorProps> = (
                   {Math.round(suggestion.confidence * 100)}%
                 </Badge>
               </div>
-              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                {suggestion.reason}
-              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">{suggestion.reason}</p>
             </div>
           )}
         </div>
@@ -108,7 +100,7 @@ export const ConnectionLabelSelector: React.FC<ConnectionLabelSelectorProps> = (
         <div className="p-3">
           {/* Category Filter */}
           <div className="flex gap-1 mb-3 overflow-x-auto">
-            {categories.map((category) => (
+            {categories.map(category => (
               <Button
                 key={category.id}
                 variant={selectedCategory === category.id ? "default" : "outline"}
@@ -123,26 +115,24 @@ export const ConnectionLabelSelector: React.FC<ConnectionLabelSelectorProps> = (
 
           {/* Labels List */}
           <div className="space-y-1 max-h-60 overflow-y-auto">
-            {filteredLabels.map((label) => (
+            {filteredLabels.map(label => (
               <button
                 key={label.id}
                 onClick={() => handleLabelSelect(label.id)}
                 className={`w-full p-2 text-left rounded-md border transition-colors ${
                   currentLabelId === label.id
-                    ? 'bg-primary/10 border-primary'
-                    : 'hover:bg-accent border-border'
+                    ? "bg-primary/10 border-primary"
+                    : "hover:bg-accent border-border"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full flex-shrink-0" 
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: label.color }}
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{label.displayName}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {label.description}
-                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{label.description}</p>
                   </div>
                 </div>
               </button>
@@ -155,7 +145,7 @@ export const ConnectionLabelSelector: React.FC<ConnectionLabelSelectorProps> = (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleLabelSelect('')}
+                onClick={() => handleLabelSelect("")}
                 className="text-xs h-7 px-2"
               >
                 Clear Label

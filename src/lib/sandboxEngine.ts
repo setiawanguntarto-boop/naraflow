@@ -1,7 +1,7 @@
-import { Node, Edge } from '@xyflow/react';
-import { ExecutionResult, ExecutionContext } from '@/types/workflow';
-import { WorkflowEngine } from './workflowEngine';
-import { globalCanvasEventBus } from '@/hooks/useCanvasEventBus';
+import { Node, Edge } from "@xyflow/react";
+import { ExecutionResult, ExecutionContext } from "@/types/workflow";
+import { WorkflowEngine } from "./workflowEngine";
+import { globalCanvasEventBus } from "@/hooks/useCanvasEventBus";
 
 export interface SandboxConfig {
   maxNodes: number;
@@ -60,14 +60,13 @@ class WorkerPool {
   private initializeWorkers() {
     for (let i = 0; i < this.maxSize; i++) {
       try {
-        const worker = new Worker(
-          new URL('/workers/workflow-executor.js', import.meta.url),
-          { type: 'module' }
-        );
+        const worker = new Worker(new URL("/workers/workflow-executor.js", import.meta.url), {
+          type: "module",
+        });
         this.workers.push(worker);
         this.availableWorkers.push(worker);
       } catch (error) {
-        console.error('Failed to create worker:', error);
+        console.error("Failed to create worker:", error);
       }
     }
   }
@@ -75,7 +74,7 @@ class WorkerPool {
   async getWorker(): Promise<Worker | null> {
     if (this.availableWorkers.length > 0) {
       const worker = this.availableWorkers.pop()!;
-      this.busyWorkers.set(worker, '');
+      this.busyWorkers.set(worker, "");
       return worker;
     }
     return null;
@@ -102,14 +101,13 @@ class WorkerPool {
     const index = this.workers.indexOf(worker);
     if (index !== -1) {
       try {
-        const newWorker = new Worker(
-          new URL('/workers/workflow-executor.js', import.meta.url),
-          { type: 'module' }
-        );
+        const newWorker = new Worker(new URL("/workers/workflow-executor.js", import.meta.url), {
+          type: "module",
+        });
         this.workers[index] = newWorker;
         this.availableWorkers.push(newWorker);
       } catch (error) {
-        console.error('Failed to replace worker:', error);
+        console.error("Failed to replace worker:", error);
       }
     }
   }
@@ -162,11 +160,11 @@ export class SandboxEngine {
     priority: number = 0
   ): Promise<SandboxExecutionResult> {
     const executionId = `exec-${++this.executionCounter}-${Date.now()}`;
-    
+
     // Validate resource limits
     const resourceLimitsHit = this.validateResourceLimits(nodes, edges);
     if (resourceLimitsHit.length > 0) {
-      throw new Error(`Resource limits exceeded: ${resourceLimitsHit.join(', ')}`);
+      throw new Error(`Resource limits exceeded: ${resourceLimitsHit.join(", ")}`);
     }
 
     // Check if we can execute immediately or need to queue
@@ -208,33 +206,33 @@ export class SandboxEngine {
     // Emit queued event
     try {
       globalCanvasEventBus.emit({
-        type: 'execution:queued',
+        type: "execution:queued",
         payload: { executionId, sessionId, queuePosition: this.executionQueue.length },
       });
     } catch (err) {
-      console.warn('Event bus emit failed:', err);
+      console.warn("Event bus emit failed:", err);
     }
 
     // Return a promise that resolves when execution completes
     return new Promise((resolve, reject) => {
       const handleExecutionComplete = (event: any) => {
         if (event.payload.executionId === executionId) {
-          globalCanvasEventBus.off('execution:complete', handleExecutionComplete);
-          globalCanvasEventBus.off('execution:error', handleExecutionError);
+          globalCanvasEventBus.off("execution:complete", handleExecutionComplete);
+          globalCanvasEventBus.off("execution:error", handleExecutionError);
           resolve(event.payload.result);
         }
       };
 
       const handleExecutionError = (event: any) => {
         if (event.payload.executionId === executionId) {
-          globalCanvasEventBus.off('execution:complete', handleExecutionComplete);
-          globalCanvasEventBus.off('execution:error', handleExecutionError);
+          globalCanvasEventBus.off("execution:complete", handleExecutionComplete);
+          globalCanvasEventBus.off("execution:error", handleExecutionError);
           reject(new Error(event.payload.error));
         }
       };
 
-      globalCanvasEventBus.on('execution:complete', handleExecutionComplete);
-      globalCanvasEventBus.on('execution:error', handleExecutionError);
+      globalCanvasEventBus.on("execution:complete", handleExecutionComplete);
+      globalCanvasEventBus.on("execution:error", handleExecutionError);
     });
   }
 
@@ -248,7 +246,7 @@ export class SandboxEngine {
   ): Promise<SandboxExecutionResult> {
     const worker = await this.workerPool.getWorker();
     if (!worker) {
-      throw new Error('No available workers');
+      throw new Error("No available workers");
     }
 
     this.workerPool.assignWorker(worker, executionId);
@@ -259,11 +257,11 @@ export class SandboxEngine {
     // Emit execution start event
     try {
       globalCanvasEventBus.emit({
-        type: 'execution:start',
+        type: "execution:start",
         payload: { executionId, sessionId },
       });
     } catch (err) {
-      console.warn('Event bus emit failed:', err);
+      console.warn("Event bus emit failed:", err);
     }
 
     const executionPromise = this.executeWithWorker(worker, executionId, {
@@ -300,18 +298,17 @@ export class SandboxEngine {
       // Emit execution complete event
       try {
         globalCanvasEventBus.emit({
-          type: 'execution:complete',
+          type: "execution:complete",
           payload: { executionId, sessionId, result: sandboxResult },
         });
       } catch (err) {
-        console.warn('Event bus emit failed:', err);
+        console.warn("Event bus emit failed:", err);
       }
 
       return sandboxResult;
-
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      
+
       const errorResult: SandboxExecutionResult = {
         sessionId,
         executionId,
@@ -321,7 +318,7 @@ export class SandboxEngine {
         success: false,
         outputs: {},
         logs: [],
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       };
 
       this.executionResults.set(executionId, errorResult);
@@ -331,11 +328,15 @@ export class SandboxEngine {
       // Emit execution error event
       try {
         globalCanvasEventBus.emit({
-          type: 'execution:error',
-          payload: { executionId, sessionId, error: error instanceof Error ? error.message : 'Unknown error' },
+          type: "execution:error",
+          payload: {
+            executionId,
+            sessionId,
+            error: error instanceof Error ? error.message : "Unknown error",
+          },
         });
       } catch (err) {
-        console.warn('Event bus emit failed:', err);
+        console.warn("Event bus emit failed:", err);
       }
 
       throw error;
@@ -348,52 +349,52 @@ export class SandboxEngine {
   private async executeWithWorker(worker: Worker, executionId: string, payload: any): Promise<any> {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        worker.postMessage({ type: 'CANCEL', executionId });
-        reject(new Error('Execution timeout'));
+        worker.postMessage({ type: "CANCEL", executionId });
+        reject(new Error("Execution timeout"));
       }, this.config.maxExecutionTime);
 
       const messageHandler = (event: MessageEvent) => {
         const { type, executionId: msgExecutionId, payload: msgPayload } = event.data;
-        
+
         if (msgExecutionId !== executionId) return;
 
         switch (type) {
-          case 'RESULT':
+          case "RESULT":
             clearTimeout(timeout);
-            worker.removeEventListener('message', messageHandler);
+            worker.removeEventListener("message", messageHandler);
             resolve(msgPayload);
             break;
-          case 'ERROR':
+          case "ERROR":
             clearTimeout(timeout);
-            worker.removeEventListener('message', messageHandler);
+            worker.removeEventListener("message", messageHandler);
             reject(new Error(msgPayload.message));
             break;
-          case 'LOG':
+          case "LOG":
             try {
               globalCanvasEventBus.emit({
-                type: 'execution:log',
+                type: "execution:log",
                 payload: { executionId, message: msgPayload.message },
               });
             } catch (err) {
-              console.warn('Event bus emit failed:', err);
+              console.warn("Event bus emit failed:", err);
             }
             break;
-          case 'PROGRESS':
+          case "PROGRESS":
             try {
               globalCanvasEventBus.emit({
-                type: 'execution:progress',
+                type: "execution:progress",
                 payload: { executionId, progress: msgPayload.progress },
               });
             } catch (err) {
-              console.warn('Event bus emit failed:', err);
+              console.warn("Event bus emit failed:", err);
             }
             break;
         }
       };
 
-      worker.addEventListener('message', messageHandler);
+      worker.addEventListener("message", messageHandler);
       worker.postMessage({
-        type: 'EXECUTE',
+        type: "EXECUTE",
         executionId,
         payload,
       });
@@ -417,27 +418,32 @@ export class SandboxEngine {
     // Check if item has expired
     if (Date.now() - queueItem.createdAt > queueItem.timeout) {
       globalCanvasEventBus.emit({
-        type: 'execution:timeout',
+        type: "execution:timeout",
         payload: { executionId: queueItem.id, sessionId: queueItem.sessionId },
       });
       return;
     }
 
     // Execute the queued item
-    this.executeInWorker(queueItem.id, queueItem.sessionId, queueItem.nodes, queueItem.edges, queueItem.variables)
-      .catch(error => {
-        console.error('Queued execution failed:', error);
-      });
+    this.executeInWorker(
+      queueItem.id,
+      queueItem.sessionId,
+      queueItem.nodes,
+      queueItem.edges,
+      queueItem.variables
+    ).catch(error => {
+      console.error("Queued execution failed:", error);
+    });
   }
 
   // Cancel execution
   async cancelExecution(executionId: string): Promise<void> {
     if (this.activeExecutions.has(executionId)) {
       // Find the worker handling this execution
-      const workers = this.workerPool['workers'];
+      const workers = this.workerPool["workers"];
       for (const worker of workers) {
         worker.postMessage({
-          type: 'CANCEL',
+          type: "CANCEL",
           executionId,
         });
       }
@@ -448,7 +454,7 @@ export class SandboxEngine {
     this.activeExecutions.delete(executionId);
 
     globalCanvasEventBus.emit({
-      type: 'execution:cancel',
+      type: "execution:cancel",
       payload: { executionId },
     });
   }
@@ -504,9 +510,10 @@ export class SandboxEngine {
       stats.failedExecutions++;
     }
 
-    stats.averageExecutionTime = 
-      (stats.averageExecutionTime * (stats.totalExecutions - 1) + result.executionTime) / stats.totalExecutions;
-    
+    stats.averageExecutionTime =
+      (stats.averageExecutionTime * (stats.totalExecutions - 1) + result.executionTime) /
+      stats.totalExecutions;
+
     stats.totalMemoryUsed += result.memoryUsed;
     stats.resourceLimitViolations += result.resourceLimitsHit.length;
     stats.activeWorkers = this.workerPool.getActiveWorkers();
@@ -528,27 +535,27 @@ export class SandboxEngine {
 
   private monitorResources() {
     const stats = this.getOverallStats();
-    
+
     // Emit resource monitoring event
     globalCanvasEventBus.emit({
-      type: 'sandbox:stats',
+      type: "sandbox:stats",
       payload: stats,
     });
 
     // Check for resource violations
     if (stats.activeWorkers > this.config.workerPoolSize) {
-      console.warn('Worker pool exceeded capacity');
+      console.warn("Worker pool exceeded capacity");
     }
 
     if (stats.queuedExecutions > this.config.maxConcurrentExecutions * 2) {
-      console.warn('Execution queue is getting long');
+      console.warn("Execution queue is getting long");
     }
   }
 
   // Public methods
   getOverallStats(): SandboxStats {
     const allStats = Array.from(this.executionStats.values());
-    
+
     if (allStats.length === 0) {
       return {
         totalExecutions: 0,
@@ -566,9 +573,13 @@ export class SandboxEngine {
       totalExecutions: allStats.reduce((sum, stats) => sum + stats.totalExecutions, 0),
       successfulExecutions: allStats.reduce((sum, stats) => sum + stats.successfulExecutions, 0),
       failedExecutions: allStats.reduce((sum, stats) => sum + stats.failedExecutions, 0),
-      averageExecutionTime: allStats.reduce((sum, stats) => sum + stats.averageExecutionTime, 0) / allStats.length,
+      averageExecutionTime:
+        allStats.reduce((sum, stats) => sum + stats.averageExecutionTime, 0) / allStats.length,
       totalMemoryUsed: allStats.reduce((sum, stats) => sum + stats.totalMemoryUsed, 0),
-      resourceLimitViolations: allStats.reduce((sum, stats) => sum + stats.resourceLimitViolations, 0),
+      resourceLimitViolations: allStats.reduce(
+        (sum, stats) => sum + stats.resourceLimitViolations,
+        0
+      ),
       activeWorkers: this.workerPool.getActiveWorkers(),
       queuedExecutions: this.executionQueue.length,
     };

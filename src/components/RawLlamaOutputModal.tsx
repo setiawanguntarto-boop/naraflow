@@ -1,11 +1,17 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Copy, CheckCircle, XCircle, Clock, Zap } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Copy, CheckCircle, XCircle, Clock, Zap } from "lucide-react";
+import { toast } from "sonner";
 
 interface RawLlamaOutputModalProps {
   open: boolean;
@@ -27,16 +33,16 @@ export function RawLlamaOutputModal({
   onUseWorkflow,
 }: RawLlamaOutputModalProps) {
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'raw' | 'parsed'>('raw');
+  const [activeTab, setActiveTab] = useState<"raw" | "parsed">("raw");
 
   const handleCopyRaw = async () => {
     try {
       await navigator.clipboard.writeText(rawOutput);
       setCopied(true);
-      toast.success('Raw output copied to clipboard');
+      toast.success("Raw output copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      toast.error('Failed to copy to clipboard');
+      toast.error("Failed to copy to clipboard");
     }
   };
 
@@ -44,9 +50,9 @@ export function RawLlamaOutputModal({
     if (parsedOutput && parsedOutput.nodes && parsedOutput.edges) {
       onUseWorkflow(parsedOutput);
       onOpenChange(false);
-      toast.success('Workflow applied to canvas');
+      toast.success("Workflow applied to canvas");
     } else {
-      toast.error('Invalid workflow format');
+      toast.error("Invalid workflow format");
     }
   };
 
@@ -78,24 +84,27 @@ export function RawLlamaOutputModal({
           </div>
 
           {/* Parse Status */}
-          <Alert className={isValidWorkflow ? 'border-green-200 bg-green-50' : 'border-orange-200 bg-orange-50'}>
+          <Alert
+            className={
+              isValidWorkflow ? "border-green-200 bg-green-50" : "border-orange-200 bg-orange-50"
+            }
+          >
             <div className="flex items-center gap-2">
               {isValidWorkflow ? (
                 <CheckCircle className="w-4 h-4 text-green-600" />
               ) : (
                 <XCircle className="w-4 h-4 text-orange-600" />
               )}
-              <AlertDescription className={isValidWorkflow ? 'text-green-800' : 'text-orange-800'}>
-                {isValidWorkflow 
+              <AlertDescription className={isValidWorkflow ? "text-green-800" : "text-orange-800"}>
+                {isValidWorkflow
                   ? `Successfully parsed workflow with ${parsedOutput.nodes.length} nodes and ${parsedOutput.edges.length} edges`
-                  : 'LLaMA returned unparseable output. Try editing the prompt or use raw output.'
-                }
+                  : "LLaMA returned unparseable output. Try editing the prompt or use raw output."}
               </AlertDescription>
             </div>
           </Alert>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'raw' | 'parsed')}>
+          <Tabs value={activeTab} onValueChange={value => setActiveTab(value as "raw" | "parsed")}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="raw">Raw Output</TabsTrigger>
               <TabsTrigger value="parsed">Parsed Preview</TabsTrigger>
@@ -113,13 +122,11 @@ export function RawLlamaOutputModal({
                   className="flex items-center gap-2"
                 >
                   {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Copied!' : 'Copy Raw'}
+                  {copied ? "Copied!" : "Copy Raw"}
                 </Button>
               </div>
               <ScrollArea className="h-96 w-full rounded-md border bg-muted p-4">
-                <pre className="text-sm font-mono whitespace-pre-wrap break-words">
-                  {rawOutput}
-                </pre>
+                <pre className="text-sm font-mono whitespace-pre-wrap break-words">{rawOutput}</pre>
               </ScrollArea>
             </TabsContent>
 
@@ -135,7 +142,8 @@ export function RawLlamaOutputModal({
                             <div key={index} className="text-sm bg-white p-2 rounded border">
                               <div className="font-medium">{node.data?.label || node.id}</div>
                               <div className="text-muted-foreground text-xs">
-                                Type: {node.type} | Position: ({node.position?.x}, {node.position?.y})
+                                Type: {node.type} | Position: ({node.position?.x},{" "}
+                                {node.position?.y})
                               </div>
                               {node.data?.description && (
                                 <div className="text-xs text-muted-foreground mt-1">
@@ -156,9 +164,7 @@ export function RawLlamaOutputModal({
                               <div className="font-medium">
                                 {edge.source} → {edge.target}
                               </div>
-                              <div className="text-muted-foreground text-xs">
-                                ID: {edge.id}
-                              </div>
+                              <div className="text-muted-foreground text-xs">ID: {edge.id}</div>
                             </div>
                           ))}
                         </div>
@@ -178,9 +184,7 @@ export function RawLlamaOutputModal({
         </div>
 
         <DialogFooter className="flex items-center justify-between">
-          <div className="text-xs text-muted-foreground">
-            Generated at {timestamp}
-          </div>
+          <div className="text-xs text-muted-foreground">Generated at {timestamp}</div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

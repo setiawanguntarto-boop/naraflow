@@ -8,7 +8,7 @@ export const SectionHeader = ({
   title,
   subtitle,
   centered = true,
-  className = ""
-}: SectionHeaderProps) => <div className={`mb-16 ${centered ? 'text-center' : ''} ${className}`}>
-    
-  </div>;
+  className = "",
+}: SectionHeaderProps) => (
+  <div className={`mb-16 ${centered ? "text-center" : ""} ${className}`}></div>
+);

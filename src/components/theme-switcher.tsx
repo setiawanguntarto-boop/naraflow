@@ -17,12 +17,7 @@ export const ThemeSwitcher = () => {
       className="p-2 text-foreground-muted hover:text-brand-primary transition-colors"
       aria-label="Toggle theme"
     >
-      {theme === "dark" ? (
-        <SunIcon className="w-5 h-5" />
-      ) : (
-        <MoonIcon className="w-5 h-5" />
-      )}
+      {theme === "dark" ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
     </Button>
   );
 };
-

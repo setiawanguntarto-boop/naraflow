@@ -1,18 +1,42 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Search, Download, Upload, Star, Filter, Grid, List, Plus, Trash2, Edit3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
-import { TemplateData, TemplateMetadata, TemplateManager } from '@/lib/templateManager';
-import { TemplateStorage } from '@/lib/templateStorage';
-import { workflowTemplates } from '@/lib/templates/workflowTemplates';
+import { useState, useEffect, useMemo } from "react";
+import {
+  Search,
+  Download,
+  Upload,
+  Star,
+  Filter,
+  Grid,
+  List,
+  Plus,
+  Trash2,
+  Edit3,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { TemplateData, TemplateMetadata, TemplateManager } from "@/lib/templateManager";
+import { TemplateStorage } from "@/lib/templateStorage";
+import { workflowTemplates } from "@/lib/templates/workflowTemplates";
 
 interface TemplateMarketplaceProps {
   onSelectTemplate?: (template: TemplateData) => void;
@@ -25,16 +49,16 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
   onSelectTemplate,
   onImportTemplate,
   onCreateTemplate,
-  className = ''
+  className = "",
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [userTemplates, setUserTemplates] = useState<TemplateMetadata[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
-  
+
   const templateStorage = useMemo(() => new TemplateStorage(), []);
 
   // Load user templates on mount
@@ -48,8 +72,8 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
       const templates = await templateStorage.listTemplates();
       setUserTemplates(templates);
     } catch (error) {
-      console.error('Failed to load templates:', error);
-      toast.error('Failed to load templates');
+      console.error("Failed to load templates:", error);
+      toast.error("Failed to load templates");
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +81,7 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
 
   // Convert workflow templates to TemplateData
   const builtInTemplates = useMemo(() => {
-    return Object.entries(workflowTemplates).map(([id, template]) => 
+    return Object.entries(workflowTemplates).map(([id, template]) =>
       TemplateManager.fromWorkflowTemplate(id, template)
     );
   }, []);
@@ -75,31 +99,34 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(template => 
-        template.name.toLowerCase().includes(query) ||
-        template.description.toLowerCase().includes(query) ||
-        template.tags.some(tag => tag.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        template =>
+          template.name.toLowerCase().includes(query) ||
+          template.description.toLowerCase().includes(query) ||
+          template.tags.some(tag => tag.toLowerCase().includes(query))
       );
     }
 
     // Filter by category
-    if (selectedCategory !== 'all') {
+    if (selectedCategory !== "all") {
       filtered = filtered.filter(template => template.category === selectedCategory);
     }
 
-    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return filtered.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }, [allTemplates, searchQuery, selectedCategory]);
 
   // Get unique categories
   const categories = useMemo(() => {
     const cats = [...new Set(allTemplates.map(t => t.category))];
-    return ['all', ...cats];
+    return ["all", ...cats];
   }, [allTemplates]);
 
   const handleTemplateSelect = async (templateId: string) => {
     try {
       setIsLoading(true);
-      
+
       // Check if it's a built-in template
       const builtInTemplate = builtInTemplates.find(t => t.metadata.id === templateId);
       if (builtInTemplate) {
@@ -114,11 +141,11 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
         setSelectedTemplate(template);
         onSelectTemplate?.(template);
       } else {
-        toast.error('Template not found');
+        toast.error("Template not found");
       }
     } catch (error) {
-      console.error('Failed to load template:', error);
-      toast.error('Failed to load template');
+      console.error("Failed to load template:", error);
+      toast.error("Failed to load template");
     } finally {
       setIsLoading(false);
     }
@@ -129,13 +156,13 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
       const template = await templateStorage.loadTemplate(templateId);
       if (template) {
         await templateStorage.exportToFile(template);
-        toast.success('Template exported successfully');
+        toast.success("Template exported successfully");
       } else {
-        toast.error('Template not found');
+        toast.error("Template not found");
       }
     } catch (error) {
-      console.error('Failed to export template:', error);
-      toast.error('Failed to export template');
+      console.error("Failed to export template:", error);
+      toast.error("Failed to export template");
     }
   };
 
@@ -143,10 +170,10 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
     try {
       await templateStorage.deleteTemplate(templateId);
       await loadUserTemplates();
-      toast.success('Template deleted successfully');
+      toast.success("Template deleted successfully");
     } catch (error) {
-      console.error('Failed to delete template:', error);
-      toast.error('Failed to delete template');
+      console.error("Failed to delete template:", error);
+      toast.error("Failed to delete template");
     }
   };
 
@@ -157,17 +184,19 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
     try {
       setIsLoading(true);
       const template = await templateStorage.importFromFile(file);
-      
+
       // Save the imported template
       await templateStorage.saveTemplate(template);
       await loadUserTemplates();
-      
-      toast.success('Template imported successfully');
+
+      toast.success("Template imported successfully");
       setShowImportDialog(false);
       onImportTemplate?.(template);
     } catch (error) {
-      console.error('Failed to import template:', error);
-      toast.error(`Failed to import template: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Failed to import template:", error);
+      toast.error(
+        `Failed to import template: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     } finally {
       setIsLoading(false);
     }
@@ -197,7 +226,7 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
             )}
           </div>
         </CardHeader>
-        
+
         <CardContent className="pt-0">
           <div className="space-y-3">
             {/* Tags */}
@@ -220,8 +249,14 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>{template.nodeCount} nodes</span>
               <span>{template.edgeCount} edges</span>
-              <Badge 
-                variant={stats.complexity === 'simple' ? 'default' : stats.complexity === 'moderate' ? 'secondary' : 'destructive'}
+              <Badge
+                variant={
+                  stats.complexity === "simple"
+                    ? "default"
+                    : stats.complexity === "moderate"
+                      ? "secondary"
+                      : "destructive"
+                }
                 className="text-xs"
               >
                 {stats.complexity}
@@ -237,7 +272,7 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
               >
                 Use Template
               </Button>
-              
+
               {!isBuiltIn && (
                 <>
                   <Button
@@ -279,8 +314,14 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
                 Built-in
               </Badge>
             )}
-            <Badge 
-              variant={stats.complexity === 'simple' ? 'default' : stats.complexity === 'moderate' ? 'secondary' : 'destructive'}
+            <Badge
+              variant={
+                stats.complexity === "simple"
+                  ? "default"
+                  : stats.complexity === "moderate"
+                    ? "secondary"
+                    : "destructive"
+              }
               className="text-xs"
             >
               {stats.complexity}
@@ -294,22 +335,15 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
             <span>{new Date(template.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => handleTemplateSelect(template.id)}
-          >
+          <Button size="sm" onClick={() => handleTemplateSelect(template.id)}>
             Use
           </Button>
-          
+
           {!isBuiltIn && (
             <>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleExportTemplate(template.id)}
-              >
+              <Button size="sm" variant="outline" onClick={() => handleExportTemplate(template.id)}>
                 <Download className="w-4 h-4" />
               </Button>
               <Button
@@ -333,11 +367,9 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Template Marketplace</h2>
-          <p className="text-muted-foreground">
-            Discover and manage workflow templates
-          </p>
+          <p className="text-muted-foreground">Discover and manage workflow templates</p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
             <DialogTrigger asChild>
@@ -349,9 +381,7 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Import Template</DialogTitle>
-                <DialogDescription>
-                  Select a template file to import
-                </DialogDescription>
+                <DialogDescription>Select a template file to import</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <Input
@@ -366,7 +396,7 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
               </div>
             </DialogContent>
           </Dialog>
-          
+
           <Button onClick={onCreateTemplate}>
             <Plus className="w-4 h-4 mr-2" />
             Create Template
@@ -382,12 +412,12 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
             <Input
               placeholder="Search templates..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
         </div>
-        
+
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Category" />
@@ -395,24 +425,24 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
           <SelectContent>
             {categories.map(category => (
               <SelectItem key={category} value={category}>
-                {category === 'all' ? 'All Categories' : category}
+                {category === "all" ? "All Categories" : category}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        
+
         <div className="flex items-center gap-1 border rounded-md">
           <Button
             size="sm"
-            variant={viewMode === 'grid' ? 'default' : 'ghost'}
-            onClick={() => setViewMode('grid')}
+            variant={viewMode === "grid" ? "default" : "ghost"}
+            onClick={() => setViewMode("grid")}
           >
             <Grid className="w-4 h-4" />
           </Button>
           <Button
             size="sm"
-            variant={viewMode === 'list' ? 'default' : 'ghost'}
-            onClick={() => setViewMode('list')}
+            variant={viewMode === "list" ? "default" : "ghost"}
+            onClick={() => setViewMode("list")}
           >
             <List className="w-4 h-4" />
           </Button>
@@ -433,14 +463,20 @@ export const TemplateMarketplace: React.FC<TemplateMarketplaceProps> = ({
           </div>
         </div>
       ) : (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-          {filteredTemplates.map(template => (
-            viewMode === 'grid' ? (
+        <div
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              : "space-y-4"
+          }
+        >
+          {filteredTemplates.map(template =>
+            viewMode === "grid" ? (
               <TemplateCard key={template.id} template={template} />
             ) : (
               <TemplateListItem key={template.id} template={template} />
             )
-          ))}
+          )}
         </div>
       )}
 

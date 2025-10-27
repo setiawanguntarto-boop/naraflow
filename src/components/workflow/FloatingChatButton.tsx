@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { MessageSquare, X, Minimize2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Suspense, lazy } from 'react';
+import { useState } from "react";
+import { MessageSquare, X, Minimize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Suspense, lazy } from "react";
 
 const WorkflowAssistant = lazy(() =>
-  import('@/components/workflow/WorkflowAssistant').then(mod => ({ default: mod.WorkflowAssistant }))
+  import("@/components/workflow/WorkflowAssistant").then(mod => ({
+    default: mod.WorkflowAssistant,
+  }))
 );
 
 export function FloatingChatButton() {
@@ -37,9 +39,7 @@ export function FloatingChatButton() {
       {isOpen && (
         <div
           className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
-            isMinimized
-              ? 'w-80 h-16'
-              : 'w-[400px] h-[600px] md:w-[450px] md:h-[650px]'
+            isMinimized ? "w-80 h-16" : "w-[400px] h-[600px] md:w-[450px] md:h-[650px]"
           }`}
         >
           <div className="bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col h-full">
@@ -55,20 +55,10 @@ export function FloatingChatButton() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  onClick={minimizeChat}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                >
+                <Button onClick={minimizeChat} variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <Minimize2 className="w-4 h-4" />
                 </Button>
-                <Button
-                  onClick={toggleChat}
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                >
+                <Button onClick={toggleChat} variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <X className="w-4 h-4" />
                 </Button>
               </div>
@@ -76,7 +66,9 @@ export function FloatingChatButton() {
 
             {/* Chat Content */}
             {!isMinimized && (
-              <Suspense fallback={<div className="flex items-center justify-center h-full">Loading...</div>}>
+              <Suspense
+                fallback={<div className="flex items-center justify-center h-full">Loading...</div>}
+              >
                 <WorkflowAssistant />
               </Suspense>
             )}
@@ -86,4 +78,3 @@ export function FloatingChatButton() {
     </>
   );
 }
-

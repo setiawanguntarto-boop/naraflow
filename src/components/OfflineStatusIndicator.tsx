@@ -1,27 +1,27 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Wifi, 
-  WifiOff, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle, 
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
+import {
+  Wifi,
+  WifiOff,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
   RefreshCw,
   HardDrive,
   Database,
-  X
-} from 'lucide-react';
-import { OfflineQueue, OfflineQueueStats } from '@/lib/offlineQueue';
-import { toast } from 'sonner';
+  X,
+} from "lucide-react";
+import { OfflineQueue, OfflineQueueStats } from "@/lib/offlineQueue";
+import { toast } from "sonner";
 
 interface OfflineStatusIndicatorProps {
   className?: string;
 }
 
-export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicatorProps) => {
+export const OfflineStatusIndicator = ({ className = "" }: OfflineStatusIndicatorProps) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isOpen, setIsOpen] = useState(false);
   const [queueStats, setQueueStats] = useState<OfflineQueueStats | null>(null);
@@ -31,16 +31,16 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      toast.success('Connection restored');
+      toast.success("Connection restored");
     };
 
     const handleOffline = () => {
       setIsOnline(false);
-      toast.warning('You are now offline');
+      toast.warning("You are now offline");
     };
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     // Load initial stats
     loadQueueStats();
@@ -54,8 +54,8 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
     });
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
       clearInterval(interval);
       removeSyncCallback();
     };
@@ -66,13 +66,13 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
       const stats = await offlineQueue.getStats();
       setQueueStats(stats);
     } catch (error) {
-      console.error('Failed to load queue stats:', error);
+      console.error("Failed to load queue stats:", error);
     }
   };
 
   const handleSyncNow = async () => {
     if (!isOnline) {
-      toast.error('Cannot sync while offline');
+      toast.error("Cannot sync while offline");
       return;
     }
 
@@ -80,10 +80,10 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
       setIsLoading(true);
       await offlineQueue.syncPendingItems();
       await loadQueueStats();
-      toast.success('Sync completed');
+      toast.success("Sync completed");
     } catch (error) {
-      toast.error('Sync failed');
-      console.error('Sync error:', error);
+      toast.error("Sync failed");
+      console.error("Sync error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -93,17 +93,17 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
     try {
       await offlineQueue.clearCompletedItems();
       await loadQueueStats();
-      toast.success('Completed items cleared');
+      toast.success("Completed items cleared");
     } catch (error) {
-      toast.error('Failed to clear completed items');
-      console.error('Clear error:', error);
+      toast.error("Failed to clear completed items");
+      console.error("Clear error:", error);
     }
   };
 
   const getStatusColor = () => {
-    if (!isOnline) return 'text-red-600';
-    if (queueStats?.queueSize && queueStats.queueSize > 0) return 'text-orange-600';
-    return 'text-green-600';
+    if (!isOnline) return "text-red-600";
+    if (queueStats?.queueSize && queueStats.queueSize > 0) return "text-orange-600";
+    return "text-green-600";
   };
 
   const getStatusIcon = () => {
@@ -113,9 +113,9 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
   };
 
   const getStatusText = () => {
-    if (!isOnline) return 'Offline';
+    if (!isOnline) return "Offline";
     if (queueStats?.queueSize && queueStats.queueSize > 0) return `${queueStats.queueSize} pending`;
-    return 'Online';
+    return "Online";
   };
 
   const StatusIcon = getStatusIcon();
@@ -123,11 +123,7 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className={`flex items-center gap-2 ${className}`}
-        >
+        <Button variant="outline" size="sm" className={`flex items-center gap-2 ${className}`}>
           <StatusIcon className={`w-4 h-4 ${getStatusColor()}`} />
           <span className="hidden sm:inline">{getStatusText()}</span>
           {queueStats?.queueSize && queueStats.queueSize > 0 && (
@@ -137,18 +133,15 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
           )}
         </Button>
       </PopoverTrigger>
-      
+
       <PopoverContent className="w-80" align="end">
         <div className="space-y-4">
           {/* Header */}
           <div className="flex items-center gap-2">
             <StatusIcon className={`w-5 h-5 ${getStatusColor()}`} />
             <h3 className="font-semibold">Connection Status</h3>
-            <Badge 
-              variant={isOnline ? 'default' : 'destructive'} 
-              className="ml-auto"
-            >
-              {isOnline ? 'Online' : 'Offline'}
+            <Badge variant={isOnline ? "default" : "destructive"} className="ml-auto">
+              {isOnline ? "Online" : "Offline"}
             </Badge>
           </div>
 
@@ -156,11 +149,9 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Status:</span>
-              <span className={getStatusColor()}>
-                {isOnline ? 'Connected' : 'Disconnected'}
-              </span>
+              <span className={getStatusColor()}>{isOnline ? "Connected" : "Disconnected"}</span>
             </div>
-            
+
             {!isOnline && (
               <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
                 <div className="flex items-center gap-2">
@@ -181,7 +172,7 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
                   <Database className="w-4 h-4" />
                   Offline Queue
                 </h4>
-                
+
                 <div className="space-y-3">
                   {/* Executions */}
                   <div className="space-y-2">
@@ -191,15 +182,21 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div className="text-center">
-                        <div className="font-medium text-orange-600">{queueStats.pendingExecutions}</div>
+                        <div className="font-medium text-orange-600">
+                          {queueStats.pendingExecutions}
+                        </div>
                         <div className="text-muted-foreground">Pending</div>
                       </div>
                       <div className="text-center">
-                        <div className="font-medium text-green-600">{queueStats.completedExecutions}</div>
+                        <div className="font-medium text-green-600">
+                          {queueStats.completedExecutions}
+                        </div>
                         <div className="text-muted-foreground">Completed</div>
                       </div>
                       <div className="text-center">
-                        <div className="font-medium text-red-600">{queueStats.failedExecutions}</div>
+                        <div className="font-medium text-red-600">
+                          {queueStats.failedExecutions}
+                        </div>
                         <div className="text-muted-foreground">Failed</div>
                       </div>
                     </div>
@@ -213,15 +210,21 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div className="text-center">
-                        <div className="font-medium text-orange-600">{queueStats.pendingTemplateOperations}</div>
+                        <div className="font-medium text-orange-600">
+                          {queueStats.pendingTemplateOperations}
+                        </div>
                         <div className="text-muted-foreground">Pending</div>
                       </div>
                       <div className="text-center">
-                        <div className="font-medium text-green-600">{queueStats.completedTemplateOperations}</div>
+                        <div className="font-medium text-green-600">
+                          {queueStats.completedTemplateOperations}
+                        </div>
                         <div className="text-muted-foreground">Completed</div>
                       </div>
                       <div className="text-center">
-                        <div className="font-medium text-red-600">{queueStats.failedTemplateOperations}</div>
+                        <div className="font-medium text-red-600">
+                          {queueStats.failedTemplateOperations}
+                        </div>
                         <div className="text-muted-foreground">Failed</div>
                       </div>
                     </div>
@@ -234,8 +237,8 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
                         <span className="text-muted-foreground">Queue Size:</span>
                         <span className="font-medium">{queueStats.queueSize} items</span>
                       </div>
-                      <Progress 
-                        value={(queueStats.queueSize / Math.max(queueStats.queueSize, 10)) * 100} 
+                      <Progress
+                        value={(queueStats.queueSize / Math.max(queueStats.queueSize, 10)) * 100}
                         className="h-2"
                       />
                     </div>
@@ -256,31 +259,33 @@ export const OfflineStatusIndicator = ({ className = '' }: OfflineStatusIndicato
           <div className="border-t pt-4 space-y-2">
             <div className="flex gap-2">
               {isOnline && queueStats && queueStats.queueSize > 0 && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleSyncNow}
                   disabled={isLoading}
                   className="flex-1"
                 >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
                   Sync Now
                 </Button>
               )}
-              
-              {queueStats && (queueStats.completedExecutions > 0 || queueStats.completedTemplateOperations > 0) && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleClearCompleted}
-                  className="flex-1"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Clear Completed
-                </Button>
-              )}
+
+              {queueStats &&
+                (queueStats.completedExecutions > 0 ||
+                  queueStats.completedTemplateOperations > 0) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearCompleted}
+                    className="flex-1"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Clear Completed
+                  </Button>
+                )}
             </div>
-            
+
             {!isOnline && (
               <div className="text-xs text-muted-foreground text-center">
                 Automatic sync will resume when connection is restored

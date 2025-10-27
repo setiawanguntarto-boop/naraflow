@@ -10,9 +10,13 @@
     "build:dev": "vite build --mode development",
     "build:analyze": "vite build --mode analyze",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "analyze": "npm run build:analyze"
+    "analyze": "npm run build:analyze",
+    "precommit": "npm run lint && npm run format:check && npm run type-check"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -94,6 +98,7 @@
     "globals": "^15.15.0",
     "lovable-tagger": "^1.1.9",
     "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
     "rollup-plugin-visualizer": "^6.0.5",
     "tailwindcss": "^3.4.17",
     "terser": "^5.44.0",

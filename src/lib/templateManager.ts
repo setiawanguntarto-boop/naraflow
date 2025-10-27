@@ -1,5 +1,5 @@
-import { Node, Edge } from '@xyflow/react';
-import { WorkflowTemplate } from '@/lib/templates/workflowTemplates';
+import { Node, Edge } from "@xyflow/react";
+import { WorkflowTemplate } from "@/lib/templates/workflowTemplates";
 
 export interface TemplateMetadata {
   id: string;
@@ -31,19 +31,19 @@ export interface TemplateImportResult {
 
 export interface TemplateExportOptions {
   includePreview?: boolean;
-  format?: 'json' | 'compressed';
+  format?: "json" | "compressed";
 }
 
 export class TemplateManager {
-  private static readonly TEMPLATE_VERSION = '1.0';
+  private static readonly TEMPLATE_VERSION = "1.0";
   private static readonly MAX_TEMPLATE_SIZE = 5 * 1024 * 1024; // 5MB
   private static readonly ALLOWED_CATEGORIES = [
-    'agriculture',
-    'hospitality', 
-    'sales',
-    'sustainability',
-    'general',
-    'demo'
+    "agriculture",
+    "hospitality",
+    "sales",
+    "sustainability",
+    "general",
+    "demo",
   ];
 
   /**
@@ -54,7 +54,7 @@ export class TemplateManager {
     description: string,
     nodes: Node[],
     edges: Edge[],
-    category: string = 'general',
+    category: string = "general",
     tags: string[] = [],
     author?: string
   ): TemplateData {
@@ -90,44 +90,44 @@ export class TemplateManager {
     if (!template.metadata || !template.nodes || !template.edges) {
       return {
         success: false,
-        error: 'Invalid template format: missing required fields (metadata, nodes, edges)'
+        error: "Invalid template format: missing required fields (metadata, nodes, edges)",
       };
     }
 
     const { metadata, nodes, edges } = template;
 
     // Validate metadata
-    if (!metadata.name || typeof metadata.name !== 'string') {
+    if (!metadata.name || typeof metadata.name !== "string") {
       return {
         success: false,
-        error: 'Invalid template metadata: name is required and must be a string'
+        error: "Invalid template metadata: name is required and must be a string",
       };
     }
 
-    if (!metadata.description || typeof metadata.description !== 'string') {
+    if (!metadata.description || typeof metadata.description !== "string") {
       return {
         success: false,
-        error: 'Invalid template metadata: description is required and must be a string'
+        error: "Invalid template metadata: description is required and must be a string",
       };
     }
 
     if (metadata.category && !this.ALLOWED_CATEGORIES.includes(metadata.category)) {
       warnings.push(`Unknown category '${metadata.category}', using 'general'`);
-      metadata.category = 'general';
+      metadata.category = "general";
     }
 
     // Validate nodes
     if (!Array.isArray(nodes)) {
       return {
         success: false,
-        error: 'Invalid template: nodes must be an array'
+        error: "Invalid template: nodes must be an array",
       };
     }
 
     if (nodes.length === 0) {
       return {
         success: false,
-        error: 'Invalid template: must contain at least one node'
+        error: "Invalid template: must contain at least one node",
       };
     }
 
@@ -135,7 +135,7 @@ export class TemplateManager {
     if (!Array.isArray(edges)) {
       return {
         success: false,
-        error: 'Invalid template: edges must be an array'
+        error: "Invalid template: edges must be an array",
       };
     }
 
@@ -145,7 +145,7 @@ export class TemplateManager {
       /javascript:/i,
       /on\w+\s*=/i,
       /eval\(/i,
-      /function\s*\(/i
+      /function\s*\(/i,
     ];
 
     const allText = JSON.stringify(template);
@@ -153,7 +153,7 @@ export class TemplateManager {
       if (pattern.test(allText)) {
         return {
           success: false,
-          error: 'Template contains potentially malicious content'
+          error: "Template contains potentially malicious content",
         };
       }
     }
@@ -163,7 +163,7 @@ export class TemplateManager {
     if (templateSize > this.MAX_TEMPLATE_SIZE) {
       return {
         success: false,
-        error: `Template too large: ${Math.round(templateSize / 1024)}KB (max: ${Math.round(this.MAX_TEMPLATE_SIZE / 1024)}KB)`
+        error: `Template too large: ${Math.round(templateSize / 1024)}KB (max: ${Math.round(this.MAX_TEMPLATE_SIZE / 1024)}KB)`,
       };
     }
 
@@ -173,7 +173,7 @@ export class TemplateManager {
     if (nodeIds.length !== uniqueNodeIds.size) {
       return {
         success: false,
-        error: 'Invalid template: duplicate node IDs found'
+        error: "Invalid template: duplicate node IDs found",
       };
     }
 
@@ -181,13 +181,13 @@ export class TemplateManager {
     const edgeNodeIds = [...new Set([...edges.map(e => e.source), ...edges.map(e => e.target)])];
     const missingNodeIds = edgeNodeIds.filter(id => !nodeIds.includes(id));
     if (missingNodeIds.length > 0) {
-      warnings.push(`Edges reference non-existent nodes: ${missingNodeIds.join(', ')}`);
+      warnings.push(`Edges reference non-existent nodes: ${missingNodeIds.join(", ")}`);
     }
 
     return {
       success: true,
       template: this.sanitizeTemplate(template),
-      warnings: warnings.length > 0 ? warnings : undefined
+      warnings: warnings.length > 0 ? warnings : undefined,
     };
   }
 
@@ -203,7 +203,7 @@ export class TemplateManager {
     }
 
     // Compress if requested
-    if (options.format === 'compressed') {
+    if (options.format === "compressed") {
       return JSON.stringify(exportData, null, 0);
     }
 
@@ -220,7 +220,7 @@ export class TemplateManager {
     } catch (error) {
       return {
         success: false,
-        error: `Invalid JSON: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Invalid JSON: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
     }
   }
@@ -230,14 +230,14 @@ export class TemplateManager {
    */
   static fromWorkflowTemplate(id: string, template: WorkflowTemplate): TemplateData {
     const now = new Date().toISOString();
-    
+
     return {
       metadata: {
         id,
         name: template.label,
         description: template.description,
         version: this.TEMPLATE_VERSION,
-        category: 'general',
+        category: "general",
         tags: [],
         createdAt: now,
         updatedAt: now,
@@ -255,7 +255,10 @@ export class TemplateManager {
   private static generateTemplateId(name: string): string {
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substring(2, 8);
-    const sanitizedName = name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 8);
+    const sanitizedName = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .substring(0, 8);
     return `template_${sanitizedName}_${timestamp}_${random}`;
   }
 
@@ -270,10 +273,10 @@ export class TemplateManager {
         data: {
           ...data,
           // Remove any script tags or dangerous attributes
-          title: this.sanitizeText(String(data.title || '')),
-          description: this.sanitizeText(String(data.description || '')),
-          label: this.sanitizeText(String(data.label || '')),
-        }
+          title: this.sanitizeText(String(data.title || "")),
+          description: this.sanitizeText(String(data.description || "")),
+          label: this.sanitizeText(String(data.label || "")),
+        },
       };
     });
   }
@@ -284,10 +287,12 @@ export class TemplateManager {
   private static sanitizeEdges(edges: Edge[]): Edge[] {
     return edges.map(edge => ({
       ...edge,
-      data: edge.data ? {
-        ...edge.data,
-        label: this.sanitizeText(String(edge.data.label || '')),
-      } : undefined
+      data: edge.data
+        ? {
+            ...edge.data,
+            label: this.sanitizeText(String(edge.data.label || "")),
+          }
+        : undefined,
     }));
   }
 
@@ -300,8 +305,10 @@ export class TemplateManager {
         ...template.metadata,
         name: this.sanitizeText(template.metadata.name),
         description: this.sanitizeText(template.metadata.description),
-        category: template.metadata.category || 'general',
-        tags: Array.isArray(template.metadata.tags) ? template.metadata.tags.map((tag: any) => this.sanitizeText(tag)) : [],
+        category: template.metadata.category || "general",
+        tags: Array.isArray(template.metadata.tags)
+          ? template.metadata.tags.map((tag: any) => this.sanitizeText(tag))
+          : [],
         version: template.metadata.version || this.TEMPLATE_VERSION,
       },
       nodes: this.sanitizeNodes(template.nodes),
@@ -313,13 +320,13 @@ export class TemplateManager {
    * Sanitize text content
    */
   private static sanitizeText(text: string): string {
-    if (typeof text !== 'string') return '';
-    
+    if (typeof text !== "string") return "";
+
     return text
-      .replace(/<script[^>]*>.*?<\/script>/gi, '')
-      .replace(/<[^>]*>/g, '')
-      .replace(/javascript:/gi, '')
-      .replace(/on\w+\s*=/gi, '')
+      .replace(/<script[^>]*>.*?<\/script>/gi, "")
+      .replace(/<[^>]*>/g, "")
+      .replace(/javascript:/gi, "")
+      .replace(/on\w+\s*=/gi, "")
       .trim();
   }
 
@@ -348,17 +355,17 @@ export class TemplateManager {
   static getTemplateStats(template: TemplateData): {
     nodeCount: number;
     edgeCount: number;
-    complexity: 'simple' | 'moderate' | 'complex';
+    complexity: "simple" | "moderate" | "complex";
     estimatedExecutionTime: string;
   } {
     const nodeCount = template.nodes.length;
     const edgeCount = template.edges.length;
-    
-    let complexity: 'simple' | 'moderate' | 'complex' = 'simple';
+
+    let complexity: "simple" | "moderate" | "complex" = "simple";
     if (nodeCount > 10 || edgeCount > 15) {
-      complexity = 'complex';
+      complexity = "complex";
     } else if (nodeCount > 5 || edgeCount > 8) {
-      complexity = 'moderate';
+      complexity = "moderate";
     }
 
     const estimatedTime = nodeCount * 2; // Rough estimate: 2 seconds per node
@@ -367,7 +374,7 @@ export class TemplateManager {
       nodeCount,
       edgeCount,
       complexity,
-      estimatedExecutionTime: `${estimatedTime}s`
+      estimatedExecutionTime: `${estimatedTime}s`,
     };
   }
 }

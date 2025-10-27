@@ -44,8 +44,8 @@ export interface LayoutResult {
 }
 
 export interface LayoutOptions {
-  engine: 'dagre' | 'elk' | 'group';
-  direction: 'LR' | 'RL' | 'TB' | 'BT';
+  engine: "dagre" | "elk" | "group";
+  direction: "LR" | "RL" | "TB" | "BT";
   spacing: {
     node: number;
     level: number;
@@ -82,7 +82,7 @@ export interface LayoutController {
 
 // Event types for layout system
 export interface LayoutEvent {
-  type: 'layout:start' | 'layout:complete' | 'layout:error' | 'layout:restore';
+  type: "layout:start" | "layout:complete" | "layout:error" | "layout:restore";
   payload: {
     engine?: string;
     direction?: string;
@@ -94,7 +94,10 @@ export interface LayoutEvent {
 
 // Hook types
 export interface UseLayoutOptions {
-  onBeforeLayout?: (nodes: LayoutNode[], edges: LayoutEdge[]) => { nodes: LayoutNode[]; edges: LayoutEdge[] };
+  onBeforeLayout?: (
+    nodes: LayoutNode[],
+    edges: LayoutEdge[]
+  ) => { nodes: LayoutNode[]; edges: LayoutEdge[] };
   onAfterLayout?: (result: LayoutResult) => LayoutResult;
   onLayoutError?: (error: Error) => void;
 }

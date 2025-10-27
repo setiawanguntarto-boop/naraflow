@@ -9,7 +9,7 @@ interface Message {
 
 export const PhoneMockup = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  
+
   const conversation: Message[] = [
     {
       text: `Selamat datang di <b>Rahayu.ai</b>. Silakan menginput sesuai dengan form dibawah ini:<br><br>
@@ -58,9 +58,12 @@ Balas dengan <b>iya</b> untuk konfirmasi.`,
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (messages.length < conversation.length) {
-      timer = setTimeout(() => {
-        setMessages((prevMessages) => [...prevMessages, conversation[prevMessages.length]]);
-      }, messages.length === 0 ? 1000 : 2500);
+      timer = setTimeout(
+        () => {
+          setMessages(prevMessages => [...prevMessages, conversation[prevMessages.length]]);
+        },
+        messages.length === 0 ? 1000 : 2500
+      );
     } else {
       timer = setTimeout(() => {
         setMessages([]);
@@ -81,7 +84,7 @@ Balas dengan <b>iya</b> untuk konfirmasi.`,
           </div>
         </div>
       </div>
-      
+
       {/* Chat Area */}
       <div className="flex-1 bg-background-soft p-4 overflow-y-auto flex flex-col gap-3">
         {messages.map((msg, i) => (
@@ -89,22 +92,25 @@ Balas dengan <b>iya</b> untuk konfirmasi.`,
             key={i}
             className={`
               max-w-[85%] p-3 rounded-xl text-sm break-words message-animate
-              ${msg.type === "sent" 
-                ? "bg-brand-secondary text-surface-primary-foreground self-end rounded-br-sm" 
-                : "bg-card text-card-foreground self-start rounded-bl-sm shadow-soft"
+              ${
+                msg.type === "sent"
+                  ? "bg-brand-secondary text-surface-primary-foreground self-end rounded-br-sm"
+                  : "bg-card text-card-foreground self-start rounded-bl-sm shadow-soft"
               }
             `}
-            style={{ 
+            style={{
               animationDelay: `${i * 2.5}s`,
-              opacity: 0
+              opacity: 0,
             }}
-            dangerouslySetInnerHTML={{ 
-              __html: msg.text + `<div class='text-[0.65rem] opacity-70 mt-2 text-right'>${msg.time}</div>` 
+            dangerouslySetInnerHTML={{
+              __html:
+                msg.text +
+                `<div class='text-[0.65rem] opacity-70 mt-2 text-right'>${msg.time}</div>`,
             }}
           />
         ))}
       </div>
-      
+
       {/* Input Area */}
       <div className="bg-surface-muted p-3 flex items-center gap-2">
         <input

@@ -3,94 +3,113 @@
  * Tests the main orchestration pipeline for prompt-to-workflow conversion
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { interpretPrompt } from '../promptEngine';
-import { WorkflowOutput } from '../types';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { interpretPrompt } from "../promptEngine";
+import { WorkflowOutput } from "../types";
 
 // Mock dependencies
-vi.mock('../promptParser', () => ({
-  interpretPrompt: vi.fn()
+vi.mock("../promptParser", () => ({
+  interpretPrompt: vi.fn(),
 }));
 
-vi.mock('../nodePlanner', () => ({
-  planNodes: vi.fn()
+vi.mock("../nodePlanner", () => ({
+  planNodes: vi.fn(),
 }));
 
-vi.mock('../workflowAssembler', () => ({
-  assembleWorkflow: vi.fn()
+vi.mock("../workflowAssembler", () => ({
+  assembleWorkflow: vi.fn(),
 }));
 
-vi.mock('../validationService', () => ({
-  validateWorkflow: vi.fn()
+vi.mock("../validationService", () => ({
+  validateWorkflow: vi.fn(),
 }));
 
-import { interpretPrompt as parsePrompt } from '../promptParser';
-import { planNodes } from '../nodePlanner';
-import { assembleWorkflow } from '../workflowAssembler';
-import { validateWorkflow } from '../validationService';
+import { interpretPrompt as parsePrompt } from "../promptParser";
+import { planNodes } from "../nodePlanner";
+import { assembleWorkflow } from "../workflowAssembler";
+import { validateWorkflow } from "../validationService";
 
-describe('promptEngine', () => {
+describe("promptEngine", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('interpretPrompt', () => {
-    it('should successfully interpret a WhatsApp data entry prompt', async () => {
-      const mockPrompt = 'Buat agent WhatsApp untuk input data petani: nama, nomor HP, dan luas lahan';
-      
+  describe("interpretPrompt", () => {
+    it("should successfully interpret a WhatsApp data entry prompt", async () => {
+      const mockPrompt =
+        "Buat agent WhatsApp untuk input data petani: nama, nomor HP, dan luas lahan";
+
       const mockAnalysis = {
         intent: {
-          type: 'whatsapp_data_entry' as const,
+          type: "whatsapp_data_entry" as const,
           confidence: 0.95,
-          rawPrompt: mockPrompt
+          rawPrompt: mockPrompt,
         },
         entities: [
-          { field: 'nama', type: 'text', required: true, validation: ['required'] },
-          { field: 'hp', type: 'phone', required: true, validation: ['required', 'phone'] },
-          { field: 'luas', type: 'number', required: true, validation: ['required', 'number'] }
+          { field: "nama", type: "text", required: true, validation: ["required"] },
+          { field: "hp", type: "phone", required: true, validation: ["required", "phone"] },
+          { field: "luas", type: "number", required: true, validation: ["required", "number"] },
         ],
-        target: 'storage' as const,
-        workflow_type: 'sequential' as const
+        target: "storage" as const,
+        workflow_type: "sequential" as const,
       };
 
       const mockPlans = [
         {
-          nodeId: 'start-1',
-          nodeType: 'default',
+          nodeId: "start-1",
+          nodeType: "default",
           position: { x: 100, y: 300 },
-          config: { label: 'Start' },
-          connections: [{ target: 'trigger-1', source_port: 'default', target_port: 'default' }]
+          config: { label: "Start" },
+          connections: [{ target: "trigger-1", source_port: "default", target_port: "default" }],
         },
         {
-          nodeId: 'trigger-1',
-          nodeType: 'whatsapp.trigger',
+          nodeId: "trigger-1",
+          nodeType: "whatsapp.trigger",
           position: { x: 350, y: 300 },
-          config: { provider: 'meta', webhookPath: '/webhook/whatsapp' },
-          connections: [{ target: 'chat-1', source_port: 'default', target_port: 'default' }]
-        }
+          config: { provider: "meta", webhookPath: "/webhook/whatsapp" },
+          connections: [{ target: "chat-1", source_port: "default", target_port: "default" }],
+        },
       ];
 
       const mockWorkflow: WorkflowOutput = {
         nodes: [
-          { id: 'start-1', type: 'default', position: { x: 100, y: 300 }, data: { label: 'Start' } },
-          { id: 'trigger-1', type: 'whatsapp.trigger', position: { x: 350, y: 300 }, data: { label: 'WhatsApp Trigger' } }
+          {
+            id: "start-1",
+            type: "default",
+            position: { x: 100, y: 300 },
+            data: { label: "Start" },
+          },
+          {
+            id: "trigger-1",
+            type: "whatsapp.trigger",
+            position: { x: 350, y: 300 },
+            data: { label: "WhatsApp Trigger" },
+          },
         ],
         edges: [
-          { id: 'e-start-trigger', source: 'start-1', target: 'trigger-1', sourceHandle: 'default', targetHandle: 'default', type: 'smoothstep', data: { label: null } }
+          {
+            id: "e-start-trigger",
+            source: "start-1",
+            target: "trigger-1",
+            sourceHandle: "default",
+            targetHandle: "default",
+            type: "smoothstep",
+            data: { label: null },
+          },
         ],
         metadata: {
-          title: 'AI-Generated Workflow',
-          description: 'Generated from natural language prompt',
-          generated_by: 'prompt_interpreter',
-          timestamp: new Date().toISOString()
+          title: "AI-Generated Workflow",
+          description: "Generated from natural language prompt",
+          generated_by: "prompt_interpreter",
+          timestamp: new Date().toISOString(),
         },
-        warnings: []
+        warnings: [],
       };
 
       const mockValidation = {
         valid: true,
         warnings: [],
-        errors: []
+        errors: [],
       };
 
       vi.mocked(parsePrompt).mockResolvedValue(mockAnalysis);
@@ -99,9 +118,9 @@ describe('promptEngine', () => {
       vi.mocked(validateWorkflow).mockReturnValue(mockValidation);
 
       const result = await interpretPrompt(mockPrompt, {
-        llmProvider: 'openai',
+        llmProvider: "openai",
         validate: true,
-        preview: true
+        preview: true,
       });
 
       expect(result.success).toBe(true);
@@ -110,48 +129,53 @@ describe('promptEngine', () => {
       expect(result.validation).toEqual(mockValidation);
     });
 
-    it('should handle validation errors', async () => {
-      const mockPrompt = 'Invalid prompt';
-      
+    it("should handle validation errors", async () => {
+      const mockPrompt = "Invalid prompt";
+
       const mockAnalysis = {
         intent: {
-          type: 'workflow_automation' as const,
+          type: "workflow_automation" as const,
           confidence: 0.6,
-          rawPrompt: mockPrompt
+          rawPrompt: mockPrompt,
         },
         entities: [],
-        target: 'storage' as const,
-        workflow_type: 'sequential' as const
+        target: "storage" as const,
+        workflow_type: "sequential" as const,
       };
 
       const mockPlans = [
         {
-          nodeId: 'node-1',
-          nodeType: 'unknown.node',
+          nodeId: "node-1",
+          nodeType: "unknown.node",
           position: { x: 100, y: 300 },
           config: {},
-          connections: []
-        }
+          connections: [],
+        },
       ];
 
       const mockWorkflow: WorkflowOutput = {
         nodes: [
-          { id: 'node-1', type: 'unknown.node', position: { x: 100, y: 300 }, data: { label: 'Unknown' } }
+          {
+            id: "node-1",
+            type: "unknown.node",
+            position: { x: 100, y: 300 },
+            data: { label: "Unknown" },
+          },
         ],
         edges: [],
         metadata: {
-          title: 'AI-Generated Workflow',
-          description: 'Generated from natural language prompt',
-          generated_by: 'prompt_interpreter',
-          timestamp: new Date().toISOString()
+          title: "AI-Generated Workflow",
+          description: "Generated from natural language prompt",
+          generated_by: "prompt_interpreter",
+          timestamp: new Date().toISOString(),
         },
-        warnings: []
+        warnings: [],
       };
 
       const mockValidation = {
         valid: false,
-        warnings: ['Unknown node type: unknown.node'],
-        errors: ['Node type not found in registry']
+        warnings: ["Unknown node type: unknown.node"],
+        errors: ["Node type not found in registry"],
       };
 
       vi.mocked(parsePrompt).mockResolvedValue(mockAnalysis);
@@ -160,62 +184,62 @@ describe('promptEngine', () => {
       vi.mocked(validateWorkflow).mockReturnValue(mockValidation);
 
       const result = await interpretPrompt(mockPrompt, {
-        validate: true
+        validate: true,
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Validation failed');
+      expect(result.error).toContain("Validation failed");
       expect(result.validation?.errors.length).toBeGreaterThan(0);
     });
 
-    it('should handle parsing errors gracefully', async () => {
-      const mockPrompt = 'Test prompt';
-      
+    it("should handle parsing errors gracefully", async () => {
+      const mockPrompt = "Test prompt";
+
       vi.mocked(parsePrompt).mockResolvedValue(null);
 
       const result = await interpretPrompt(mockPrompt);
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Failed to parse prompt');
+      expect(result.error).toBe("Failed to parse prompt");
       expect(result.workflow).toBeNull();
     });
 
-    it('should work without validation when validate=false', async () => {
-      const mockPrompt = 'Buat workflow untuk input data';
-      
+    it("should work without validation when validate=false", async () => {
+      const mockPrompt = "Buat workflow untuk input data";
+
       const mockAnalysis = {
         intent: {
-          type: 'workflow_automation' as const,
+          type: "workflow_automation" as const,
           confidence: 0.7,
-          rawPrompt: mockPrompt
+          rawPrompt: mockPrompt,
         },
-        entities: [{ field: 'data', type: 'text', required: true }],
-        target: 'storage' as const,
-        workflow_type: 'sequential' as const
+        entities: [{ field: "data", type: "text", required: true }],
+        target: "storage" as const,
+        workflow_type: "sequential" as const,
       };
 
       const mockPlans = [
         {
-          nodeId: 'node-1',
-          nodeType: 'default',
+          nodeId: "node-1",
+          nodeType: "default",
           position: { x: 100, y: 300 },
-          config: { label: 'Node' },
-          connections: []
-        }
+          config: { label: "Node" },
+          connections: [],
+        },
       ];
 
       const mockWorkflow: WorkflowOutput = {
         nodes: [
-          { id: 'node-1', type: 'default', position: { x: 100, y: 300 }, data: { label: 'Node' } }
+          { id: "node-1", type: "default", position: { x: 100, y: 300 }, data: { label: "Node" } },
         ],
         edges: [],
         metadata: {
-          title: 'AI-Generated Workflow',
-          description: 'Generated from natural language prompt',
-          generated_by: 'prompt_interpreter',
-          timestamp: new Date().toISOString()
+          title: "AI-Generated Workflow",
+          description: "Generated from natural language prompt",
+          generated_by: "prompt_interpreter",
+          timestamp: new Date().toISOString(),
         },
-        warnings: []
+        warnings: [],
       };
 
       vi.mocked(parsePrompt).mockResolvedValue(mockAnalysis);
@@ -223,7 +247,7 @@ describe('promptEngine', () => {
       vi.mocked(assembleWorkflow).mockReturnValue(mockWorkflow);
 
       const result = await interpretPrompt(mockPrompt, {
-        validate: false
+        validate: false,
       });
 
       expect(result.success).toBe(true);
@@ -231,29 +255,29 @@ describe('promptEngine', () => {
       expect(validateWorkflow).not.toHaveBeenCalled();
     });
 
-    it('should handle exceptions during interpretation', async () => {
-      const mockPrompt = 'Test prompt';
-      
-      vi.mocked(parsePrompt).mockRejectedValue(new Error('Network error'));
+    it("should handle exceptions during interpretation", async () => {
+      const mockPrompt = "Test prompt";
+
+      vi.mocked(parsePrompt).mockRejectedValue(new Error("Network error"));
 
       const result = await interpretPrompt(mockPrompt);
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Network error');
+      expect(result.error).toBe("Network error");
     });
 
-    it('should use different LLM providers', async () => {
-      const mockPrompt = 'Extract data';
-      
+    it("should use different LLM providers", async () => {
+      const mockPrompt = "Extract data";
+
       const mockAnalysis = {
         intent: {
-          type: 'whatsapp_data_entry' as const,
+          type: "whatsapp_data_entry" as const,
           confidence: 0.8,
-          rawPrompt: mockPrompt
+          rawPrompt: mockPrompt,
         },
         entities: [],
-        target: 'storage' as const,
-        workflow_type: 'sequential' as const
+        target: "storage" as const,
+        workflow_type: "sequential" as const,
       };
 
       vi.mocked(parsePrompt).mockResolvedValue(mockAnalysis);
@@ -262,24 +286,24 @@ describe('promptEngine', () => {
         nodes: [],
         edges: [],
         metadata: {
-          title: 'AI-Generated Workflow',
-          description: 'Generated from natural language prompt',
-          generated_by: 'prompt_interpreter',
-          timestamp: new Date().toISOString()
+          title: "AI-Generated Workflow",
+          description: "Generated from natural language prompt",
+          generated_by: "prompt_interpreter",
+          timestamp: new Date().toISOString(),
         },
-        warnings: []
+        warnings: [],
       });
       vi.mocked(validateWorkflow).mockReturnValue({
         valid: true,
         warnings: [],
-        errors: []
+        errors: [],
       });
 
       // Test with 'llama' provider
-      await interpretPrompt(mockPrompt, { llmProvider: 'llama' });
-      
+      await interpretPrompt(mockPrompt, { llmProvider: "llama" });
+
       // Test with 'none' provider
-      await interpretPrompt(mockPrompt, { llmProvider: 'none' });
+      await interpretPrompt(mockPrompt, { llmProvider: "none" });
 
       expect(parsePrompt).toHaveBeenCalledTimes(2);
     });

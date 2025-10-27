@@ -1,4 +1,4 @@
-import { ConnectionLabel } from './connectionLabel.types';
+import { ConnectionLabel } from "./connectionLabel.types";
 
 export interface Connection {
   id: string;
@@ -25,7 +25,7 @@ export interface ConnectionLabelMetadata {
   color: string;
   category: string;
   description?: string;
-  direction?: 'forward' | 'backward' | 'loop';
+  direction?: "forward" | "backward" | "loop";
   context?: Record<string, any>;
 }
 

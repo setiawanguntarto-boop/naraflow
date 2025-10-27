@@ -2,32 +2,32 @@
  * Auto-Layout Toolbar Component
  */
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Layout, 
-  RotateCcw, 
-  Zap, 
-  ArrowRight, 
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import {
+  Layout,
+  RotateCcw,
+  Zap,
+  ArrowRight,
   ArrowDown,
   Grid3X3,
   Maximize2,
   Minimize2,
-  Loader2
-} from 'lucide-react';
-import { LayoutPresets } from '../../core/layout/useLayout';
-import { LayoutOptions } from '../../core/layout/types';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { LayoutPreview } from './LayoutPreview';
+  Loader2,
+} from "lucide-react";
+import { LayoutPresets } from "../../core/layout/useLayout";
+import { LayoutOptions } from "../../core/layout/types";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { LayoutPreview } from "./LayoutPreview";
 
 interface AutoLayoutToolbarProps {
   onAutoLayout: (options: Partial<LayoutOptions>, selectedNodeIds?: string[]) => Promise<void>;
@@ -52,7 +52,7 @@ export function AutoLayoutToolbar({
   currentNodes = [],
   currentEdges = [],
 }: AutoLayoutToolbarProps) {
-  const [selectedPreset, setSelectedPreset] = useState<keyof typeof LayoutPresets>('horizontal');
+  const [selectedPreset, setSelectedPreset] = useState<keyof typeof LayoutPresets>("horizontal");
   const [isOpen, setIsOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [previewOptions, setPreviewOptions] = useState<LayoutOptions | null>(null);
@@ -100,11 +100,11 @@ export function AutoLayoutToolbar({
   };
 
   const presetDescriptions = {
-    horizontal: 'Left to right flow',
-    vertical: 'Top to bottom flow',
-    compact: 'Dense arrangement',
-    spacious: 'Wide spacing',
-    complex: 'Advanced ELK layout',
+    horizontal: "Left to right flow",
+    vertical: "Top to bottom flow",
+    compact: "Dense arrangement",
+    spacious: "Wide spacing",
+    complex: "Advanced ELK layout",
   };
 
   return (
@@ -131,40 +131,40 @@ export function AutoLayoutToolbar({
               <p>Auto Arrange (Ctrl+L)</p>
             </TooltipContent>
           </Tooltip>
-          
-        {/* Node count badge */}
-        {nodeCount > 0 && (
-          <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-medium">
-            {nodeCount}
-          </div>
-        )}
-        
-        {/* Selected nodes badge */}
-        {selectedNodeIds.length > 0 && (
-          <div className="absolute -top-2 -left-2 bg-green-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-medium">
-            {selectedNodeIds.length}
-          </div>
-        )}
-      </div>
 
-      {/* Arrange Selected Button - Show when nodes are selected */}
-      {selectedNodeIds.length > 0 && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={() => handlePartialLayout(selectedPreset)}
-              disabled={isLayouting}
-              className="h-8 w-8 rounded-full shadow-md hover:shadow-lg transition-all duration-200 bg-green-500 hover:bg-green-600 text-white"
-              aria-label="Arrange selected nodes"
-            >
-              <Layout className="w-4 h-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Arrange Selected ({selectedNodeIds.length} nodes)</p>
-          </TooltipContent>
-        </Tooltip>
-      )}
+          {/* Node count badge */}
+          {nodeCount > 0 && (
+            <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-medium">
+              {nodeCount}
+            </div>
+          )}
+
+          {/* Selected nodes badge */}
+          {selectedNodeIds.length > 0 && (
+            <div className="absolute -top-2 -left-2 bg-green-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-medium">
+              {selectedNodeIds.length}
+            </div>
+          )}
+        </div>
+
+        {/* Arrange Selected Button - Show when nodes are selected */}
+        {selectedNodeIds.length > 0 && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => handlePartialLayout(selectedPreset)}
+                disabled={isLayouting}
+                className="h-8 w-8 rounded-full shadow-md hover:shadow-lg transition-all duration-200 bg-green-500 hover:bg-green-600 text-white"
+                aria-label="Arrange selected nodes"
+              >
+                <Layout className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Arrange Selected ({selectedNodeIds.length} nodes)</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
 
         {/* Presets Dropdown */}
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -186,120 +186,127 @@ export function AutoLayoutToolbar({
               <p>Layout Presets (Alt+1-5)</p>
             </TooltipContent>
           </Tooltip>
-        <DropdownMenuContent align="end" className="w-56 bg-white border border-gray-200 shadow-lg">
-          <DropdownMenuLabel>Layout Presets</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          
-          {Object.entries(LayoutPresets).map(([key, preset], index) => {
-            const Icon = presetIcons[key as keyof typeof LayoutPresets];
-            const description = presetDescriptions[key as keyof typeof LayoutPresets];
-            
-            return (
-              <div key={key} className="space-y-1">
-                <DropdownMenuItem
-                  onClick={() => handlePresetSelect(key as keyof typeof LayoutPresets)}
-                  className="flex items-center gap-3 cursor-pointer"
-                  disabled={isLayouting}
-                >
-                  <Icon className="w-4 h-4" />
-                  <div className="flex flex-col flex-1">
-                    <span className="font-medium capitalize">{key}</span>
-                    <span className="text-xs text-muted-foreground">{description}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {selectedPreset === key && (
-                      <Badge variant="outline" className="text-xs">
-                        Active
-                      </Badge>
-                    )}
-                    <span className="text-xs text-muted-foreground">Alt+{index + 1}</span>
-                  </div>
-                </DropdownMenuItem>
-                
-                <DropdownMenuItem
-                  onClick={() => handlePreview(key as keyof typeof LayoutPresets)}
-                  className="flex items-center gap-3 cursor-pointer ml-6 text-sm"
-                  disabled={isLayouting}
-                >
-                  <span className="text-muted-foreground">Preview {key}</span>
-                </DropdownMenuItem>
+          <DropdownMenuContent
+            align="end"
+            className="w-56 bg-white border border-gray-200 shadow-lg"
+          >
+            <DropdownMenuLabel>Layout Presets</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+
+            {Object.entries(LayoutPresets).map(([key, preset], index) => {
+              const Icon = presetIcons[key as keyof typeof LayoutPresets];
+              const description = presetDescriptions[key as keyof typeof LayoutPresets];
+
+              return (
+                <div key={key} className="space-y-1">
+                  <DropdownMenuItem
+                    onClick={() => handlePresetSelect(key as keyof typeof LayoutPresets)}
+                    className="flex items-center gap-3 cursor-pointer"
+                    disabled={isLayouting}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <div className="flex flex-col flex-1">
+                      <span className="font-medium capitalize">{key}</span>
+                      <span className="text-xs text-muted-foreground">{description}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {selectedPreset === key && (
+                        <Badge variant="outline" className="text-xs">
+                          Active
+                        </Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground">Alt+{index + 1}</span>
+                    </div>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={() => handlePreview(key as keyof typeof LayoutPresets)}
+                    className="flex items-center gap-3 cursor-pointer ml-6 text-sm"
+                    disabled={isLayouting}
+                  >
+                    <span className="text-muted-foreground">Preview {key}</span>
+                  </DropdownMenuItem>
+                </div>
+              );
+            })}
+
+            <DropdownMenuSeparator />
+
+            {/* Custom Options */}
+            <DropdownMenuItem
+              onClick={() =>
+                handleCustomLayout({
+                  engine: "dagre",
+                  direction: "LR",
+                  spacing: { node: 100, level: 200 },
+                  gridSnap: true,
+                })
+              }
+              className="flex items-center gap-3 cursor-pointer"
+              disabled={isLayouting}
+            >
+              <Grid3X3 className="w-4 h-4" />
+              <div className="flex flex-col">
+                <span className="font-medium">Custom Spacing</span>
+                <span className="text-xs text-muted-foreground">Extra wide layout</span>
               </div>
-            );
-          })}
+            </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
-          
-          {/* Custom Options */}
-          <DropdownMenuItem
-            onClick={() => handleCustomLayout({ 
-              engine: 'dagre', 
-              direction: 'LR', 
-              spacing: { node: 100, level: 200 },
-              gridSnap: true 
-            })}
-            className="flex items-center gap-3 cursor-pointer"
-            disabled={isLayouting}
-          >
-            <Grid3X3 className="w-4 h-4" />
-            <div className="flex flex-col">
-              <span className="font-medium">Custom Spacing</span>
-              <span className="text-xs text-muted-foreground">Extra wide layout</span>
-            </div>
-          </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                handleCustomLayout({
+                  engine: "elk",
+                  direction: "TB",
+                  spacing: { node: 50, level: 100 },
+                  groupAware: true,
+                })
+              }
+              className="flex items-center gap-3 cursor-pointer"
+              disabled={isLayouting}
+            >
+              <Zap className="w-4 h-4" />
+              <div className="flex flex-col">
+                <span className="font-medium">ELK Vertical</span>
+                <span className="text-xs text-muted-foreground">Advanced top-down</span>
+              </div>
+            </DropdownMenuItem>
 
-          <DropdownMenuItem
-            onClick={() => handleCustomLayout({ 
-              engine: 'elk', 
-              direction: 'TB',
-              spacing: { node: 50, level: 100 },
-              groupAware: true 
-            })}
-            className="flex items-center gap-3 cursor-pointer"
-            disabled={isLayouting}
-          >
-            <Zap className="w-4 h-4" />
-            <div className="flex flex-col">
-              <span className="font-medium">ELK Vertical</span>
-              <span className="text-xs text-muted-foreground">Advanced top-down</span>
-            </div>
-          </DropdownMenuItem>
-          
-          <DropdownMenuSeparator />
-          
-          <DropdownMenuItem 
-            onClick={() => {
-              onRestoreLayout();
-              setIsOpen(false);
-            }}
-            disabled={!canRestore || isLayouting}
-            className="flex items-center gap-3 cursor-pointer"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <div className="flex flex-col flex-1">
-              <span className="font-medium">Restore Layout</span>
-              <span className="text-xs text-muted-foreground">Undo last change</span>
-            </div>
-            <span className="text-xs text-muted-foreground">Ctrl+Shift+L</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-    
-    {/* Layout Preview Modal */}
-    {previewOptions && (
-      <LayoutPreview
-        isOpen={showPreview}
-        onClose={() => {
-          setShowPreview(false);
-          setPreviewOptions(null);
-        }}
-        onApply={handleApplyPreview}
-        currentNodes={currentNodes}
-        currentEdges={currentEdges}
-        layoutOptions={previewOptions}
-        selectedNodeIds={selectedNodeIds}
-      />
-    )}
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              onClick={() => {
+                onRestoreLayout();
+                setIsOpen(false);
+              }}
+              disabled={!canRestore || isLayouting}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <div className="flex flex-col flex-1">
+                <span className="font-medium">Restore Layout</span>
+                <span className="text-xs text-muted-foreground">Undo last change</span>
+              </div>
+              <span className="text-xs text-muted-foreground">Ctrl+Shift+L</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Layout Preview Modal */}
+      {previewOptions && (
+        <LayoutPreview
+          isOpen={showPreview}
+          onClose={() => {
+            setShowPreview(false);
+            setPreviewOptions(null);
+          }}
+          onApply={handleApplyPreview}
+          currentNodes={currentNodes}
+          currentEdges={currentEdges}
+          layoutOptions={previewOptions}
+          selectedNodeIds={selectedNodeIds}
+        />
+      )}
     </TooltipProvider>
   );
 }

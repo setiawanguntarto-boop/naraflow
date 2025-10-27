@@ -1,11 +1,21 @@
-import { Waves, Minus, Square, Move, Zap, CheckCircle, XCircle, AlertTriangle, GitBranch } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { useWorkflowState } from '@/hooks/useWorkflowState';
-import { toast } from 'sonner';
+import {
+  Waves,
+  Minus,
+  Square,
+  Move,
+  Zap,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  GitBranch,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { useWorkflowState } from "@/hooks/useWorkflowState";
+import { toast } from "sonner";
 
 export const EdgeSettingsPanel = () => {
   const {
@@ -27,22 +37,22 @@ export const EdgeSettingsPanel = () => {
 
   const handleApplyToAll = () => {
     if (edges.length === 0) {
-      toast.error('No edges to update');
+      toast.error("No edges to update");
       return;
     }
 
     let strokeDasharray = undefined;
-    if (defaultEdgeStyle === 'dashed') {
-      strokeDasharray = '5, 5';
-    } else if (defaultEdgeStyle === 'dotted') {
-      strokeDasharray = '2, 4';
+    if (defaultEdgeStyle === "dashed") {
+      strokeDasharray = "5, 5";
+    } else if (defaultEdgeStyle === "dotted") {
+      strokeDasharray = "2, 4";
     }
 
     applyStyleToAllEdges({
       type: defaultEdgeType,
       animated: defaultEdgeAnimated,
       style: {
-        stroke: 'hsl(var(--brand-primary))',
+        stroke: "hsl(var(--brand-primary))",
         strokeWidth: defaultEdgeWidth,
         strokeDasharray,
       },
@@ -51,8 +61,8 @@ export const EdgeSettingsPanel = () => {
       },
     });
 
-    toast.success('Style applied to all edges', {
-      description: `Updated ${edges.length} connection${edges.length !== 1 ? 's' : ''}`,
+    toast.success("Style applied to all edges", {
+      description: `Updated ${edges.length} connection${edges.length !== 1 ? "s" : ""}`,
     });
   };
 
@@ -138,12 +148,10 @@ export const EdgeSettingsPanel = () => {
 
         {/* Line Width */}
         <div>
-          <Label className="text-sm font-medium mb-3 block">
-            Line Width: {defaultEdgeWidth}px
-          </Label>
+          <Label className="text-sm font-medium mb-3 block">Line Width: {defaultEdgeWidth}px</Label>
           <Slider
             value={[defaultEdgeWidth]}
-            onValueChange={(value) => setDefaultEdgeWidth(value[0])}
+            onValueChange={value => setDefaultEdgeWidth(value[0])}
             min={1}
             max={5}
             step={0.5}
@@ -167,59 +175,59 @@ export const EdgeSettingsPanel = () => {
           <div className="space-y-2">
             <div
               className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${
-                defaultEdgeCondition === 'default'
-                  ? 'border-gray-500 bg-gray-500/10'
-                  : 'border-border hover:border-gray-400'
+                defaultEdgeCondition === "default"
+                  ? "border-gray-500 bg-gray-500/10"
+                  : "border-border hover:border-gray-400"
               }`}
-              onClick={() => setDefaultEdgeCondition('default')}
+              onClick={() => setDefaultEdgeCondition("default")}
             >
               <div className="w-8 h-0.5 bg-gray-500" />
               <span className="text-xs">Default Flow</span>
             </div>
-            
+
             <div
               className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${
-                defaultEdgeCondition === 'success'
-                  ? 'border-green-500 bg-green-500/10'
-                  : 'border-border hover:border-green-400'
+                defaultEdgeCondition === "success"
+                  ? "border-green-500 bg-green-500/10"
+                  : "border-border hover:border-green-400"
               }`}
-              onClick={() => setDefaultEdgeCondition('success')}
+              onClick={() => setDefaultEdgeCondition("success")}
             >
               <CheckCircle className="w-4 h-4 text-green-500" />
               <span className="text-xs">Success Path</span>
             </div>
-            
+
             <div
               className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${
-                defaultEdgeCondition === 'error'
-                  ? 'border-red-500 bg-red-500/10'
-                  : 'border-border hover:border-red-400'
+                defaultEdgeCondition === "error"
+                  ? "border-red-500 bg-red-500/10"
+                  : "border-border hover:border-red-400"
               }`}
-              onClick={() => setDefaultEdgeCondition('error')}
+              onClick={() => setDefaultEdgeCondition("error")}
             >
               <XCircle className="w-4 h-4 text-red-500" />
               <span className="text-xs">Error Path</span>
             </div>
-            
+
             <div
               className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${
-                defaultEdgeCondition === 'warning'
-                  ? 'border-yellow-500 bg-yellow-500/10'
-                  : 'border-border hover:border-yellow-400'
+                defaultEdgeCondition === "warning"
+                  ? "border-yellow-500 bg-yellow-500/10"
+                  : "border-border hover:border-yellow-400"
               }`}
-              onClick={() => setDefaultEdgeCondition('warning')}
+              onClick={() => setDefaultEdgeCondition("warning")}
             >
               <AlertTriangle className="w-4 h-4 text-yellow-500" />
               <span className="text-xs">Warning Path</span>
             </div>
-            
+
             <div
               className={`flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition-all ${
-                defaultEdgeCondition === 'conditional'
-                  ? 'border-blue-500 bg-blue-500/10'
-                  : 'border-border hover:border-blue-400'
+                defaultEdgeCondition === "conditional"
+                  ? "border-blue-500 bg-blue-500/10"
+                  : "border-border hover:border-blue-400"
               }`}
-              onClick={() => setDefaultEdgeCondition('conditional')}
+              onClick={() => setDefaultEdgeCondition("conditional")}
             >
               <GitBranch className="w-4 h-4 text-blue-500" />
               <span className="text-xs">Conditional</span>
@@ -232,12 +240,10 @@ export const EdgeSettingsPanel = () => {
           <Label className="text-sm font-medium mb-3 block">Validation Rules</Label>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-foreground-muted">
-                Prevent circular dependencies
-              </span>
+              <span className="text-xs text-foreground-muted">Prevent circular dependencies</span>
               <Switch
                 checked={!validationOptions.allowCircular}
-                onCheckedChange={(checked) =>
+                onCheckedChange={checked =>
                   setValidationOptions({
                     ...validationOptions,
                     allowCircular: !checked,
@@ -245,14 +251,12 @@ export const EdgeSettingsPanel = () => {
                 }
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
-              <span className="text-xs text-foreground-muted">
-                Prevent duplicate connections
-              </span>
+              <span className="text-xs text-foreground-muted">Prevent duplicate connections</span>
               <Switch
                 checked={validationOptions.preventDuplicates}
-                onCheckedChange={(checked) =>
+                onCheckedChange={checked =>
                   setValidationOptions({
                     ...validationOptions,
                     preventDuplicates: checked,
@@ -260,14 +264,12 @@ export const EdgeSettingsPanel = () => {
                 }
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
-              <span className="text-xs text-foreground-muted">
-                Prevent self-connections
-              </span>
+              <span className="text-xs text-foreground-muted">Prevent self-connections</span>
               <Switch
                 checked={validationOptions.preventSelfConnections}
-                onCheckedChange={(checked) =>
+                onCheckedChange={checked =>
                   setValidationOptions({
                     ...validationOptions,
                     preventSelfConnections: checked,
@@ -280,7 +282,9 @@ export const EdgeSettingsPanel = () => {
 
         {/* Help Text */}
         <div className="text-xs text-foreground-muted bg-background-soft p-3 rounded-lg">
-          <p className="mb-2">💡 <strong>Tip:</strong></p>
+          <p className="mb-2">
+            💡 <strong>Tip:</strong>
+          </p>
           <p>• Right-click any edge to customize it individually</p>
           <p>• Select an edge and press 1-4 to change type</p>
           <p>• Press D for dashed, A for animation</p>

@@ -13,21 +13,29 @@ export interface WhatsAppTemplate {
 
 export const whatsappTemplates: Record<string, WhatsAppTemplate> = {
   ALERT_MORTALITY: {
-    id: 'ALERT_MORTALITY',
-    name: 'Mortality Alert',
+    id: "ALERT_MORTALITY",
+    name: "Mortality Alert",
     body: `⚠️ ALERT: Mortalitas Tinggi pada {{farmName}} (Kandang {{shedId}})
 Tanggal: {{date}}
 Mortalitas: {{mortality}} ekor ({{mortality_pct}}%)
 Populasi Awal: {{population_start}} ekor
 Mohon PPL segera cek lapangan.
 Link QR Kandang: {{qrUrl}}`,
-    variables: ['farmName', 'shedId', 'date', 'mortality', 'mortality_pct', 'population_start', 'qrUrl'],
-    category: 'alert'
+    variables: [
+      "farmName",
+      "shedId",
+      "date",
+      "mortality",
+      "mortality_pct",
+      "population_start",
+      "qrUrl",
+    ],
+    category: "alert",
   },
 
   HARVEST_SUMMARY: {
-    id: 'HARVEST_SUMMARY',
-    name: 'Harvest Summary Report',
+    id: "HARVEST_SUMMARY",
+    name: "Harvest Summary Report",
     body: `📦 Laporan Panen - {{farmName}}
 Siklus: {{cycleId}}
 Tanggal: {{harvestDate}}
@@ -43,13 +51,24 @@ Tanggal: {{harvestDate}}
 • Mortality: {{mortality_pct}}%
 
 Lihat laporan lengkap: {{pdfUrl}}`,
-    variables: ['farmName', 'cycleId', 'harvestDate', 'qty', 'total_weight', 'avg_weight', 'FCR', 'ADG', 'mortality_pct', 'pdfUrl'],
-    category: 'report'
+    variables: [
+      "farmName",
+      "cycleId",
+      "harvestDate",
+      "qty",
+      "total_weight",
+      "avg_weight",
+      "FCR",
+      "ADG",
+      "mortality_pct",
+      "pdfUrl",
+    ],
+    category: "report",
   },
 
   QR_ASSIGNED: {
-    id: 'QR_ASSIGNED',
-    name: 'QR Code Assigned',
+    id: "QR_ASSIGNED",
+    name: "QR Code Assigned",
     body: `✅ QR Code Kandang Assigned!
 
 Farm: {{farmName}}
@@ -58,13 +77,13 @@ Link QR: {{qrUrl}}
 
 Scan QR code untuk check-in harian.
 Kamu bisa mulai input data mulai hari ini!`,
-    variables: ['farmName', 'shedId', 'qrUrl'],
-    category: 'notification'
+    variables: ["farmName", "shedId", "qrUrl"],
+    category: "notification",
   },
 
   DAILY_CHECKIN_REMINDER: {
-    id: 'DAILY_CHECKIN_REMINDER',
-    name: 'Daily Check-in Reminder',
+    id: "DAILY_CHECKIN_REMINDER",
+    name: "Daily Check-in Reminder",
     body: `📅 Reminder: Waktunya Check-in Harian!
 
 Farm: {{farmName}}
@@ -79,13 +98,13 @@ Silakan input data:
 
 Reply dengan format:
 INPUT <mortalitas> <pakan> <berat> <suhu>`,
-    variables: ['farmName', 'shedId', 'date'],
-    category: 'reminder'
+    variables: ["farmName", "shedId", "date"],
+    category: "reminder",
   },
 
   PERFORMANCE_UPDATE: {
-    id: 'PERFORMANCE_UPDATE',
-    name: 'Performance Update',
+    id: "PERFORMANCE_UPDATE",
+    name: "Performance Update",
     body: `📊 Update Performance Siklus {{cycleId}}
 
 Farm: {{farmName}}
@@ -97,13 +116,13 @@ Tanggal: {{date}}
 • Mortality: {{mortality_pct}}%
 
 Status: {{status}}`,
-    variables: ['cycleId', 'farmName', 'date', 'FCR', 'ADG', 'mortality_pct', 'status'],
-    category: 'update'
+    variables: ["cycleId", "farmName", "date", "FCR", "ADG", "mortality_pct", "status"],
+    category: "update",
   },
 
   FARM_REGISTERED: {
-    id: 'FARM_REGISTERED',
-    name: 'Farm Registration Confirmation',
+    id: "FARM_REGISTERED",
+    name: "Farm Registration Confirmation",
     body: `🏷️ Farm Berhasil Terdaftar!
 
 Nama Farm: {{farmName}}
@@ -114,9 +133,9 @@ Tanggal Mulai: {{start_date}}
 
 ID Farm: {{farmId}}
 Silakan simpan ID ini untuk keperluan selanjutnya.`,
-    variables: ['farmName', 'owner', 'location', 'capacity', 'start_date', 'farmId'],
-    category: 'confirmation'
-  }
+    variables: ["farmName", "owner", "location", "capacity", "start_date", "farmId"],
+    category: "confirmation",
+  },
 };
 
 /**
@@ -124,18 +143,18 @@ Silakan simpan ID ini untuk keperluan selanjutnya.`,
  */
 export function renderWhatsAppTemplate(templateId: string, variables: Record<string, any>): string {
   const template = whatsappTemplates[templateId];
-  
+
   if (!template) {
     console.warn(`Template ${templateId} not found`);
-    return '';
+    return "";
   }
 
   let rendered = template.body;
-  
+
   // Replace all variables
   template.variables.forEach(variable => {
-    const value = variables[variable] || '';
-    const regex = new RegExp(`{{${variable}}}`, 'g');
+    const value = variables[variable] || "";
+    const regex = new RegExp(`{{${variable}}}`, "g");
     rendered = rendered.replace(regex, String(value));
   });
 
@@ -148,4 +167,3 @@ export function renderWhatsAppTemplate(templateId: string, variables: Record<str
 export function getTemplatesByCategory(category: string): WhatsAppTemplate[] {
   return Object.values(whatsappTemplates).filter(template => template.category === category);
 }
-

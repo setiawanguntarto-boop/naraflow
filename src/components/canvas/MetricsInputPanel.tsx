@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { Node } from '@xyflow/react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState, useRef, useEffect } from "react";
+import { X } from "lucide-react";
+import { Node } from "@xyflow/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface MetricsInputPanelProps {
   node: Node | null;
@@ -12,8 +12,8 @@ interface MetricsInputPanelProps {
 
 export const MetricsInputPanel = ({ node, onClose, onUpdateMetrics }: MetricsInputPanelProps) => {
   const [metrics, setMetrics] = useState<string[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [messages, setMessages] = useState<Array<{ text: string; type: 'bot' | 'user' }>>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState<Array<{ text: string; type: "bot" | "user" }>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,32 +22,35 @@ export const MetricsInputPanel = ({ node, onClose, onUpdateMetrics }: MetricsInp
       setMetrics(existingMetrics);
       setMessages([
         {
-          text: 'Halo! Sebutkan metrik apa saja yang ingin kamu ukur? Contoh: Berat Pakan, Jumlah Kematian, Suhu Kandang.',
-          type: 'bot'
-        }
+          text: "Halo! Sebutkan metrik apa saja yang ingin kamu ukur? Contoh: Berat Pakan, Jumlah Kematian, Suhu Kandang.",
+          type: "bot",
+        },
       ]);
     }
   }, [node]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (inputValue.trim() === '') {
+
+    if (inputValue.trim() === "") {
       if (metrics.length > 0) {
         setMessages(prev => [
           ...prev,
-          { text: `Terima kasih! Berikut metrik yang akan diukur: ${metrics.join(', ')}.`, type: 'bot' },
-          { text: 'Metrik berhasil disimpan! Kamu bisa menutup panel ini.', type: 'bot' }
+          {
+            text: `Terima kasih! Berikut metrik yang akan diukur: ${metrics.join(", ")}.`,
+            type: "bot",
+          },
+          { text: "Metrik berhasil disimpan! Kamu bisa menutup panel ini.", type: "bot" },
         ]);
         if (node) {
           onUpdateMetrics(node.id, metrics);
         }
       } else {
-        setMessages(prev => [...prev, { text: 'Tidak ada metrik yang dimasukkan.', type: 'bot' }]);
+        setMessages(prev => [...prev, { text: "Tidak ada metrik yang dimasukkan.", type: "bot" }]);
       }
       return;
     }
@@ -55,22 +58,22 @@ export const MetricsInputPanel = ({ node, onClose, onUpdateMetrics }: MetricsInp
     const newMetric = inputValue.trim();
     setMessages(prev => [
       ...prev,
-      { text: newMetric, type: 'user' },
-      { 
-        text: `Baik, saya akan mencatat metrik '${newMetric}'. Ada lagi? (Tekan Enter kosong jika sudah selesai)`, 
-        type: 'bot' 
-      }
+      { text: newMetric, type: "user" },
+      {
+        text: `Baik, saya akan mencatat metrik '${newMetric}'. Ada lagi? (Tekan Enter kosong jika sudah selesai)`,
+        type: "bot",
+      },
     ]);
-    
+
     const updatedMetrics = [...metrics, newMetric];
     setMetrics(updatedMetrics);
-    
+
     // Update node label immediately
     if (node) {
       onUpdateMetrics(node.id, updatedMetrics);
     }
-    
-    setInputValue('');
+
+    setInputValue("");
   };
 
   if (!node) return null;
@@ -80,7 +83,7 @@ export const MetricsInputPanel = ({ node, onClose, onUpdateMetrics }: MetricsInp
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-background-soft">
         <div>
           <h3 className="font-semibold text-foreground">Input Metrik</h3>
-          <p className="text-xs text-foreground-muted">{String(node.data.label || 'Node')}</p>
+          <p className="text-xs text-foreground-muted">{String(node.data.label || "Node")}</p>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="w-4 h-4" />
@@ -92,9 +95,9 @@ export const MetricsInputPanel = ({ node, onClose, onUpdateMetrics }: MetricsInp
           <div
             key={idx}
             className={`px-3 py-2 rounded-xl max-w-[85%] text-sm ${
-              msg.type === 'bot'
-                ? 'bg-brand-primary/10 text-foreground self-start'
-                : 'bg-brand-secondary/10 text-foreground self-end ml-auto'
+              msg.type === "bot"
+                ? "bg-brand-primary/10 text-foreground self-start"
+                : "bg-brand-secondary/10 text-foreground self-end ml-auto"
             }`}
           >
             {msg.text}
@@ -106,7 +109,7 @@ export const MetricsInputPanel = ({ node, onClose, onUpdateMetrics }: MetricsInp
       <form onSubmit={handleSubmit} className="border-t border-border p-3 bg-card">
         <Input
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={e => setInputValue(e.target.value)}
           placeholder="Ketik metrik... (Enter untuk kirim)"
           className="w-full"
           autoFocus

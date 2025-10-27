@@ -7,14 +7,15 @@ export const Contact = () => {
   return (
     <section id="contact" className="py-20 bg-background">
       <div className="container mx-auto px-6">
-        <SectionHeader title={t('contact.title')} subtitle={t('contact.subtitle')} />
+        <SectionHeader title={t("contact.title")} subtitle={t("contact.subtitle")} />
 
         <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
-          
           {/* Left Column - Contact Info */}
           <div className="space-y-8">
-            <h3 className="text-2xl font-semibold text-brand-primary mb-6">{t('contact.channels')}</h3>
-            
+            <h3 className="text-2xl font-semibold text-brand-primary mb-6">
+              {t("contact.channels")}
+            </h3>
+
             <div className="space-y-6">
               {/* WhatsApp */}
               <div className="flex items-center gap-4 p-4 bg-gradient-card rounded-xl border border-border-light shadow-soft hover:shadow-medium transition-all duration-300">
@@ -63,36 +64,33 @@ export const Contact = () => {
 
           {/* Right Column - Contact Form */}
           <div className="bg-gradient-card rounded-xl border border-border-light shadow-soft p-8">
-            <h3 className="text-2xl font-semibold text-brand-primary mb-6">{t('contact.send-message')}</h3>
+            <h3 className="text-2xl font-semibold text-brand-primary mb-6">
+              {t("contact.send-message")}
+            </h3>
             <form className="space-y-6">
               <div>
                 <input
                   type="text"
-                  placeholder={t('contact.name-placeholder')}
+                  placeholder={t("contact.name-placeholder")}
                   className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all"
                 />
               </div>
               <div>
                 <input
                   type="email"
-                  placeholder={t('contact.email-placeholder')}
+                  placeholder={t("contact.email-placeholder")}
                   className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all"
                 />
               </div>
               <div>
                 <textarea
                   rows={4}
-                  placeholder={t('contact.message-placeholder')}
+                  placeholder={t("contact.message-placeholder")}
                   className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all resize-none"
                 ></textarea>
               </div>
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                className="w-full"
-              >
-                {t('contact.send-button')}
+              <Button type="submit" variant="primary" size="lg" className="w-full">
+                {t("contact.send-button")}
               </Button>
             </form>
           </div>

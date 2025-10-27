@@ -3,11 +3,10 @@
  * Export all node definitions for easy importing
  */
 
-export { WhatsAppTriggerNode } from './whatsapp.trigger';
-export { ChatModelNode } from './ai.chatModel';
-export { MemoryGetNode } from './memory.get';
-export { MemorySetNode } from './memory.set';
-export { ValidationBasicNode } from './validation.basic';
-export { SwitchNode } from './control.switch';
-export { WhatsAppSendNode } from './whatsapp.send';
-
+export { WhatsAppTriggerNode } from "./whatsapp.trigger";
+export { ChatModelNode } from "./ai.chatModel";
+export { MemoryGetNode } from "./memory.get";
+export { MemorySetNode } from "./memory.set";
+export { ValidationBasicNode } from "./validation.basic";
+export { SwitchNode } from "./control.switch";
+export { WhatsAppSendNode } from "./whatsapp.send";

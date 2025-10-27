@@ -1,6 +1,6 @@
-import { NodeExecutor, ExecutionResult, ExecutionContext, ExecutionLog } from '@/types/workflow';
-import { generateWorkflowFromPrompt } from '@/lib/llamaClient';
-import { useWorkflowState } from '@/hooks/useWorkflowState';
+import { NodeExecutor, ExecutionResult, ExecutionContext, ExecutionLog } from "@/types/workflow";
+import { generateWorkflowFromPrompt } from "@/lib/llamaClient";
+import { useWorkflowState } from "@/hooks/useWorkflowState";
 
 // Registry
 const executorRegistry = new Map<string, NodeExecutor>();
@@ -10,20 +10,20 @@ export const registerExecutor = (executor: NodeExecutor) => {
 };
 
 export const getExecutorForNode = (node: any): NodeExecutor | null => {
-  return executorRegistry.get(String(node.data?.label || '')) || null;
+  return executorRegistry.get(String(node.data?.label || "")) || null;
 };
 
 // ============= WhatsApp Message Executor =============
 export const WhatsAppMessageExecutor: NodeExecutor = {
-  nodeType: 'WhatsApp Message',
+  nodeType: "WhatsApp Message",
 
   async execute(node, inputs, context) {
     const logs: ExecutionLog[] = [];
-    const message = node.data.description || node.data.title || 'No message defined';
+    const message = node.data.description || node.data.title || "No message defined";
 
     logs.push({
       timestamp: new Date(),
-      level: 'info',
+      level: "info",
       message: `Preparing WhatsApp message...`,
       nodeId: node.id,
     });
@@ -31,13 +31,13 @@ export const WhatsAppMessageExecutor: NodeExecutor = {
     // Replace placeholders
     let finalMessage = message;
     for (const [key, value] of Object.entries(context.variables)) {
-      finalMessage = finalMessage.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
+      finalMessage = finalMessage.replace(new RegExp(`{{${key}}}`, "g"), String(value));
     }
 
     logs.push({
       timestamp: new Date(),
-      level: 'info',
-      message: `Message content: "${finalMessage.substring(0, 50)}${finalMessage.length > 50 ? '...' : ''}"`,
+      level: "info",
+      message: `Message content: "${finalMessage.substring(0, 50)}${finalMessage.length > 50 ? "..." : ""}"`,
       nodeId: node.id,
     });
 
@@ -46,8 +46,8 @@ export const WhatsAppMessageExecutor: NodeExecutor = {
 
     logs.push({
       timestamp: new Date(),
-      level: 'info',
-      message: '✓ WhatsApp message sent successfully (simulated)',
+      level: "info",
+      message: "✓ WhatsApp message sent successfully (simulated)",
       nodeId: node.id,
     });
 
@@ -63,7 +63,7 @@ export const WhatsAppMessageExecutor: NodeExecutor = {
 
   validate(node) {
     if (!node.data.description && !node.data.title) {
-      return { valid: false, error: 'Message content is required' };
+      return { valid: false, error: "Message content is required" };
     }
     return { valid: true };
   },
@@ -74,35 +74,35 @@ export const WhatsAppMessageExecutor: NodeExecutor = {
 
   getOutputSchema() {
     return {
-      sent: 'boolean',
-      message: 'string',
-      timestamp: 'string',
+      sent: "boolean",
+      message: "string",
+      timestamp: "string",
     };
   },
 };
 
 // ============= Input Data Executor =============
 export const InputDataExecutor: NodeExecutor = {
-  nodeType: 'Ask Input',
+  nodeType: "Ask Input",
 
   async execute(node, inputs, context) {
     const logs: ExecutionLog[] = [];
-    const question = node.data.description || node.data.title || 'Please provide input';
+    const question = node.data.description || node.data.title || "Please provide input";
 
     logs.push({
       timestamp: new Date(),
-      level: 'info',
+      level: "info",
       message: `Requesting user input: "${question}"`,
       nodeId: node.id,
     });
 
     // Simulate user response
     await new Promise(resolve => setTimeout(resolve, 300));
-    const mockResponse = 'User response (simulated)';
+    const mockResponse = "User response (simulated)";
 
     logs.push({
       timestamp: new Date(),
-      level: 'info',
+      level: "info",
       message: `✓ Received response: "${mockResponse}"`,
       nodeId: node.id,
     });
@@ -126,22 +126,22 @@ export const InputDataExecutor: NodeExecutor = {
 
   getOutputSchema() {
     return {
-      userInput: 'string',
-      timestamp: 'string',
+      userInput: "string",
+      timestamp: "string",
     };
   },
 };
 
 // ============= Process Data Executor =============
 export const ProcessDataExecutor: NodeExecutor = {
-  nodeType: 'Process Data',
+  nodeType: "Process Data",
 
   async execute(node, inputs, context) {
     const logs: ExecutionLog[] = [];
 
     logs.push({
       timestamp: new Date(),
-      level: 'info',
+      level: "info",
       message: `Processing data with ${Object.keys(inputs).length} inputs...`,
       nodeId: node.id,
     });
@@ -150,8 +150,8 @@ export const ProcessDataExecutor: NodeExecutor = {
 
     logs.push({
       timestamp: new Date(),
-      level: 'info',
-      message: '✓ Data processed successfully',
+      level: "info",
+      message: "✓ Data processed successfully",
       nodeId: node.id,
     });
 
@@ -174,33 +174,35 @@ export const ProcessDataExecutor: NodeExecutor = {
 
   getOutputSchema() {
     return {
-      processed: 'boolean',
-      data: 'object',
+      processed: "boolean",
+      data: "object",
     };
   },
 };
 
 // ============= LLaMA Decision Executor =============
 export const LlamaDecisionExecutor: NodeExecutor = {
-  nodeType: 'LLaMA Decision',
+  nodeType: "LLaMA Decision",
 
   async execute(node, inputs, context, llamaConfig?, appendLlamaLog?) {
     const logs: ExecutionLog[] = [];
-    
+
     // Default LLaMA config if not provided
     const config = llamaConfig || {
-      endpoint: 'http://localhost:11434',
+      endpoint: "http://localhost:11434",
       apiKey: undefined,
-      mode: 'local' as const,
-      lastModel: 'unknown',
+      mode: "local" as const,
+      lastModel: "unknown",
     };
 
-    const prompt = node.data.description || `Decide next step given context: ${JSON.stringify(context.variables)}`;
+    const prompt =
+      node.data.description ||
+      `Decide next step given context: ${JSON.stringify(context.variables)}`;
 
     logs.push({
       timestamp: new Date(),
-      level: 'info',
-      message: `Calling LLaMA with prompt: "${prompt.substring(0, 50)}${prompt.length > 50 ? '...' : ''}"`,
+      level: "info",
+      message: `Calling LLaMA with prompt: "${prompt.substring(0, 50)}${prompt.length > 50 ? "..." : ""}"`,
       nodeId: node.id,
     });
 
@@ -214,8 +216,8 @@ export const LlamaDecisionExecutor: NodeExecutor = {
 
       logs.push({
         timestamp: new Date(),
-        level: 'info',
-        message: 'LLaMA called successfully',
+        level: "info",
+        message: "LLaMA called successfully",
         nodeId: node.id,
       });
 
@@ -225,8 +227,8 @@ export const LlamaDecisionExecutor: NodeExecutor = {
           nodeId: node.id,
           prompt,
           timestamp: new Date().toISOString(),
-          model: config.lastModel || 'unknown',
-          mode: config.mode || 'local',
+          model: config.lastModel || "unknown",
+          mode: config.mode || "local",
           rawPreview: raw.slice(0, 1000), // Truncate for UI
         });
       }
@@ -235,23 +237,23 @@ export const LlamaDecisionExecutor: NodeExecutor = {
         outputs: {
           raw,
           parsed,
-          decision: parsed ? 'LLaMA decision made' : 'LLaMA response received',
+          decision: parsed ? "LLaMA decision made" : "LLaMA response received",
         },
         logs,
       };
     } catch (error) {
       logs.push({
         timestamp: new Date(),
-        level: 'error',
+        level: "error",
         message: `LLaMA call failed: ${error}`,
         nodeId: node.id,
       });
 
       return {
         outputs: {
-          raw: '',
+          raw: "",
           parsed: null,
-          decision: 'LLaMA call failed',
+          decision: "LLaMA call failed",
         },
         logs,
         error: String(error),
@@ -261,7 +263,7 @@ export const LlamaDecisionExecutor: NodeExecutor = {
 
   validate(node) {
     if (!node.data.description) {
-      return { valid: false, error: 'LLaMA prompt is required' };
+      return { valid: false, error: "LLaMA prompt is required" };
     }
     return { valid: true };
   },
@@ -272,9 +274,9 @@ export const LlamaDecisionExecutor: NodeExecutor = {
 
   getOutputSchema() {
     return {
-      raw: 'string',
-      parsed: 'object',
-      decision: 'string',
+      raw: "string",
+      parsed: "object",
+      decision: "string",
     };
   },
 };

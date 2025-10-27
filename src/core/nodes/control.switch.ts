@@ -1,72 +1,71 @@
-import { NodeTypeDefinition } from '../nodeLibrary_v3';
+import { NodeTypeDefinition } from "../nodeLibrary_v3";
 
 export const SwitchNode: NodeTypeDefinition = {
-  id: 'control.switch',
-  version: '1.0.0',
-  label: 'Switch (Route)',
-  description: 'Route flow based on expression results',
-  category: 'control',
-  
+  id: "control.switch",
+  version: "1.0.0",
+  label: "Switch (Route)",
+  description: "Route flow based on expression results",
+  category: "control",
+
   configSchema: {
-    type: 'object',
+    type: "object",
     properties: {
       expression: {
-        type: 'string',
-        description: 'Expression to evaluate (e.g., "payload.status === \'complete\'")'
+        type: "string",
+        description: "Expression to evaluate (e.g., \"payload.status === 'complete'\")",
       },
       cases: {
-        type: 'array',
+        type: "array",
         items: {
-          type: 'object',
+          type: "object",
           properties: {
             label: {
-              type: 'string',
-              description: 'Case label'
+              type: "string",
+              description: "Case label",
             },
             value: {
-              type: 'string',
-              description: 'Case value to route to'
-            }
+              type: "string",
+              description: "Case value to route to",
+            },
           },
-          required: ['label', 'value']
+          required: ["label", "value"],
         },
-        default: []
-      }
+        default: [],
+      },
     },
-    required: ['expression', 'cases']
+    required: ["expression", "cases"],
   },
 
   inputs: {
     default: {
-      name: 'default',
-      type: 'condition',
+      name: "default",
+      type: "condition",
       required: true,
-      description: 'Input data for condition evaluation'
-    }
+      description: "Input data for condition evaluation",
+    },
   },
-  
+
   outputs: {
     default: {
-      name: 'default',
-      type: 'route',
-      description: 'Default route if no case matches'
-    }
+      name: "default",
+      type: "route",
+      description: "Default route if no case matches",
+    },
   },
 
   ui: {
-    icon: 'git-branch',
-    category: 'control',
-    fieldsOrder: ['expression', 'cases'],
-    helpLinks: ['docs/routing']
+    icon: "git-branch",
+    category: "control",
+    fieldsOrder: ["expression", "cases"],
+    helpLinks: ["docs/routing"],
   },
 
   runtime: {
-    handler: '@/lib/executors/switchExecutor',
-    timeoutMs: 2000
+    handler: "@/lib/executors/switchExecutor",
+    timeoutMs: 2000,
   },
 
   meta: {
-    tags: ['routing', 'condition', 'control']
-  }
+    tags: ["routing", "condition", "control"],
+  },
 };
-

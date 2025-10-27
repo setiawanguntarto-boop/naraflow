@@ -2,11 +2,11 @@
  * Dagre Layout Engine - Fast synchronous layout using Dagre.js
  */
 
-import dagre from 'dagre';
-import { LayoutGraph, LayoutResult, LayoutOptions, LayoutEngine } from '../types';
+import dagre from "dagre";
+import { LayoutGraph, LayoutResult, LayoutOptions, LayoutEngine } from "../types";
 
 export class DagreEngine implements LayoutEngine {
-  name = 'dagre';
+  name = "dagre";
   isAsync = false;
 
   /**
@@ -37,7 +37,7 @@ export class DagreEngine implements LayoutEngine {
     // Add edges
     graph.edges.forEach(edge => {
       dagreGraph.setEdge(edge.source, edge.target, {
-        label: edge.id || '',
+        label: edge.id || "",
       });
     });
 
@@ -75,16 +75,16 @@ export class DagreEngine implements LayoutEngine {
    */
   private mapDirection(direction: string): string {
     switch (direction) {
-      case 'LR':
-        return 'LR';
-      case 'RL':
-        return 'RL';
-      case 'TB':
-        return 'TB';
-      case 'BT':
-        return 'BT';
+      case "LR":
+        return "LR";
+      case "RL":
+        return "RL";
+      case "TB":
+        return "TB";
+      case "BT":
+        return "BT";
       default:
-        return 'LR';
+        return "LR";
     }
   }
 
@@ -96,7 +96,7 @@ export class DagreEngine implements LayoutEngine {
 
     // Check for cycles (Dagre works best with DAGs)
     if (this.hasCycles(graph)) {
-      warnings.push('Graph contains cycles - Dagre may not produce optimal layout');
+      warnings.push("Graph contains cycles - Dagre may not produce optimal layout");
     }
 
     // Check for disconnected components
@@ -107,7 +107,7 @@ export class DagreEngine implements LayoutEngine {
 
     // Check for very large graphs
     if (graph.nodes.length > 500) {
-      warnings.push('Large graph detected - consider using ELK engine for better performance');
+      warnings.push("Large graph detected - consider using ELK engine for better performance");
     }
 
     return {
@@ -166,7 +166,7 @@ export class DagreEngine implements LayoutEngine {
 
     const dfs = (nodeId: string, component: string[]) => {
       if (visited.has(nodeId)) return;
-      
+
       visited.add(nodeId);
       component.push(nodeId);
 
@@ -217,11 +217,11 @@ export class DagreEngine implements LayoutEngine {
     }
 
     // Choose direction based on graph structure
-    let direction: 'LR' | 'TB' = 'LR';
-    
+    let direction: "LR" | "TB" = "LR";
+
     // If graph is very wide, use TB direction
     if (metrics.nodeCount > 50 && metrics.avgConnections < 2) {
-      direction = 'TB';
+      direction = "TB";
     }
 
     return {

@@ -1,5 +1,5 @@
-import { Node, Edge } from '@xyflow/react';
-import { ExecutionResult } from '@/types/workflow';
+import { Node, Edge } from "@xyflow/react";
+import { ExecutionResult } from "@/types/workflow";
 
 export interface OfflineExecution {
   id: string;
@@ -9,7 +9,7 @@ export interface OfflineExecution {
   startNodeId: string;
   llamaConfig?: any;
   timestamp: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: "pending" | "processing" | "completed" | "failed";
   result?: ExecutionResult;
   error?: string;
   retryCount: number;
@@ -18,10 +18,10 @@ export interface OfflineExecution {
 
 export interface OfflineTemplateOperation {
   id: string;
-  type: 'save' | 'load' | 'delete' | 'duplicate' | 'export' | 'import';
+  type: "save" | "load" | "delete" | "duplicate" | "export" | "import";
   data: any;
   timestamp: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: "pending" | "processing" | "completed" | "failed";
   result?: any;
   error?: string;
   retryCount: number;
@@ -42,11 +42,11 @@ export interface OfflineQueueStats {
 }
 
 export class OfflineQueue {
-  private static readonly DB_NAME = 'NaraflowOfflineQueue';
+  private static readonly DB_NAME = "NaraflowOfflineQueue";
   private static readonly DB_VERSION = 1;
-  private static readonly EXECUTIONS_STORE = 'executions';
-  private static readonly TEMPLATE_OPERATIONS_STORE = 'templateOperations';
-  
+  private static readonly EXECUTIONS_STORE = "executions";
+  private static readonly TEMPLATE_OPERATIONS_STORE = "templateOperations";
+
   private db: IDBDatabase | null = null;
   private isOnline: boolean = navigator.onLine;
   private syncInProgress: boolean = false;
@@ -65,33 +65,38 @@ export class OfflineQueue {
       const request = indexedDB.open(OfflineQueue.DB_NAME, OfflineQueue.DB_VERSION);
 
       request.onerror = () => {
-        console.error('Failed to open IndexedDB:', request.error);
+        console.error("Failed to open IndexedDB:", request.error);
         reject(request.error);
       };
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('OfflineQueue: IndexedDB initialized');
+        console.log("OfflineQueue: IndexedDB initialized");
         resolve();
       };
 
-      request.onupgradeneeded = (event) => {
+      request.onupgradeneeded = event => {
         const db = (event.target as IDBOpenDBRequest).result;
 
         // Create executions store
         if (!db.objectStoreNames.contains(OfflineQueue.EXECUTIONS_STORE)) {
-          const executionsStore = db.createObjectStore(OfflineQueue.EXECUTIONS_STORE, { keyPath: 'id' });
-          executionsStore.createIndex('sessionId', 'sessionId', { unique: false });
-          executionsStore.createIndex('status', 'status', { unique: false });
-          executionsStore.createIndex('timestamp', 'timestamp', { unique: false });
+          const executionsStore = db.createObjectStore(OfflineQueue.EXECUTIONS_STORE, {
+            keyPath: "id",
+          });
+          executionsStore.createIndex("sessionId", "sessionId", { unique: false });
+          executionsStore.createIndex("status", "status", { unique: false });
+          executionsStore.createIndex("timestamp", "timestamp", { unique: false });
         }
 
         // Create template operations store
         if (!db.objectStoreNames.contains(OfflineQueue.TEMPLATE_OPERATIONS_STORE)) {
-          const templateOperationsStore = db.createObjectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE, { keyPath: 'id' });
-          templateOperationsStore.createIndex('type', 'type', { unique: false });
-          templateOperationsStore.createIndex('status', 'status', { unique: false });
-          templateOperationsStore.createIndex('timestamp', 'timestamp', { unique: false });
+          const templateOperationsStore = db.createObjectStore(
+            OfflineQueue.TEMPLATE_OPERATIONS_STORE,
+            { keyPath: "id" }
+          );
+          templateOperationsStore.createIndex("type", "type", { unique: false });
+          templateOperationsStore.createIndex("status", "status", { unique: false });
+          templateOperationsStore.createIndex("timestamp", "timestamp", { unique: false });
         }
       };
     });
@@ -102,19 +107,19 @@ export class OfflineQueue {
    */
   private setupEventListeners(): void {
     // Online/offline events
-    window.addEventListener('online', () => {
-      console.log('OfflineQueue: Back online, starting sync');
+    window.addEventListener("online", () => {
+      console.log("OfflineQueue: Back online, starting sync");
       this.isOnline = true;
       this.syncPendingItems();
     });
 
-    window.addEventListener('offline', () => {
-      console.log('OfflineQueue: Gone offline');
+    window.addEventListener("offline", () => {
+      console.log("OfflineQueue: Gone offline");
       this.isOnline = false;
     });
 
     // Visibility change (when user returns to tab)
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener("visibilitychange", () => {
       if (!document.hidden && this.isOnline) {
         this.syncPendingItems();
       }
@@ -135,7 +140,7 @@ export class OfflineQueue {
     sessionId: string,
     nodes: Node[],
     edges: Edge[],
-    startNodeId: string = 'start',
+    startNodeId: string = "start",
     llamaConfig?: any
   ): Promise<string> {
     const execution: OfflineExecution = {
@@ -146,13 +151,13 @@ export class OfflineQueue {
       startNodeId,
       llamaConfig,
       timestamp: new Date().toISOString(),
-      status: 'pending',
+      status: "pending",
       retryCount: 0,
       maxRetries: 3,
     };
 
     await this.addExecution(execution);
-    
+
     // Try to process immediately if online
     if (this.isOnline) {
       this.processExecution(execution.id);
@@ -164,22 +169,19 @@ export class OfflineQueue {
   /**
    * Queue template operation for offline processing
    */
-  async queueTemplateOperation(
-    type: OfflineTemplateOperation['type'],
-    data: any
-  ): Promise<string> {
+  async queueTemplateOperation(type: OfflineTemplateOperation["type"], data: any): Promise<string> {
     const operation: OfflineTemplateOperation = {
       id: this.generateId(),
       type,
       data,
       timestamp: new Date().toISOString(),
-      status: 'pending',
+      status: "pending",
       retryCount: 0,
       maxRetries: 3,
     };
 
     await this.addTemplateOperation(operation);
-    
+
     // Try to process immediately if online
     if (this.isOnline) {
       this.processTemplateOperation(operation.id);
@@ -195,7 +197,7 @@ export class OfflineQueue {
     if (!this.db) return null;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readonly');
+      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readonly");
       const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
       const request = store.get(executionId);
 
@@ -211,7 +213,10 @@ export class OfflineQueue {
     if (!this.db) return null;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readonly');
+      const transaction = this.db!.transaction(
+        [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+        "readonly"
+      );
       const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
       const request = store.get(operationId);
 
@@ -227,10 +232,10 @@ export class OfflineQueue {
     if (!this.db) return [];
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readonly');
+      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readonly");
       const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
-      const index = store.index('status');
-      const request = index.getAll('pending');
+      const index = store.index("status");
+      const request = index.getAll("pending");
 
       request.onsuccess = () => resolve(request.result || []);
       request.onerror = () => reject(request.error);
@@ -244,10 +249,13 @@ export class OfflineQueue {
     if (!this.db) return [];
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readonly');
+      const transaction = this.db!.transaction(
+        [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+        "readonly"
+      );
       const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
-      const index = store.index('status');
-      const request = index.getAll('pending');
+      const index = store.index("status");
+      const request = index.getAll("pending");
 
       request.onsuccess = () => resolve(request.result || []);
       request.onerror = () => reject(request.error);
@@ -260,19 +268,21 @@ export class OfflineQueue {
   async getStats(): Promise<OfflineQueueStats> {
     const [executions, templateOperations] = await Promise.all([
       this.getAllExecutions(),
-      this.getAllTemplateOperations()
+      this.getAllTemplateOperations(),
     ]);
 
-    const pendingExecutions = executions.filter(e => e.status === 'pending');
-    const completedExecutions = executions.filter(e => e.status === 'completed');
-    const failedExecutions = executions.filter(e => e.status === 'failed');
+    const pendingExecutions = executions.filter(e => e.status === "pending");
+    const completedExecutions = executions.filter(e => e.status === "completed");
+    const failedExecutions = executions.filter(e => e.status === "failed");
 
-    const pendingTemplateOperations = templateOperations.filter(o => o.status === 'pending');
-    const completedTemplateOperations = templateOperations.filter(o => o.status === 'completed');
-    const failedTemplateOperations = templateOperations.filter(o => o.status === 'failed');
+    const pendingTemplateOperations = templateOperations.filter(o => o.status === "pending");
+    const completedTemplateOperations = templateOperations.filter(o => o.status === "completed");
+    const failedTemplateOperations = templateOperations.filter(o => o.status === "failed");
 
-    const oldestPendingItem = [...pendingExecutions, ...pendingTemplateOperations]
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())[0]?.id || null;
+    const oldestPendingItem =
+      [...pendingExecutions, ...pendingTemplateOperations].sort(
+        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      )[0]?.id || null;
 
     return {
       totalExecutions: executions.length,
@@ -292,20 +302,14 @@ export class OfflineQueue {
    * Clear completed items
    */
   async clearCompletedItems(): Promise<void> {
-    await Promise.all([
-      this.clearCompletedExecutions(),
-      this.clearCompletedTemplateOperations()
-    ]);
+    await Promise.all([this.clearCompletedExecutions(), this.clearCompletedTemplateOperations()]);
   }
 
   /**
    * Clear all items
    */
   async clearAllItems(): Promise<void> {
-    await Promise.all([
-      this.clearAllExecutions(),
-      this.clearAllTemplateOperations()
-    ]);
+    await Promise.all([this.clearAllExecutions(), this.clearAllTemplateOperations()]);
   }
 
   /**
@@ -315,7 +319,7 @@ export class OfflineQueue {
     if (this.syncInProgress || !this.isOnline) return;
 
     this.syncInProgress = true;
-    console.log('OfflineQueue: Starting sync of pending items');
+    console.log("OfflineQueue: Starting sync of pending items");
 
     try {
       // Sync executions
@@ -332,9 +336,8 @@ export class OfflineQueue {
 
       // Notify callbacks
       this.syncCallbacks.forEach(callback => callback());
-
     } catch (error) {
-      console.error('OfflineQueue: Sync failed', error);
+      console.error("OfflineQueue: Sync failed", error);
     } finally {
       this.syncInProgress = false;
     }
@@ -360,27 +363,30 @@ export class OfflineQueue {
    */
   private async processExecution(executionId: string): Promise<void> {
     const execution = await this.getExecution(executionId);
-    if (!execution || execution.status !== 'pending') return;
+    if (!execution || execution.status !== "pending") return;
 
     try {
       // Update status to processing
-      await this.updateExecutionStatus(executionId, 'processing');
+      await this.updateExecutionStatus(executionId, "processing");
 
       // Simulate execution (in real implementation, this would call the actual execution engine)
       const result = await this.simulateExecution(execution);
 
       // Update with result
-      await this.updateExecutionResult(executionId, result, 'completed');
-
+      await this.updateExecutionResult(executionId, result, "completed");
     } catch (error) {
-      console.error('OfflineQueue: Execution failed', executionId, error);
-      
+      console.error("OfflineQueue: Execution failed", executionId, error);
+
       const newRetryCount = execution.retryCount + 1;
       if (newRetryCount >= execution.maxRetries) {
-        await this.updateExecutionError(executionId, error instanceof Error ? error.message : 'Unknown error', 'failed');
+        await this.updateExecutionError(
+          executionId,
+          error instanceof Error ? error.message : "Unknown error",
+          "failed"
+        );
       } else {
         await this.updateExecutionRetryCount(executionId, newRetryCount);
-        await this.updateExecutionStatus(executionId, 'pending');
+        await this.updateExecutionStatus(executionId, "pending");
       }
     }
   }
@@ -390,27 +396,30 @@ export class OfflineQueue {
    */
   private async processTemplateOperation(operationId: string): Promise<void> {
     const operation = await this.getTemplateOperation(operationId);
-    if (!operation || operation.status !== 'pending') return;
+    if (!operation || operation.status !== "pending") return;
 
     try {
       // Update status to processing
-      await this.updateTemplateOperationStatus(operationId, 'processing');
+      await this.updateTemplateOperationStatus(operationId, "processing");
 
       // Simulate operation (in real implementation, this would call the actual template manager)
       const result = await this.simulateTemplateOperation(operation);
 
       // Update with result
-      await this.updateTemplateOperationResult(operationId, result, 'completed');
-
+      await this.updateTemplateOperationResult(operationId, result, "completed");
     } catch (error) {
-      console.error('OfflineQueue: Template operation failed', operationId, error);
-      
+      console.error("OfflineQueue: Template operation failed", operationId, error);
+
       const newRetryCount = operation.retryCount + 1;
       if (newRetryCount >= operation.maxRetries) {
-        await this.updateTemplateOperationError(operationId, error instanceof Error ? error.message : 'Unknown error', 'failed');
+        await this.updateTemplateOperationError(
+          operationId,
+          error instanceof Error ? error.message : "Unknown error",
+          "failed"
+        );
       } else {
         await this.updateTemplateOperationRetryCount(operationId, newRetryCount);
-        await this.updateTemplateOperationStatus(operationId, 'pending');
+        await this.updateTemplateOperationStatus(operationId, "pending");
       }
     }
   }
@@ -423,18 +432,21 @@ export class OfflineQueue {
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
     // Simulate success/failure
-    if (Math.random() < 0.1) { // 10% failure rate
-      throw new Error('Simulated execution failure');
+    if (Math.random() < 0.1) {
+      // 10% failure rate
+      throw new Error("Simulated execution failure");
     }
 
     return {
       outputs: new Map(),
-      logs: [{
-        timestamp: new Date(),
-        level: 'info',
-        message: `Offline execution completed for session ${execution.sessionId}`,
-        nodeId: 'offline-queue',
-      }],
+      logs: [
+        {
+          timestamp: new Date(),
+          level: "info",
+          message: `Offline execution completed for session ${execution.sessionId}`,
+          nodeId: "offline-queue",
+        },
+      ],
     };
   }
 
@@ -446,8 +458,9 @@ export class OfflineQueue {
     await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
 
     // Simulate success/failure
-    if (Math.random() < 0.05) { // 5% failure rate
-      throw new Error('Simulated template operation failure');
+    if (Math.random() < 0.05) {
+      // 5% failure rate
+      throw new Error("Simulated template operation failure");
     }
 
     return { success: true, operation: operation.type };
@@ -455,10 +468,10 @@ export class OfflineQueue {
 
   // Database helper methods
   private async addExecution(execution: OfflineExecution): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) throw new Error("Database not initialized");
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readwrite");
       const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
       const request = store.add(execution);
 
@@ -468,10 +481,13 @@ export class OfflineQueue {
   }
 
   private async addTemplateOperation(operation: OfflineTemplateOperation): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) throw new Error("Database not initialized");
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction(
+        [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+        "readwrite"
+      );
       const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
       const request = store.add(operation);
 
@@ -480,8 +496,11 @@ export class OfflineQueue {
     });
   }
 
-  private async updateExecutionStatus(executionId: string, status: OfflineExecution['status']): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+  private async updateExecutionStatus(
+    executionId: string,
+    status: OfflineExecution["status"]
+  ): Promise<void> {
+    if (!this.db) throw new Error("Database not initialized");
 
     const execution = await this.getExecution(executionId);
     if (!execution) return;
@@ -489,7 +508,7 @@ export class OfflineQueue {
     execution.status = status;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readwrite");
       const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
       const request = store.put(execution);
 
@@ -498,8 +517,12 @@ export class OfflineQueue {
     });
   }
 
-  private async updateExecutionResult(executionId: string, result: ExecutionResult, status: OfflineExecution['status']): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+  private async updateExecutionResult(
+    executionId: string,
+    result: ExecutionResult,
+    status: OfflineExecution["status"]
+  ): Promise<void> {
+    if (!this.db) throw new Error("Database not initialized");
 
     const execution = await this.getExecution(executionId);
     if (!execution) return;
@@ -508,7 +531,7 @@ export class OfflineQueue {
     execution.status = status;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readwrite");
       const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
       const request = store.put(execution);
 
@@ -517,8 +540,12 @@ export class OfflineQueue {
     });
   }
 
-  private async updateExecutionError(executionId: string, error: string, status: OfflineExecution['status']): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+  private async updateExecutionError(
+    executionId: string,
+    error: string,
+    status: OfflineExecution["status"]
+  ): Promise<void> {
+    if (!this.db) throw new Error("Database not initialized");
 
     const execution = await this.getExecution(executionId);
     if (!execution) return;
@@ -527,7 +554,7 @@ export class OfflineQueue {
     execution.status = status;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readwrite");
       const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
       const request = store.put(execution);
 
@@ -537,7 +564,7 @@ export class OfflineQueue {
   }
 
   private async updateExecutionRetryCount(executionId: string, retryCount: number): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    if (!this.db) throw new Error("Database not initialized");
 
     const execution = await this.getExecution(executionId);
     if (!execution) return;
@@ -545,7 +572,7 @@ export class OfflineQueue {
     execution.retryCount = retryCount;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readwrite");
       const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
       const request = store.put(execution);
 
@@ -554,8 +581,11 @@ export class OfflineQueue {
     });
   }
 
-  private async updateTemplateOperationStatus(operationId: string, status: OfflineTemplateOperation['status']): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+  private async updateTemplateOperationStatus(
+    operationId: string,
+    status: OfflineTemplateOperation["status"]
+  ): Promise<void> {
+    if (!this.db) throw new Error("Database not initialized");
 
     const operation = await this.getTemplateOperation(operationId);
     if (!operation) return;
@@ -563,7 +593,10 @@ export class OfflineQueue {
     operation.status = status;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction(
+        [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+        "readwrite"
+      );
       const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
       const request = store.put(operation);
 
@@ -572,8 +605,12 @@ export class OfflineQueue {
     });
   }
 
-  private async updateTemplateOperationResult(operationId: string, result: any, status: OfflineTemplateOperation['status']): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+  private async updateTemplateOperationResult(
+    operationId: string,
+    result: any,
+    status: OfflineTemplateOperation["status"]
+  ): Promise<void> {
+    if (!this.db) throw new Error("Database not initialized");
 
     const operation = await this.getTemplateOperation(operationId);
     if (!operation) return;
@@ -582,7 +619,10 @@ export class OfflineQueue {
     operation.status = status;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction(
+        [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+        "readwrite"
+      );
       const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
       const request = store.put(operation);
 
@@ -591,8 +631,12 @@ export class OfflineQueue {
     });
   }
 
-  private async updateTemplateOperationError(operationId: string, error: string, status: OfflineTemplateOperation['status']): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+  private async updateTemplateOperationError(
+    operationId: string,
+    error: string,
+    status: OfflineTemplateOperation["status"]
+  ): Promise<void> {
+    if (!this.db) throw new Error("Database not initialized");
 
     const operation = await this.getTemplateOperation(operationId);
     if (!operation) return;
@@ -601,7 +645,10 @@ export class OfflineQueue {
     operation.status = status;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction(
+        [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+        "readwrite"
+      );
       const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
       const request = store.put(operation);
 
@@ -610,8 +657,11 @@ export class OfflineQueue {
     });
   }
 
-  private async updateTemplateOperationRetryCount(operationId: string, retryCount: number): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+  private async updateTemplateOperationRetryCount(
+    operationId: string,
+    retryCount: number
+  ): Promise<void> {
+    if (!this.db) throw new Error("Database not initialized");
 
     const operation = await this.getTemplateOperation(operationId);
     if (!operation) return;
@@ -619,7 +669,10 @@ export class OfflineQueue {
     operation.retryCount = retryCount;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction(
+        [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+        "readwrite"
+      );
       const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
       const request = store.put(operation);
 
@@ -632,7 +685,7 @@ export class OfflineQueue {
     if (!this.db) return [];
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readonly');
+      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readonly");
       const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
       const request = store.getAll();
 
@@ -645,7 +698,10 @@ export class OfflineQueue {
     if (!this.db) return [];
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readonly');
+      const transaction = this.db!.transaction(
+        [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+        "readonly"
+      );
       const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
       const request = store.getAll();
 
@@ -658,11 +714,11 @@ export class OfflineQueue {
     if (!this.db) return;
 
     const executions = await this.getAllExecutions();
-    const completedExecutions = executions.filter(e => e.status === 'completed');
+    const completedExecutions = executions.filter(e => e.status === "completed");
 
     for (const execution of completedExecutions) {
       await new Promise<void>((resolve, reject) => {
-        const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readwrite');
+        const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readwrite");
         const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
         const request = store.delete(execution.id);
 
@@ -676,11 +732,14 @@ export class OfflineQueue {
     if (!this.db) return;
 
     const operations = await this.getAllTemplateOperations();
-    const completedOperations = operations.filter(o => o.status === 'completed');
+    const completedOperations = operations.filter(o => o.status === "completed");
 
     for (const operation of completedOperations) {
       await new Promise<void>((resolve, reject) => {
-        const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readwrite');
+        const transaction = this.db!.transaction(
+          [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+          "readwrite"
+        );
         const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
         const request = store.delete(operation.id);
 
@@ -694,7 +753,7 @@ export class OfflineQueue {
     if (!this.db) return;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction([OfflineQueue.EXECUTIONS_STORE], "readwrite");
       const store = transaction.objectStore(OfflineQueue.EXECUTIONS_STORE);
       const request = store.clear();
 
@@ -707,7 +766,10 @@ export class OfflineQueue {
     if (!this.db) return;
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([OfflineQueue.TEMPLATE_OPERATIONS_STORE], 'readwrite');
+      const transaction = this.db!.transaction(
+        [OfflineQueue.TEMPLATE_OPERATIONS_STORE],
+        "readwrite"
+      );
       const store = transaction.objectStore(OfflineQueue.TEMPLATE_OPERATIONS_STORE);
       const request = store.clear();
 

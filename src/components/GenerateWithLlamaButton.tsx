@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader2, Zap } from 'lucide-react';
-import { generateWorkflowFromPrompt } from '@/lib/llamaClient';
-import { RawLlamaOutputModal } from '@/components/RawLlamaOutputModal';
-import { useWorkflowState } from '@/hooks/useWorkflowState';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Zap } from "lucide-react";
+import { generateWorkflowFromPrompt } from "@/lib/llamaClient";
+import { RawLlamaOutputModal } from "@/components/RawLlamaOutputModal";
+import { useWorkflowState } from "@/hooks/useWorkflowState";
+import { toast } from "sonner";
 
 interface GenerateWithLlamaButtonProps {
   prompt: string;
@@ -12,7 +12,11 @@ interface GenerateWithLlamaButtonProps {
   onUseWorkflow?: (parsed: any) => void;
 }
 
-export function GenerateWithLlamaButton({ prompt, disabled, onUseWorkflow }: GenerateWithLlamaButtonProps) {
+export function GenerateWithLlamaButton({
+  prompt,
+  disabled,
+  onUseWorkflow,
+}: GenerateWithLlamaButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showOutputModal, setShowOutputModal] = useState(false);
   const [generatedData, setGeneratedData] = useState<{
@@ -26,12 +30,12 @@ export function GenerateWithLlamaButton({ prompt, disabled, onUseWorkflow }: Gen
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      toast.error('Please enter a prompt');
+      toast.error("Please enter a prompt");
       return;
     }
 
     if (!llamaConfig.connected) {
-      toast.error('Please connect to LLaMA first');
+      toast.error("Please connect to LLaMA first");
       return;
     }
 
@@ -40,7 +44,7 @@ export function GenerateWithLlamaButton({ prompt, disabled, onUseWorkflow }: Gen
     if (cached) {
       setGeneratedData(cached);
       setShowOutputModal(true);
-      toast.success('Using cached LLaMA response');
+      toast.success("Using cached LLaMA response");
       return;
     }
 
@@ -64,13 +68,13 @@ export function GenerateWithLlamaButton({ prompt, disabled, onUseWorkflow }: Gen
 
       // Cache the result
       setLlamaCache(prompt, data);
-      
+
       setGeneratedData(data);
       setShowOutputModal(true);
-      
-      toast.success('LLaMA workflow generated successfully');
+
+      toast.success("LLaMA workflow generated successfully");
     } catch (error) {
-      console.error('LLaMA generation error:', error);
+      console.error("LLaMA generation error:", error);
       toast.error(`Generation failed: ${error}`);
     } finally {
       setIsGenerating(false);

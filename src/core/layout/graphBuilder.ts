@@ -2,8 +2,8 @@
  * Graph Builder - Converts ReactFlow nodes/edges to layout graph format
  */
 
-import { Node, Edge } from '@xyflow/react';
-import { LayoutGraph, LayoutNode, LayoutEdge } from './types';
+import { Node, Edge } from "@xyflow/react";
+import { LayoutGraph, LayoutNode, LayoutEdge } from "./types";
 
 export class GraphBuilder {
   private static readonly DEFAULT_NODE_SIZE = { width: 180, height: 80 };
@@ -28,7 +28,7 @@ export class GraphBuilder {
   private static buildNodes(nodes: Node[]): LayoutNode[] {
     return nodes.map(node => {
       const size = this.getNodeSize(node);
-      
+
       return {
         id: node.id,
         width: size.width,
@@ -67,19 +67,19 @@ export class GraphBuilder {
 
     // Type-specific sizing
     switch (node.type) {
-      case 'start':
-      case 'end':
+      case "start":
+      case "end":
         return { width: 120, height: 60 };
-      
-      case 'decision':
+
+      case "decision":
         return { width: 160, height: 100 };
-      
-      case 'group':
+
+      case "group":
         return this.DEFAULT_GROUP_SIZE;
-      
-      case 'llama-decision':
+
+      case "llama-decision":
         return { width: 200, height: 120 };
-      
+
       default:
         return this.DEFAULT_NODE_SIZE;
     }
@@ -88,17 +88,11 @@ export class GraphBuilder {
   /**
    * Filter nodes for partial layout
    */
-  static filterForPartialLayout(
-    graph: LayoutGraph, 
-    selectedNodeIds: string[]
-  ): LayoutGraph {
-    const filteredNodes = graph.nodes.filter(node => 
-      selectedNodeIds.includes(node.id)
-    );
+  static filterForPartialLayout(graph: LayoutGraph, selectedNodeIds: string[]): LayoutGraph {
+    const filteredNodes = graph.nodes.filter(node => selectedNodeIds.includes(node.id));
 
-    const filteredEdges = graph.edges.filter(edge =>
-      selectedNodeIds.includes(edge.source) && 
-      selectedNodeIds.includes(edge.target)
+    const filteredEdges = graph.edges.filter(
+      edge => selectedNodeIds.includes(edge.source) && selectedNodeIds.includes(edge.target)
     );
 
     return {
@@ -112,7 +106,7 @@ export class GraphBuilder {
    */
   static extractGroups(nodes: Node[]): Map<string, string[]> {
     const groups = new Map<string, string[]>();
-    
+
     nodes.forEach(node => {
       if (node.parentId) {
         if (!groups.has(node.parentId)) {
@@ -176,7 +170,7 @@ export class GraphBuilder {
   } {
     const nodeCount = graph.nodes.length;
     const edgeCount = graph.edges.length;
-    
+
     const groups = new Set(graph.nodes.map(n => n.group).filter(Boolean));
     const groupCount = groups.size;
 
@@ -190,7 +184,10 @@ export class GraphBuilder {
       connectionsPerNode.set(edge.target, (connectionsPerNode.get(edge.target) || 0) + 1);
     });
 
-    const totalConnections = Array.from(connectionsPerNode.values()).reduce((sum, count) => sum + count, 0);
+    const totalConnections = Array.from(connectionsPerNode.values()).reduce(
+      (sum, count) => sum + count,
+      0
+    );
     const avgConnections = nodeCount > 0 ? totalConnections / nodeCount : 0;
 
     return {
@@ -253,7 +250,7 @@ export class GraphBuilder {
 
     while (queue.length > 0) {
       const { nodeId, depth } = queue.shift()!;
-      
+
       if (visited.has(nodeId)) continue;
       visited.add(nodeId);
 

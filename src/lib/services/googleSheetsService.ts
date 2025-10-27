@@ -3,7 +3,7 @@
  * Handles reading and writing data to Google Sheets for Broiler farm management
  */
 
-import { broilerConfig, BroilerFieldMapping } from '@/lib/config/broilerConfig';
+import { broilerConfig, BroilerFieldMapping } from "@/lib/config/broilerConfig";
 
 export interface GoogleSheetsRow {
   [key: string]: any;
@@ -23,10 +23,10 @@ export class GoogleSheetsService {
    */
   async writeDailyLog(data: Record<string, any>): Promise<void> {
     const config = broilerConfig.sheets.dailyLog;
-    
+
     // Map data to sheet columns based on field mapping
     const rowData = this.mapToSheetRow(data, broilerConfig.dailyLogFields);
-    
+
     // In production, this would call Google Sheets API
     // For now, we'll mock the API call
     await this.appendToSheet(config.sheetId, config.sheetName, rowData);
@@ -37,10 +37,10 @@ export class GoogleSheetsService {
    */
   async writeHarvestLog(data: Record<string, any>): Promise<void> {
     const config = broilerConfig.sheets.harvestLog;
-    
+
     // Map data to sheet columns based on field mapping
     const rowData = this.mapToSheetRow(data, broilerConfig.harvestLogFields);
-    
+
     await this.appendToSheet(config.sheetId, config.sheetName, rowData);
   }
 
@@ -49,15 +49,15 @@ export class GoogleSheetsService {
    */
   async readDailyLogs(farmId: string, limit: number = 100): Promise<GoogleSheetsRow[]> {
     const config = broilerConfig.sheets.dailyLog;
-    
+
     // In production, this would query Google Sheets API
     const rows = await this.readFromSheet(config.sheetId, config.sheetName, config.range);
-    
+
     // Filter by farmId if provided
     if (farmId) {
       return rows.filter(row => row.farm_id === farmId).slice(0, limit);
     }
-    
+
     return rows.slice(0, limit);
   }
 
@@ -66,16 +66,16 @@ export class GoogleSheetsService {
    */
   private mapToSheetRow(data: Record<string, any>, fields: BroilerFieldMapping[]): any[] {
     return fields.map(field => {
-      const value = data[field.key] || '';
-      
+      const value = data[field.key] || "";
+
       // Apply formatting based on type
       switch (field.type) {
-        case 'date':
+        case "date":
           return value instanceof Date ? value.toISOString() : value;
-        case 'number':
+        case "number":
           return Number(value) || 0;
-        case 'boolean':
-          return value ? 'TRUE' : 'FALSE';
+        case "boolean":
+          return value ? "TRUE" : "FALSE";
         default:
           return String(value);
       }
@@ -89,7 +89,7 @@ export class GoogleSheetsService {
   private async appendToSheet(sheetId: string, sheetName: string, rowData: any[]): Promise<void> {
     // Mock implementation
     console.log(`[Mock] Appending to sheet ${sheetId}/${sheetName}:`, rowData);
-    
+
     // In production, use Google Sheets API:
     // const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}!A:Z:append?valueInputOption=USER_ENTERED`;
     // await fetch(url, {
@@ -106,10 +106,14 @@ export class GoogleSheetsService {
    * Read from Google Sheet
    * Mock implementation - replace with actual Google Sheets API call
    */
-  private async readFromSheet(sheetId: string, sheetName: string, range: string): Promise<GoogleSheetsRow[]> {
+  private async readFromSheet(
+    sheetId: string,
+    sheetName: string,
+    range: string
+  ): Promise<GoogleSheetsRow[]> {
     // Mock implementation
     console.log(`[Mock] Reading from sheet ${sheetId}/${sheetName} range ${range}`);
-    
+
     // In production, use Google Sheets API:
     // const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}!${range}`;
     // const response = await fetch(url, {
@@ -117,7 +121,7 @@ export class GoogleSheetsService {
     // });
     // const data = await response.json();
     // return this.parseSheetData(data.values, fieldMapping);
-    
+
     return [];
   }
 
@@ -127,7 +131,7 @@ export class GoogleSheetsService {
   private parseSheetData(values: any[][], fieldMapping: BroilerFieldMapping[]): GoogleSheetsRow[] {
     const headers = values[0];
     const rows = values.slice(1);
-    
+
     return rows.map(row => {
       const rowObj: GoogleSheetsRow = {};
       headers.forEach((header, index) => {
@@ -140,7 +144,12 @@ export class GoogleSheetsService {
   /**
    * Update existing row in sheet
    */
-  async updateRow(sheetId: string, sheetName: string, rowIndex: number, data: Record<string, any>): Promise<void> {
+  async updateRow(
+    sheetId: string,
+    sheetName: string,
+    rowIndex: number,
+    data: Record<string, any>
+  ): Promise<void> {
     // Mock implementation
     console.log(`[Mock] Updating row ${rowIndex} in sheet ${sheetId}/${sheetName}`, data);
   }
@@ -159,7 +168,7 @@ export class GoogleSheetsService {
   async batchWrite(sheetId: string, sheetName: string, rows: any[][]): Promise<void> {
     // Mock implementation
     console.log(`[Mock] Batch writing ${rows.length} rows to sheet ${sheetId}/${sheetName}`);
-    
+
     // In production, use Google Sheets API batch update
   }
 }
@@ -167,8 +176,10 @@ export class GoogleSheetsService {
 /**
  * Create Google Sheets service instance
  */
-export function createGoogleSheetsService(apiKey?: string, accessToken?: string): GoogleSheetsService {
-  const sheetsApiKey = apiKey || process.env.VITE_GOOGLE_SHEETS_API_KEY || '';
+export function createGoogleSheetsService(
+  apiKey?: string,
+  accessToken?: string
+): GoogleSheetsService {
+  const sheetsApiKey = apiKey || process.env.VITE_GOOGLE_SHEETS_API_KEY || "";
   return new GoogleSheetsService(sheetsApiKey, accessToken);
 }
-

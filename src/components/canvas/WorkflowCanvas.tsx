@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo } from "react";
 import {
   ReactFlow,
   Background,
@@ -14,34 +14,51 @@ import {
   Connection,
   NodeChange,
   EdgeChange,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { DefaultNode } from './nodes/DefaultNode';
-import { DecisionNode } from './nodes/DecisionNode';
-import { StartNode } from './nodes/StartNode';
-import { EndNode } from './nodes/EndNode';
-import { GroupNode } from './nodes/GroupNode';
-import { LlamaNode } from './nodes/LlamaNode';
-import { AgentNode } from './nodes/AgentNode';
-import { EdgeContextMenu } from './EdgeContextMenu';
-import { CustomEdge } from './edges/CustomEdge';
-import { EdgeValidator } from '@/utils/edgeValidation';
-import { toast } from 'sonner';
-import { useWorkflowState, useWorkflowActions, useNodes, useEdges, useUIState } from '@/hooks/useWorkflowState';
-import { useContextMenu } from '@/hooks/useContextMenu';
-import { UniversalContextMenu } from './UniversalContextMenu';
-import { WorkflowActions } from '@/lib/workflowActions';
-import { useCanvasEventBus, globalCanvasEventBus } from '@/hooks/useCanvasEventBus';
-import { AutoLayoutToolbar } from './AutoLayoutToolbar';
-import { useLayout, LayoutPresets } from '@/core/layout/useLayout';
-import { LayoutFeedback, LayoutAnimationController } from './LayoutFeedback';
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { DefaultNode } from "./nodes/DefaultNode";
+import { DecisionNode } from "./nodes/DecisionNode";
+import { StartNode } from "./nodes/StartNode";
+import { EndNode } from "./nodes/EndNode";
+import { GroupNode } from "./nodes/GroupNode";
+import { LlamaNode } from "./nodes/LlamaNode";
+import { AgentNode } from "./nodes/AgentNode";
+import { EdgeContextMenu } from "./EdgeContextMenu";
+import { CustomEdge } from "./edges/CustomEdge";
+import { EdgeValidator } from "@/utils/edgeValidation";
+import { toast } from "sonner";
 import {
-  Copy, Trash2, Edit3, Box, 
-  AlignHorizontalSpaceAround, AlignVerticalSpaceAround,
-  AlignHorizontalJustifyCenter, AlignVerticalJustifyCenter,
-  FolderPlus, ZoomIn, ZoomOut, RotateCcw, Eraser,
-  Maximize2, Camera, FileJson
-} from 'lucide-react';
+  useWorkflowState,
+  useWorkflowActions,
+  useNodes,
+  useEdges,
+  useUIState,
+} from "@/hooks/useWorkflowState";
+import { useContextMenu } from "@/hooks/useContextMenu";
+import { UniversalContextMenu } from "./UniversalContextMenu";
+import { WorkflowActions } from "@/lib/workflowActions";
+import { useCanvasEventBus, globalCanvasEventBus } from "@/hooks/useCanvasEventBus";
+import { AutoLayoutToolbar } from "./AutoLayoutToolbar";
+import { useLayout, LayoutPresets } from "@/core/layout/useLayout";
+import { LayoutFeedback, LayoutAnimationController } from "./LayoutFeedback";
+import {
+  Copy,
+  Trash2,
+  Edit3,
+  Box,
+  AlignHorizontalSpaceAround,
+  AlignVerticalSpaceAround,
+  AlignHorizontalJustifyCenter,
+  AlignVerticalJustifyCenter,
+  FolderPlus,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Eraser,
+  Maximize2,
+  Camera,
+  FileJson,
+} from "lucide-react";
 
 // We'll create wrapped node types to inject context menu handlers
 const createNodeTypes = (handleNodeContextMenu: (e: React.MouseEvent, node: Node) => void) => ({
@@ -50,9 +67,9 @@ const createNodeTypes = (handleNodeContextMenu: (e: React.MouseEvent, node: Node
   start: StartNode,
   end: EndNode,
   group: GroupNode,
-  'llama-decision': LlamaNode,
+  "llama-decision": LlamaNode,
   agent: AgentNode,
-  'agent.conversational': AgentNode,
+  "agent.conversational": AgentNode,
 });
 
 const edgeTypes = {
@@ -97,21 +114,22 @@ export const WorkflowCanvas = ({
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [contextMenuEdge, setContextMenuEdge] = useState<Edge | null>(null);
   const [selectedCount, setSelectedCount] = useState(0);
-  
+
   // Use new state management
   const nodes = useNodes();
   const edges = useEdges();
   const uiState = useUIState();
   const actions = useWorkflowActions();
   const { validationOptions } = useWorkflowState();
-  
+
   // Event bus integration
   const { emit, EVENT_TYPES } = useCanvasEventBus();
   const { contextMenu, showContextMenu, closeContextMenu } = useContextMenu();
-  
+
   // Auto-layout integration
-  const { autoLayout, restoreLayout, canRestore, isLayouting, layoutResult, layoutError } = useLayout(nodes, edges);
-  
+  const { autoLayout, restoreLayout, canRestore, isLayouting, layoutResult, layoutError } =
+    useLayout(nodes, edges);
+
   // Layout feedback state
   const animationController = LayoutAnimationController.getInstance();
 
@@ -123,33 +141,33 @@ export const WorkflowCanvas = ({
         return;
       }
 
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
       const ctrlKey = isMac ? event.metaKey : event.ctrlKey;
 
       if (ctrlKey) {
         switch (event.key.toLowerCase()) {
-          case 'l':
+          case "l":
             event.preventDefault();
             if (!isLayouting && Object.keys(nodes).length > 0) {
               autoLayout(LayoutPresets.horizontal);
             }
             break;
-          case 'shift':
-            if (event.key === 'L' && canRestore) {
+          case "shift":
+            if (event.key === "L" && canRestore) {
               event.preventDefault();
               restoreLayout();
             }
             break;
-          case 'alt':
+          case "alt":
             // Alt + number keys for quick presets
-            if (event.key >= '1' && event.key <= '5') {
+            if (event.key >= "1" && event.key <= "5") {
               event.preventDefault();
               const presets = [
                 LayoutPresets.horizontal,
                 LayoutPresets.vertical,
                 LayoutPresets.compact,
                 LayoutPresets.spacious,
-                LayoutPresets.complex
+                LayoutPresets.complex,
               ];
               const presetIndex = parseInt(event.key) - 1;
               if (presets[presetIndex] && !isLayouting) {
@@ -161,40 +179,37 @@ export const WorkflowCanvas = ({
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [autoLayout, restoreLayout, canRestore, isLayouting, nodes]);
-  
+
   // Connect handler using event bus
   const handleConnect = useCallback(
     (connection: Connection) => {
       if (connection.source && connection.target) {
         // Check if this is an attachment connection (sub-node)
-        const isAttachmentPort = connection.sourceHandle && 
-          ['model', 'memory', 'parser'].includes(connection.sourceHandle);
-        
+        const isAttachmentPort =
+          connection.sourceHandle &&
+          ["model", "memory", "parser"].includes(connection.sourceHandle);
+
         if (isAttachmentPort && connection.sourceHandle) {
           // Attach as sub-node instead of creating regular edge
           try {
-            actions.attachSubNode(
-              connection.source,
-              connection.target,
-              connection.sourceHandle
-            );
-            
+            actions.attachSubNode(connection.source, connection.target, connection.sourceHandle);
+
             toast.success(`Attached to ${connection.sourceHandle} port`);
-            
+
             emit({
-              type: 'subnode:attached',
+              type: "subnode:attached",
               payload: {
                 parentId: connection.source,
                 nodeId: connection.target,
-                portId: connection.sourceHandle
-              }
+                portId: connection.sourceHandle,
+              },
             });
           } catch (error) {
-            console.error('Failed to attach sub-node:', error);
-            toast.error('Failed to attach sub-node');
+            console.error("Failed to attach sub-node:", error);
+            toast.error("Failed to attach sub-node");
           }
         } else {
           // Regular edge connection
@@ -204,20 +219,20 @@ export const WorkflowCanvas = ({
             target: connection.target,
             sourceHandle: connection.sourceHandle,
             targetHandle: connection.targetHandle,
-            type: 'smoothstep',
+            type: "smoothstep",
             animated: true,
             data: {
-              label: '',
-              condition: 'default',
+              label: "",
+              condition: "default",
             },
           };
-          
+
           // Emit edge creation event
           emit({
             type: EVENT_TYPES.EDGE.CREATE,
             payload: { edge: newEdge },
           });
-          
+
           // Add edge through actions
           actions.addEdge(newEdge);
         }
@@ -225,98 +240,98 @@ export const WorkflowCanvas = ({
     },
     [emit, EVENT_TYPES.EDGE.CREATE, actions]
   );
-  
+
   // Node context menu handler (defined early for use in nodeTypes)
   const handleNodeContextMenu = useCallback(
     (event: React.MouseEvent, node: Node) => {
       event.preventDefault();
-      
+
       // Base menu items for all nodes
       const baseItems = [
         {
-          label: 'Configure Node',
+          label: "Configure Node",
           onClick: () => {
             onOpenConfig?.(node);
-            toast.info('Node configuration opened');
+            toast.info("Node configuration opened");
           },
         },
         {
-          label: 'Duplicate Node',
+          label: "Duplicate Node",
           icon: <Copy className="w-4 h-4" />,
           onClick: () => {
             onDuplicate?.();
-            toast.success('Node duplicated');
+            toast.success("Node duplicated");
           },
-          shortcut: '⌘D',
+          shortcut: "⌘D",
         },
-        { label: '---' },
+        { label: "---" },
       ];
-      
+
       // Type-specific menu items
       const typeSpecificItems: any[] = [];
-      
-      if (node.type === 'default') {
+
+      if (node.type === "default") {
         const nodeIcon = node.data.icon;
-        
+
         // Input Data specific
-        if (nodeIcon === 'database') {
+        if (nodeIcon === "database") {
           typeSpecificItems.push(
             {
-              label: 'Edit Data Metrics',
+              label: "Edit Data Metrics",
               icon: <Edit3 className="w-4 h-4" />,
               onClick: () => {
                 onNodeClick?.(node);
-                toast.info('Opening metrics editor');
+                toast.info("Opening metrics editor");
               },
             },
             {
-              label: 'Export Node Data',
+              label: "Export Node Data",
               icon: <Box className="w-4 h-4" />,
               onClick: () => {
                 WorkflowActions.exportNodeAsJSON(node);
-                toast.success('Node data exported');
+                toast.success("Node data exported");
               },
             }
           );
         }
-        
+
         // Sensor/IoT specific
-        if (nodeIcon === 'wifi') {
+        if (nodeIcon === "wifi") {
           typeSpecificItems.push(
             {
-              label: 'Configure Sensor',
+              label: "Configure Sensor",
               onClick: () => {
-                toast.info('Sensor configuration (coming soon)');
+                toast.info("Sensor configuration (coming soon)");
               },
             },
             {
-              label: 'View Sensor Data',
+              label: "View Sensor Data",
               icon: <FileJson className="w-4 h-4" />,
               onClick: () => {
-                toast.info('Sensor data viewer (coming soon)');
+                toast.info("Sensor data viewer (coming soon)");
               },
             }
           );
         }
-        
+
         if (typeSpecificItems.length > 0) {
-          typeSpecificItems.push({ label: '---' });
+          typeSpecificItems.push({ label: "---" });
         }
       }
-      
+
       // Delete item (always at bottom)
       const deleteItem = {
-        label: 'Delete Node',
+        label: "Delete Node",
         icon: <Trash2 className="w-4 h-4" />,
         onClick: () => {
-          const removeChanges = [{ type: 'remove' as const, id: node.id }];
+          const removeChanges = [{ type: "remove" as const, id: node.id }];
           actions.processNodeChanges(removeChanges);
-          toast.success('Node deleted');
+          toast.success("Node deleted");
         },
-        variant: 'destructive' as const,
-        shortcut: 'Del',
+        variant: "destructive" as const,
+        shortcut: "Del",
       };
-      
+
       showContextMenu(event, [...baseItems, ...typeSpecificItems, deleteItem]);
     },
     [onNodeClick, onDuplicate, actions, showContextMenu]
@@ -324,18 +339,18 @@ export const WorkflowCanvas = ({
 
   // Create node types with context menu handler (memoized to prevent recreation)
   const nodeTypes = useMemo(() => createNodeTypes(handleNodeContextMenu), [handleNodeContextMenu]);
-  
+
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
       // Select node through actions
       actions.selectNode(node.id);
-      
+
       // Emit node selection event
       emit({
         type: EVENT_TYPES.NODE.SELECT,
         payload: { nodeId: node.id },
       });
-      
+
       // Call external handler if provided
       onNodeClick?.(node);
     },
@@ -344,14 +359,14 @@ export const WorkflowCanvas = ({
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
+    event.dataTransfer.dropEffect = "copy";
   }, []);
 
   const handleDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
 
-      const nodeDataString = event.dataTransfer.getData('application/reactflow');
+      const nodeDataString = event.dataTransfer.getData("application/reactflow");
       if (!nodeDataString || !onDrop) return;
 
       try {
@@ -363,26 +378,29 @@ export const WorkflowCanvas = ({
 
         onDrop(nodeData, position);
       } catch (error) {
-        console.error('Failed to parse dropped node data:', error);
+        console.error("Failed to parse dropped node data:", error);
       }
     },
     [screenToFlowPosition, onDrop]
   );
 
-  const handleEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
-    event.stopPropagation(); // Prevent bubbling to canvas
-    
-    // Select edge through actions
-    actions.selectEdge(edge.id);
-    
-    // Emit edge selection event
-    emit({
-      type: EVENT_TYPES.EDGE.SELECT,
-      payload: { edgeId: edge.id },
-    });
-    
-    setSelectedEdgeId(edge.id);
-  }, [actions, emit, EVENT_TYPES.EDGE.SELECT]);
+  const handleEdgeClick = useCallback(
+    (event: React.MouseEvent, edge: Edge) => {
+      event.stopPropagation(); // Prevent bubbling to canvas
+
+      // Select edge through actions
+      actions.selectEdge(edge.id);
+
+      // Emit edge selection event
+      emit({
+        type: EVENT_TYPES.EDGE.SELECT,
+        payload: { edgeId: edge.id },
+      });
+
+      setSelectedEdgeId(edge.id);
+    },
+    [actions, emit, EVENT_TYPES.EDGE.SELECT]
+  );
 
   const handleEdgeContextMenu = useCallback(
     (event: React.MouseEvent, edge: Edge) => {
@@ -399,63 +417,63 @@ export const WorkflowCanvas = ({
   const handleCanvasContextMenu = useCallback(
     (event: React.MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.classList.contains('react-flow__pane')) {
+      if (!target.classList.contains("react-flow__pane")) {
         return;
       }
-      
+
       event.preventDefault();
       event.stopPropagation();
-      
+
       // Close any existing edge context menu
       setContextMenuEdge(null);
-      
+
       showContextMenu(event, [
         {
-          label: 'Zoom In',
+          label: "Zoom In",
           icon: <ZoomIn className="w-4 h-4" />,
           onClick: () => {
             zoomIn();
-            toast.info('Zoomed in');
+            toast.info("Zoomed in");
           },
-          shortcut: '+',
+          shortcut: "+",
         },
         {
-          label: 'Zoom Out',
+          label: "Zoom Out",
           icon: <ZoomOut className="w-4 h-4" />,
           onClick: () => {
             zoomOut();
-            toast.info('Zoomed out');
+            toast.info("Zoomed out");
           },
-          shortcut: '-',
+          shortcut: "-",
         },
         {
-          label: 'Fit View',
+          label: "Fit View",
           icon: <Maximize2 className="w-4 h-4" />,
           onClick: () => {
             fitView({ padding: 0.2 });
-            toast.info('View fitted to workflow');
+            toast.info("View fitted to workflow");
           },
-          shortcut: '0',
+          shortcut: "0",
         },
         {
-          label: 'Reset View',
+          label: "Reset View",
           icon: <RotateCcw className="w-4 h-4" />,
           onClick: () => {
             fitView({ padding: 0.5, duration: 500 });
-            toast.info('View reset');
+            toast.info("View reset");
           },
         },
-        { label: '---' },
+        { label: "---" },
         {
-          label: 'Clear Canvas',
+          label: "Clear Canvas",
           icon: <Eraser className="w-4 h-4" />,
           onClick: () => {
-            if (confirm('Are you sure you want to clear the entire canvas?')) {
+            if (confirm("Are you sure you want to clear the entire canvas?")) {
               actions.clearCanvas();
-              toast.success('Canvas cleared');
+              toast.success("Canvas cleared");
             }
           },
-          variant: 'destructive' as const,
+          variant: "destructive" as const,
         },
       ]);
     },
@@ -466,11 +484,11 @@ export const WorkflowCanvas = ({
   const handleMultiSelectContextMenu = useCallback(
     (event: React.MouseEvent) => {
       const selectedNodes = nodes.filter(n => n.selected);
-      
+
       if (selectedNodes.length < 2) return;
-      
+
       event.preventDefault();
-      
+
       showContextMenu(event, [
         {
           label: `${selectedNodes.length} nodes selected`,
@@ -478,9 +496,9 @@ export const WorkflowCanvas = ({
           onClick: () => {},
           disabled: true,
         },
-        { label: '---' },
+        { label: "---" },
         {
-          label: 'Align Horizontally',
+          label: "Align Horizontally",
           icon: <AlignHorizontalJustifyCenter className="w-4 h-4" />,
           onClick: () => {
             const aligned = WorkflowActions.alignHorizontally(selectedNodes);
@@ -488,16 +506,18 @@ export const WorkflowCanvas = ({
               const found = aligned.find(a => a.id === n.id);
               return found || n;
             });
-            actions.processNodeChanges(updatedNodes.map((n, i) => ({
-              type: 'position' as const,
-              id: n.id,
-              position: n.position,
-            })));
-            toast.success('Nodes aligned horizontally');
+            actions.processNodeChanges(
+              updatedNodes.map((n, i) => ({
+                type: "position" as const,
+                id: n.id,
+                position: n.position,
+              }))
+            );
+            toast.success("Nodes aligned horizontally");
           },
         },
         {
-          label: 'Align Vertically',
+          label: "Align Vertically",
           icon: <AlignVerticalJustifyCenter className="w-4 h-4" />,
           onClick: () => {
             const aligned = WorkflowActions.alignVertically(selectedNodes);
@@ -505,16 +525,18 @@ export const WorkflowCanvas = ({
               const found = aligned.find(a => a.id === n.id);
               return found || n;
             });
-            actions.processNodeChanges(updatedNodes.map((n, i) => ({
-              type: 'position' as const,
-              id: n.id,
-              position: n.position,
-            })));
-            toast.success('Nodes aligned vertically');
+            actions.processNodeChanges(
+              updatedNodes.map((n, i) => ({
+                type: "position" as const,
+                id: n.id,
+                position: n.position,
+              }))
+            );
+            toast.success("Nodes aligned vertically");
           },
         },
         {
-          label: 'Distribute Horizontally',
+          label: "Distribute Horizontally",
           icon: <AlignHorizontalSpaceAround className="w-4 h-4" />,
           onClick: () => {
             const distributed = WorkflowActions.distributeHorizontally(selectedNodes);
@@ -522,17 +544,19 @@ export const WorkflowCanvas = ({
               const found = distributed.find(d => d.id === n.id);
               return found || n;
             });
-            actions.processNodeChanges(updatedNodes.map((n, i) => ({
-              type: 'position' as const,
-              id: n.id,
-              position: n.position,
-            })));
-            toast.success('Nodes distributed horizontally');
+            actions.processNodeChanges(
+              updatedNodes.map((n, i) => ({
+                type: "position" as const,
+                id: n.id,
+                position: n.position,
+              }))
+            );
+            toast.success("Nodes distributed horizontally");
           },
           disabled: selectedNodes.length < 3,
         },
         {
-          label: 'Distribute Vertically',
+          label: "Distribute Vertically",
           icon: <AlignVerticalSpaceAround className="w-4 h-4" />,
           onClick: () => {
             const distributed = WorkflowActions.distributeVertically(selectedNodes);
@@ -540,39 +564,39 @@ export const WorkflowCanvas = ({
               const found = distributed.find(d => d.id === n.id);
               return found || n;
             });
-            actions.processNodeChanges(updatedNodes.map((n, i) => ({
-              type: 'position' as const,
-              id: n.id,
-              position: n.position,
-            })));
-            toast.success('Nodes distributed vertically');
+            actions.processNodeChanges(
+              updatedNodes.map((n, i) => ({
+                type: "position" as const,
+                id: n.id,
+                position: n.position,
+              }))
+            );
+            toast.success("Nodes distributed vertically");
           },
           disabled: selectedNodes.length < 3,
         },
-        { label: '---' },
+        { label: "---" },
         {
-          label: 'Group Nodes',
+          label: "Group Nodes",
           icon: <FolderPlus className="w-4 h-4" />,
           onClick: () => {
             const nodeIds = selectedNodes.map(n => n.id);
             actions.createGroup(nodeIds);
-            toast.success('Nodes grouped');
+            toast.success("Nodes grouped");
           },
-          shortcut: '⌘G',
+          shortcut: "⌘G",
         },
-        { label: '---' },
+        { label: "---" },
         {
-          label: 'Delete Selected',
+          label: "Delete Selected",
           icon: <Trash2 className="w-4 h-4" />,
           onClick: () => {
             const nodeIds = selectedNodes.map(n => n.id);
-            actions.processNodeChanges(
-              nodeIds.map(id => ({ type: 'remove' as const, id }))
-            );
+            actions.processNodeChanges(nodeIds.map(id => ({ type: "remove" as const, id })));
             toast.success(`${nodeIds.length} nodes deleted`);
           },
-          variant: 'destructive' as const,
-          shortcut: 'Del',
+          variant: "destructive" as const,
+          shortcut: "Del",
         },
       ]);
     },
@@ -583,29 +607,29 @@ export const WorkflowCanvas = ({
   const handleMiniMapContextMenu = useCallback(
     (event: React.MouseEvent) => {
       event.preventDefault();
-      
+
       showContextMenu(event, [
         {
-          label: 'Reset View',
+          label: "Reset View",
           icon: <RotateCcw className="w-4 h-4" />,
           onClick: () => {
             fitView({ padding: 0.5, duration: 500 });
-            toast.info('View reset from mini-map');
+            toast.info("View reset from mini-map");
           },
         },
         {
-          label: 'Fit to Workflow',
+          label: "Fit to Workflow",
           icon: <Maximize2 className="w-4 h-4" />,
           onClick: () => {
             fitView({ padding: 0.2, duration: 500 });
-            toast.info('View fitted to workflow');
+            toast.info("View fitted to workflow");
           },
         },
         {
-          label: 'Export Snapshot',
+          label: "Export Snapshot",
           icon: <Camera className="w-4 h-4" />,
           onClick: () => {
-            toast.success('Mini-map snapshot exported (feature coming soon)');
+            toast.success("Mini-map snapshot exported (feature coming soon)");
           },
         },
       ]);
@@ -619,23 +643,18 @@ export const WorkflowCanvas = ({
     const selectedEdges = edges.filter(e => e.selected).length;
     setSelectedCount(selectedNodes + selectedEdges);
   }, [nodes, edges]);
-  
+
   // Validation function for React Flow
   const isValidConnection = useCallback(
     (connection: Connection) => {
-      const result = EdgeValidator.validateConnection(
-        connection,
-        nodes,
-        edges,
-        validationOptions
-      );
-      
+      const result = EdgeValidator.validateConnection(connection, nodes, edges, validationOptions);
+
       if (!result.isValid) {
-        toast.error('Invalid Connection', {
+        toast.error("Invalid Connection", {
           description: result.message,
         });
       }
-      
+
       return result.isValid;
     },
     [nodes, edges, validationOptions]
@@ -648,12 +667,12 @@ export const WorkflowCanvas = ({
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
-      
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
       const cmdKey = isMac ? e.metaKey : e.ctrlKey;
-      
+
       // Copy: Ctrl/Cmd + C
-      if (cmdKey && e.key === 'c') {
+      if (cmdKey && e.key === "c") {
         e.preventDefault();
         const selectedNodesCount = nodes.filter(n => n.selected).length;
         if (selectedNodesCount > 0 && onCopy) {
@@ -661,18 +680,18 @@ export const WorkflowCanvas = ({
         }
         return;
       }
-      
+
       // Paste: Ctrl/Cmd + V
-      if (cmdKey && e.key === 'v') {
+      if (cmdKey && e.key === "v") {
         e.preventDefault();
         if (onPaste) {
           onPaste();
         }
         return;
       }
-      
+
       // Duplicate: Ctrl/Cmd + D
-      if (cmdKey && e.key === 'd') {
+      if (cmdKey && e.key === "d") {
         e.preventDefault();
         const selectedNodesCount = nodes.filter(n => n.selected).length;
         if (selectedNodesCount > 0 && onDuplicate) {
@@ -680,91 +699,91 @@ export const WorkflowCanvas = ({
         }
         return;
       }
-      
+
       // Undo: Ctrl/Cmd + Z (without Shift)
-      if (cmdKey && e.key === 'z' && !e.shiftKey) {
+      if (cmdKey && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
         if (canUndo?.() && onUndo) {
           onUndo();
         }
         return;
       }
-      
+
       // Redo: Ctrl/Cmd + Shift + Z OR Ctrl/Cmd + Y
-      if ((cmdKey && e.shiftKey && e.key === 'z') || (cmdKey && e.key === 'y')) {
+      if ((cmdKey && e.shiftKey && e.key === "z") || (cmdKey && e.key === "y")) {
         e.preventDefault();
         if (canRedo?.() && onRedo) {
           onRedo();
         }
         return;
       }
-      
+
       // Group: Ctrl/Cmd + G
-      if (cmdKey && e.key === 'g' && !e.shiftKey) {
+      if (cmdKey && e.key === "g" && !e.shiftKey) {
         e.preventDefault();
         const selectedNodeIds = nodes.filter(n => n.selected).map(n => n.id);
         if (selectedNodeIds.length >= 2) {
           actions.createGroup(selectedNodeIds);
-          toast.success('Nodes grouped');
+          toast.success("Nodes grouped");
         }
         return;
       }
-      
+
       // Ungroup: Ctrl/Cmd + Shift + G
-      if (cmdKey && e.shiftKey && e.key === 'G') {
+      if (cmdKey && e.shiftKey && e.key === "G") {
         e.preventDefault();
-        const selectedGroups = nodes.filter(n => n.selected && n.type === 'group');
+        const selectedGroups = nodes.filter(n => n.selected && n.type === "group");
         selectedGroups.forEach(group => actions.ungroupNodes([group.id]));
         if (selectedGroups.length > 0) {
-          toast.success('Groups ungrouped');
+          toast.success("Groups ungrouped");
         }
         return;
       }
-      
+
       // Edge operations (only when edge is selected)
       if (!selectedEdgeId) return;
-      
+
       // Delete/Backspace - Delete edge
-      if ((e.key === 'Delete' || e.key === 'Backspace') && onDeleteEdge) {
+      if ((e.key === "Delete" || e.key === "Backspace") && onDeleteEdge) {
         e.preventDefault();
         onDeleteEdge(selectedEdgeId);
         setSelectedEdgeId(null);
         return;
       }
-      
+
       // Keyboard shortcuts for edge type
       if (onUpdateEdge) {
-        switch(e.key) {
-          case '1':
-            onUpdateEdge(selectedEdgeId, { type: 'smoothstep' });
+        switch (e.key) {
+          case "1":
+            onUpdateEdge(selectedEdgeId, { type: "smoothstep" });
             break;
-          case '2':
-            onUpdateEdge(selectedEdgeId, { type: 'straight' });
+          case "2":
+            onUpdateEdge(selectedEdgeId, { type: "straight" });
             break;
-          case '3':
-            onUpdateEdge(selectedEdgeId, { type: 'step' });
+          case "3":
+            onUpdateEdge(selectedEdgeId, { type: "step" });
             break;
-          case '4':
-            onUpdateEdge(selectedEdgeId, { type: 'default' });
+          case "4":
+            onUpdateEdge(selectedEdgeId, { type: "default" });
             break;
-          case 'd':
-          case 'D':
+          case "d":
+          case "D":
             e.preventDefault();
             const currentEdge = edges.find(edge => edge.id === selectedEdgeId);
-            const isDashed = currentEdge?.data?.lineStyle === 'dashed';
+            const isDashed = currentEdge?.data?.lineStyle === "dashed";
             onUpdateEdge(selectedEdgeId, {
               style: {
                 ...currentEdge?.style,
-                strokeDasharray: isDashed ? undefined : '5, 5',
+                strokeDasharray: isDashed ? undefined : "5, 5",
               },
               data: {
                 ...currentEdge?.data,
-                lineStyle: isDashed ? 'solid' : 'dashed',
+                lineStyle: isDashed ? "solid" : "dashed",
               },
             });
             break;
-          case 'a':
-          case 'A':
+          case "a":
+          case "A":
             e.preventDefault();
             const edge = edges.find(e => e.id === selectedEdgeId);
             onUpdateEdge(selectedEdgeId, { animated: !edge?.animated });
@@ -772,53 +791,67 @@ export const WorkflowCanvas = ({
         }
       }
     };
-    
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedEdgeId, onDeleteEdge, onUpdateEdge, edges, nodes, onCopy, onPaste, onDuplicate, onUndo, onRedo, canUndo, canRedo, actions]);
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [
+    selectedEdgeId,
+    onDeleteEdge,
+    onUpdateEdge,
+    edges,
+    nodes,
+    onCopy,
+    onPaste,
+    onDuplicate,
+    onUndo,
+    onRedo,
+    canUndo,
+    canRedo,
+    actions,
+  ]);
 
   // Apply dynamic styling to edges
   const styledEdges = edges.map(edge => {
-    const lineStyle = edge.data?.lineStyle || 'solid';
+    const lineStyle = edge.data?.lineStyle || "solid";
     const className = `
-      ${selectedEdgeId === edge.id ? 'selected-edge' : ''}
-      ${lineStyle === 'dashed' ? 'edge-dashed' : ''}
-      ${lineStyle === 'dotted' ? 'edge-dotted' : ''}
+      ${selectedEdgeId === edge.id ? "selected-edge" : ""}
+      ${lineStyle === "dashed" ? "edge-dashed" : ""}
+      ${lineStyle === "dotted" ? "edge-dotted" : ""}
     `.trim();
-    
+
     return {
       ...edge,
       className,
       style: {
         ...edge.style,
-        strokeWidth: selectedEdgeId === edge.id ? 3 : (edge.style?.strokeWidth || 2),
+        strokeWidth: selectedEdgeId === edge.id ? 3 : edge.style?.strokeWidth || 2,
       },
     };
   });
 
   return (
-    <div className="w-full h-full bg-background-soft" onDrop={handleDrop} onDragOver={handleDragOver}>
+    <div
+      className="w-full h-full bg-background-soft"
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+    >
       {/* Selection counter badge */}
-      {selectedCount > 1 && (
-        <div className="selection-count">
-          {selectedCount} items selected
-        </div>
-      )}
-      
+      {selectedCount > 1 && <div className="selection-count">{selectedCount} items selected</div>}
+
       {contextMenuEdge && onUpdateEdge && onDeleteEdge && (
         <EdgeContextMenu
           edge={contextMenuEdge}
           onDeleteEdge={onDeleteEdge}
           onUpdateEdge={onUpdateEdge}
         >
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-40"
             onClick={() => setContextMenuEdge(null)}
             onContextMenu={() => setContextMenuEdge(null)}
           />
         </EdgeContextMenu>
       )}
-      
+
       {/* Auto-Layout Toolbar - Floating FAB Design */}
       <div className="absolute bottom-20 right-4 z-50">
         <AutoLayoutToolbar
@@ -833,14 +866,10 @@ export const WorkflowCanvas = ({
           currentEdges={Object.values(edges)}
         />
       </div>
-      
+
       {/* Layout Feedback */}
-      <LayoutFeedback
-        isLayouting={isLayouting}
-        layoutResult={layoutResult}
-        error={layoutError}
-      />
-      
+      <LayoutFeedback isLayouting={isLayouting} layoutResult={layoutResult} error={layoutError} />
+
       <ReactFlow
         nodes={nodes}
         edges={styledEdges}
@@ -862,45 +891,40 @@ export const WorkflowCanvas = ({
         panOnDrag={[1, 2]}
         selectionOnDrag
       >
-        <Background 
-          variant={BackgroundVariant.Dots} 
-          gap={20}  // Slightly larger gap
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={20} // Slightly larger gap
           size={0.8} // Smaller dots
           color="#E2E8F0" // More subtle grid color
         />
-        <Controls 
+        <Controls
           className="bg-card border border-border rounded-lg shadow-soft"
           showInteractive={false}
         />
         <div onContextMenu={handleMiniMapContextMenu}>
-          <MiniMap 
+          <MiniMap
             className="bg-card border border-border rounded-lg shadow-soft"
-            nodeColor={(node) => {
+            nodeColor={node => {
               switch (node.type) {
-                case 'start':
-                  return 'hsl(var(--brand-secondary))';
-                case 'end':
-                  return 'hsl(var(--brand-primary))';
-                case 'decision':
-                  return 'hsl(142 76% 55%)';
+                case "start":
+                  return "hsl(var(--brand-secondary))";
+                case "end":
+                  return "hsl(var(--brand-primary))";
+                case "decision":
+                  return "hsl(142 76% 55%)";
                 default:
-                  return 'hsl(var(--brand-primary-light))';
+                  return "hsl(var(--brand-primary-light))";
               }
             }}
           />
         </div>
       </ReactFlow>
-      
-      {contextMenu && (
-        <UniversalContextMenu
-          menu={contextMenu}
-          onClose={closeContextMenu}
-        />
-      )}
-      
+
+      {contextMenu && <UniversalContextMenu menu={contextMenu} onClose={closeContextMenu} />}
+
       {/* Powered by LLaMA Badge */}
       <div className="absolute bottom-4 right-4 z-10">
-        <div 
+        <div
           className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-white dark:hover:bg-gray-800 transition-colors"
           title="Click to open LLaMA settings"
           onClick={() => {

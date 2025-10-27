@@ -1,5 +1,5 @@
-import connectionLabelLibraryData from '@/core/connectionLabelLibrary.json';
-import { ConnectionLabel, ConnectionLabelCategory } from '@/types/connectionLabel.types';
+import connectionLabelLibraryData from "@/core/connectionLabelLibrary.json";
+import { ConnectionLabel, ConnectionLabelCategory } from "@/types/connectionLabel.types";
 
 export class LabelManager {
   private static library = connectionLabelLibraryData;
@@ -28,11 +28,12 @@ export class LabelManager {
   static searchLabels(query: string): ConnectionLabel[] {
     const allLabels = this.getAllLabels();
     const lowercaseQuery = query.toLowerCase();
-    
-    return allLabels.filter(label =>
-      label.displayName.toLowerCase().includes(lowercaseQuery) ||
-      label.description.toLowerCase().includes(lowercaseQuery) ||
-      label.id.toLowerCase().includes(lowercaseQuery)
+
+    return allLabels.filter(
+      label =>
+        label.displayName.toLowerCase().includes(lowercaseQuery) ||
+        label.description.toLowerCase().includes(lowercaseQuery) ||
+        label.id.toLowerCase().includes(lowercaseQuery)
     );
   }
 
@@ -44,16 +45,19 @@ export class LabelManager {
     return this.library.categories[categoryId as keyof typeof this.library.categories] || null;
   }
 
-  static getLabelsByDirection(direction: 'forward' | 'backward' | 'loop'): ConnectionLabel[] {
+  static getLabelsByDirection(direction: "forward" | "backward" | "loop"): ConnectionLabel[] {
     const allLabels = this.getAllLabels();
     return allLabels.filter(label => label.direction === direction);
   }
 
-  static getMostUsedLabels(usageCount: Record<string, number>, limit: number = 10): ConnectionLabel[] {
+  static getMostUsedLabels(
+    usageCount: Record<string, number>,
+    limit: number = 10
+  ): ConnectionLabel[] {
     const sortedEntries = Object.entries(usageCount)
       .sort(([, a], [, b]) => b - a)
       .slice(0, limit);
-    
+
     return sortedEntries
       .map(([labelId]) => this.getLabelById(labelId))
       .filter((label): label is ConnectionLabel => label !== null);
@@ -65,7 +69,7 @@ export class LabelManager {
 
   static getLabelColor(labelId: string): string {
     const label = this.getLabelById(labelId);
-    return label?.color || '#9CA3AF';
+    return label?.color || "#9CA3AF";
   }
 
   static getLabelDisplayName(labelId: string): string {
@@ -75,7 +79,7 @@ export class LabelManager {
 
   static getLabelDescription(labelId: string): string {
     const label = this.getLabelById(labelId);
-    return label?.description || '';
+    return label?.description || "";
   }
 
   static getCategoryForLabel(labelId: string): string | null {
@@ -85,7 +89,7 @@ export class LabelManager {
 
   static getCategoryColor(categoryId: string): string {
     const category = this.getCategoryById(categoryId);
-    return category?.color || '#9CA3AF';
+    return category?.color || "#9CA3AF";
   }
 
   static getCategoryTitle(categoryId: string): string {
@@ -105,13 +109,13 @@ export class LabelManager {
         return true;
       }
     } catch (error) {
-      console.error('Failed to import labels:', error);
+      console.error("Failed to import labels:", error);
     }
     return false;
   }
 
   static getLibraryVersion(): string {
-    return this.library.version || '1.0.0';
+    return this.library.version || "1.0.0";
   }
 
   static getLibraryStats(): {
@@ -130,7 +134,7 @@ export class LabelManager {
     return {
       totalLabels,
       totalCategories,
-      labelsPerCategory
+      labelsPerCategory,
     };
   }
 }

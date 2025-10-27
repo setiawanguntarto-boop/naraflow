@@ -1,6 +1,6 @@
-import React from 'react';
-import { Handle, Position } from '@xyflow/react';
-import { Sparkles } from 'lucide-react';
+import React from "react";
+import { Handle, Position } from "@xyflow/react";
+import { Sparkles } from "lucide-react";
 
 interface LlamaNodeProps {
   data: {
@@ -13,19 +13,21 @@ interface LlamaNodeProps {
 
 export function LlamaNode({ data, selected }: LlamaNodeProps) {
   const { label, description, lastOutput } = data;
-  
+
   // Truncate last output for display
-  const truncatedOutput = lastOutput ? 
-    (lastOutput.length > 50 ? lastOutput.substring(0, 50) + '...' : lastOutput) : 
-    'No output yet';
+  const truncatedOutput = lastOutput
+    ? lastOutput.length > 50
+      ? lastOutput.substring(0, 50) + "..."
+      : lastOutput
+    : "No output yet";
 
   return (
-    <div 
+    <div
       className={`
         relative min-w-[200px] min-h-[120px] rounded-xl shadow-lg border-2
         bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20
         border-purple-300 dark:border-purple-700
-        ${selected ? 'ring-2 ring-purple-400 dark:ring-purple-600' : ''}
+        ${selected ? "ring-2 ring-purple-400 dark:ring-purple-600" : ""}
         transition-all duration-200 hover:shadow-xl
       `}
     >
@@ -38,14 +40,12 @@ export function LlamaNode({ data, selected }: LlamaNodeProps) {
       <div className="p-4 pt-8">
         <div className="flex items-center gap-2 mb-2">
           <Sparkles className="w-4 h-4 text-purple-700" />
-          <span className="font-bold text-purple-900 dark:text-purple-100">
-            {label}
-          </span>
+          <span className="font-bold text-purple-900 dark:text-purple-100">{label}</span>
         </div>
-        
+
         {/* Description/Prompt */}
         <div className="text-sm text-purple-900 dark:text-purple-100 mb-3 font-semibold">
-          {description || 'Configure prompt in node settings'}
+          {description || "Configure prompt in node settings"}
         </div>
 
         {/* Last Output Badge */}
@@ -61,7 +61,7 @@ export function LlamaNode({ data, selected }: LlamaNodeProps) {
         type="target"
         position={Position.Left}
         className="w-5 h-5 bg-purple-600 border-2 border-white dark:border-gray-800 cursor-pointer"
-        style={{ top: '50%', width: '16px', height: '16px' }}
+        style={{ top: "50%", width: "16px", height: "16px" }}
       />
 
       {/* Output Handle */}
@@ -69,7 +69,7 @@ export function LlamaNode({ data, selected }: LlamaNodeProps) {
         type="source"
         position={Position.Right}
         className="w-5 h-5 bg-purple-600 border-2 border-white dark:border-gray-800 cursor-pointer"
-        style={{ top: '50%', width: '16px', height: '16px' }}
+        style={{ top: "50%", width: "16px", height: "16px" }}
       />
     </div>
   );

@@ -3,7 +3,7 @@
  * Provides efficient caching for prompt interpretations and entity extractions
  */
 
-import { ExtractedEntity } from './types';
+import { ExtractedEntity } from "./types";
 
 interface CacheEntry<T> {
   data: T;
@@ -21,17 +21,17 @@ class PromptCache {
    */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return null;
     }
-    
+
     // Check if expired
     if (Date.now() > entry.expiresAt) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return entry.data as T;
   }
 
@@ -41,18 +41,19 @@ class PromptCache {
   set<T>(key: string, data: T, customTTL?: number): void {
     const now = Date.now();
     const ttl = customTTL || this.ttl;
-    
+
     // If cache is full, remove oldest entry
     if (this.cache.size >= this.maxSize) {
-      const oldestKey = Array.from(this.cache.entries())
-        .sort((a, b) => a[1].timestamp - b[1].timestamp)[0][0];
+      const oldestKey = Array.from(this.cache.entries()).sort(
+        (a, b) => a[1].timestamp - b[1].timestamp
+      )[0][0];
       this.cache.delete(oldestKey);
     }
-    
+
     this.cache.set(key, {
       data,
       timestamp: now,
-      expiresAt: now + ttl
+      expiresAt: now + ttl,
     });
   }
 
@@ -61,16 +62,16 @@ class PromptCache {
    */
   has(key: string): boolean {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return false;
     }
-    
+
     if (Date.now() > entry.expiresAt) {
       this.cache.delete(key);
       return false;
     }
-    
+
     return true;
   }
 
@@ -94,18 +95,18 @@ class PromptCache {
   getStats() {
     const now = Date.now();
     let expired = 0;
-    
-    this.cache.forEach((entry) => {
+
+    this.cache.forEach(entry => {
       if (now > entry.expiresAt) {
         expired++;
       }
     });
-    
+
     return {
       size: this.cache.size,
       maxSize: this.maxSize,
       expired,
-      valid: this.cache.size - expired
+      valid: this.cache.size - expired,
     };
   }
 
@@ -115,14 +116,14 @@ class PromptCache {
   cleanExpired(): number {
     const now = Date.now();
     let cleaned = 0;
-    
+
     this.cache.forEach((entry, key) => {
       if (now > entry.expiresAt) {
         this.cache.delete(key);
         cleaned++;
       }
     });
-    
+
     return cleaned;
   }
 }
@@ -134,8 +135,8 @@ export const promptCache = new PromptCache();
  * Generate cache key from prompt and options
  */
 export function generateCacheKey(prompt: string, options?: any): string {
-  const normalized = prompt.toLowerCase().trim().replace(/\s+/g, ' ');
-  const optionsStr = options ? JSON.stringify(options) : '';
+  const normalized = prompt.toLowerCase().trim().replace(/\s+/g, " ");
+  const optionsStr = options ? JSON.stringify(options) : "";
   return `prompt:${normalized}:${optionsStr}`;
 }
 
@@ -165,10 +166,7 @@ export function getCachedEntityExtraction(
 /**
  * Cache workflow generation results
  */
-export function cacheWorkflowGeneration(
-  prompt: string,
-  workflow: any
-): void {
+export function cacheWorkflowGeneration(prompt: string, workflow: any): void {
   const key = `workflow:${prompt}`;
   promptCache.set(key, workflow, 3600000); // 1 hour for full workflows
 }

@@ -3,10 +3,10 @@
  * Manages state and interactions for prompt-to-workflow conversion
  */
 
-import { useState } from 'react';
-import { interpretPrompt, InterpreterResult } from '@/lib/promptInterpreter/promptEngine';
-import { WorkflowOutput } from '@/lib/promptInterpreter/types';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { interpretPrompt, InterpreterResult } from "@/lib/promptInterpreter/promptEngine";
+import { WorkflowOutput } from "@/lib/promptInterpreter/types";
+import { toast } from "sonner";
 
 export function usePromptInterpreter() {
   const [isInterpreting, setIsInterpreting] = useState(false);
@@ -14,71 +14,71 @@ export function usePromptInterpreter() {
   const [showPreview, setShowPreview] = useState(false);
   const [analysis, setAnalysis] = useState<InterpreterResult | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
-  
+
   const interpret = async (prompt: string, template?: any) => {
     if (!prompt.trim()) {
-      toast.error('Masukkan deskripsi workflow');
+      toast.error("Masukkan deskripsi workflow");
       return;
     }
-    
+
     setIsInterpreting(true);
-    
+
     try {
       const result = await interpretPrompt(prompt, {
-        llmProvider: 'openai', // TODO: Get from settings
+        llmProvider: "openai", // TODO: Get from settings
         validate: true,
         preview: true,
-        template: template // Pass template context
+        template: template, // Pass template context
       });
-      
+
       setAnalysis(result);
-      
+
       if (result.success && result.workflow) {
         setPreviewData(result.workflow);
         setShowPreview(true);
-        toast.success('Workflow berhasil digenerate!');
+        toast.success("Workflow berhasil digenerate!");
       } else {
-        toast.error(result.error || 'Gagal menggenerate workflow');
+        toast.error(result.error || "Gagal menggenerate workflow");
       }
     } catch (error: any) {
-      console.error('Interpret error:', error);
+      console.error("Interpret error:", error);
       toast.error(`Error: ${error}`);
     } finally {
       setIsInterpreting(false);
     }
   };
-  
+
   const applyToCanvas = (onApply: (workflow: WorkflowOutput) => void) => {
     if (previewData) {
       onApply(previewData);
       setShowPreview(false);
-      toast.success('Workflow diterapkan ke canvas');
+      toast.success("Workflow diterapkan ke canvas");
     }
   };
-  
+
   const exportJSON = () => {
     if (!previewData) return;
-    
+
     const dataStr = JSON.stringify(previewData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = `workflow-${Date.now()}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
-    toast.success('Workflow berhasil di-export');
+
+    toast.success("Workflow berhasil di-export");
   };
-  
+
   const closePreview = () => {
     setShowPreview(false);
     setPreviewData(null);
     setAnalysis(null);
   };
-  
+
   return {
     interpret,
     applyToCanvas,
@@ -89,6 +89,6 @@ export function usePromptInterpreter() {
     previewData,
     analysis,
     selectedTemplate,
-    setSelectedTemplate
+    setSelectedTemplate,
   };
 }

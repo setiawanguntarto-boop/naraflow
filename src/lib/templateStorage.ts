@@ -1,4 +1,4 @@
-import { TemplateData, TemplateMetadata } from './templateManager';
+import { TemplateData, TemplateMetadata } from "./templateManager";
 
 export interface StorageAdapter {
   save(template: TemplateData): Promise<void>;
@@ -9,23 +9,25 @@ export interface StorageAdapter {
 }
 
 export class LocalStorageAdapter implements StorageAdapter {
-  private readonly prefix = 'naraflow_template_';
-  private readonly indexKey = 'naraflow_templates_index';
+  private readonly prefix = "naraflow_template_";
+  private readonly indexKey = "naraflow_templates_index";
 
   async save(template: TemplateData): Promise<void> {
     try {
       const key = this.prefix + template.metadata.id;
       const data = JSON.stringify(template);
-      
+
       // Check size limit (5MB for localStorage)
       if (data.length > 5 * 1024 * 1024) {
-        throw new Error('Template too large for localStorage');
+        throw new Error("Template too large for localStorage");
       }
 
       localStorage.setItem(key, data);
       await this.updateIndex(template.metadata);
     } catch (error) {
-      throw new Error(`Failed to save template: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to save template: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -33,14 +35,14 @@ export class LocalStorageAdapter implements StorageAdapter {
     try {
       const key = this.prefix + id;
       const data = localStorage.getItem(key);
-      
+
       if (!data) {
         return null;
       }
 
       return JSON.parse(data);
     } catch (error) {
-      console.error('Failed to load template:', error);
+      console.error("Failed to load template:", error);
       return null;
     }
   }
@@ -55,7 +57,7 @@ export class LocalStorageAdapter implements StorageAdapter {
       const index = JSON.parse(indexData);
       return Object.values(index) as TemplateMetadata[];
     } catch (error) {
-      console.error('Failed to list templates:', error);
+      console.error("Failed to list templates:", error);
       return [];
     }
   }
@@ -66,7 +68,9 @@ export class LocalStorageAdapter implements StorageAdapter {
       localStorage.removeItem(key);
       await this.removeFromIndex(id);
     } catch (error) {
-      throw new Error(`Failed to delete template: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to delete template: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -79,11 +83,11 @@ export class LocalStorageAdapter implements StorageAdapter {
     try {
       const indexData = localStorage.getItem(this.indexKey);
       const index = indexData ? JSON.parse(indexData) : {};
-      
+
       index[metadata.id] = metadata;
       localStorage.setItem(this.indexKey, JSON.stringify(index));
     } catch (error) {
-      console.error('Failed to update template index:', error);
+      console.error("Failed to update template index:", error);
     }
   }
 
@@ -96,14 +100,14 @@ export class LocalStorageAdapter implements StorageAdapter {
       delete index[id];
       localStorage.setItem(this.indexKey, JSON.stringify(index));
     } catch (error) {
-      console.error('Failed to remove template from index:', error);
+      console.error("Failed to remove template from index:", error);
     }
   }
 }
 
 export class IndexedDBAdapter implements StorageAdapter {
-  private readonly dbName = 'NaraflowTemplates';
-  private readonly storeName = 'templates';
+  private readonly dbName = "NaraflowTemplates";
+  private readonly storeName = "templates";
   private readonly version = 1;
 
   private async openDB(): Promise<IDBDatabase> {
@@ -113,12 +117,12 @@ export class IndexedDBAdapter implements StorageAdapter {
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
 
-      request.onupgradeneeded = (event) => {
+      request.onupgradeneeded = event => {
         const db = (event.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, { keyPath: 'metadata.id' });
-          store.createIndex('category', 'metadata.category', { unique: false });
-          store.createIndex('createdAt', 'metadata.createdAt', { unique: false });
+          const store = db.createObjectStore(this.storeName, { keyPath: "metadata.id" });
+          store.createIndex("category", "metadata.category", { unique: false });
+          store.createIndex("createdAt", "metadata.createdAt", { unique: false });
         }
       };
     });
@@ -127,32 +131,34 @@ export class IndexedDBAdapter implements StorageAdapter {
   async save(template: TemplateData): Promise<void> {
     try {
       const db = await this.openDB();
-      const transaction = db.transaction([this.storeName], 'readwrite');
+      const transaction = db.transaction([this.storeName], "readwrite");
       const store = transaction.objectStore(this.storeName);
-      
+
       await new Promise<void>((resolve, reject) => {
         const request = store.put(template);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      throw new Error(`Failed to save template: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to save template: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
   async load(id: string): Promise<TemplateData | null> {
     try {
       const db = await this.openDB();
-      const transaction = db.transaction([this.storeName], 'readonly');
+      const transaction = db.transaction([this.storeName], "readonly");
       const store = transaction.objectStore(this.storeName);
-      
+
       return new Promise<TemplateData | null>((resolve, reject) => {
         const request = store.get(id);
         request.onsuccess = () => resolve(request.result || null);
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error('Failed to load template:', error);
+      console.error("Failed to load template:", error);
       return null;
     }
   }
@@ -160,9 +166,9 @@ export class IndexedDBAdapter implements StorageAdapter {
   async list(): Promise<TemplateMetadata[]> {
     try {
       const db = await this.openDB();
-      const transaction = db.transaction([this.storeName], 'readonly');
+      const transaction = db.transaction([this.storeName], "readonly");
       const store = transaction.objectStore(this.storeName);
-      
+
       return new Promise<TemplateMetadata[]>((resolve, reject) => {
         const request = store.getAll();
         request.onsuccess = () => {
@@ -173,7 +179,7 @@ export class IndexedDBAdapter implements StorageAdapter {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error('Failed to list templates:', error);
+      console.error("Failed to list templates:", error);
       return [];
     }
   }
@@ -181,16 +187,18 @@ export class IndexedDBAdapter implements StorageAdapter {
   async delete(id: string): Promise<void> {
     try {
       const db = await this.openDB();
-      const transaction = db.transaction([this.storeName], 'readwrite');
+      const transaction = db.transaction([this.storeName], "readwrite");
       const store = transaction.objectStore(this.storeName);
-      
+
       await new Promise<void>((resolve, reject) => {
         const request = store.delete(id);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      throw new Error(`Failed to delete template: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to delete template: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 
@@ -212,20 +220,20 @@ export class TemplateStorage {
   constructor() {
     this.localStorageAdapter = new LocalStorageAdapter();
     this.indexedDBAdapter = new IndexedDBAdapter();
-    
+
     // Check if IndexedDB is available
     this.checkIndexedDBSupport();
   }
 
   private async checkIndexedDBSupport(): Promise<void> {
     try {
-      if ('indexedDB' in window) {
+      if ("indexedDB" in window) {
         // Test IndexedDB availability
         await this.indexedDBAdapter.list();
         this.useIndexedDB = true;
       }
     } catch (error) {
-      console.warn('IndexedDB not available, falling back to localStorage');
+      console.warn("IndexedDB not available, falling back to localStorage");
       this.useIndexedDB = false;
     }
   }
@@ -263,19 +271,19 @@ export class TemplateStorage {
    * Export template to file
    */
   async exportToFile(template: TemplateData, filename?: string): Promise<void> {
-    const { TemplateManager } = await import('./templateManager');
+    const { TemplateManager } = await import("./templateManager");
     const jsonString = TemplateManager.exportTemplate(template, { includePreview: true });
-    
-    const blob = new Blob([jsonString], { type: 'application/json' });
+
+    const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
+
+    const link = document.createElement("a");
     link.href = url;
-    link.download = filename || `${template.metadata.name.replace(/[^a-z0-9]/gi, '_')}.json`;
+    link.download = filename || `${template.metadata.name.replace(/[^a-z0-9]/gi, "_")}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     URL.revokeObjectURL(url);
   }
 
@@ -285,15 +293,15 @@ export class TemplateStorage {
   async importFromFile(file: File): Promise<TemplateData> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
-      reader.onload = async (event) => {
+
+      reader.onload = async event => {
         try {
           const jsonString = event.target?.result as string;
-          const { TemplateManager } = await import('./templateManager');
+          const { TemplateManager } = await import("./templateManager");
           const result = TemplateManager.importTemplate(jsonString);
-          
+
           if (!result.success || !result.template) {
-            reject(new Error(result.error || 'Failed to import template'));
+            reject(new Error(result.error || "Failed to import template"));
             return;
           }
 
@@ -302,8 +310,8 @@ export class TemplateStorage {
           reject(error);
         }
       };
-      
-      reader.onerror = () => reject(new Error('Failed to read file'));
+
+      reader.onerror = () => reject(new Error("Failed to read file"));
       reader.readAsText(file);
     });
   }
@@ -314,12 +322,12 @@ export class TemplateStorage {
   async getStorageStats(): Promise<{
     totalTemplates: number;
     totalSize: number;
-    storageType: 'localStorage' | 'indexedDB';
+    storageType: "localStorage" | "indexedDB";
     availableSpace: number;
   }> {
     const templates = await this.listTemplates();
     const totalTemplates = templates.length;
-    
+
     // Estimate total size (rough calculation)
     let totalSize = 0;
     for (const template of templates) {
@@ -329,7 +337,7 @@ export class TemplateStorage {
     return {
       totalTemplates,
       totalSize,
-      storageType: this.useIndexedDB ? 'indexedDB' : 'localStorage',
+      storageType: this.useIndexedDB ? "indexedDB" : "localStorage",
       availableSpace: this.useIndexedDB ? -1 : this.getLocalStorageAvailableSpace(), // -1 means unlimited for IndexedDB
     };
   }
@@ -343,7 +351,7 @@ export class TemplateStorage {
           used += localStorage[key].length;
         }
       }
-      
+
       // Most browsers have 5-10MB limit
       const limit = 5 * 1024 * 1024; // 5MB
       return Math.max(0, limit - used);

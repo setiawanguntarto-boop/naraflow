@@ -11,8 +11,10 @@ export const workflowPresets: WorkflowPreset[] = [
   {
     id: "broilerEnd2End",
     label: "Budidaya Broiler - End-to-End",
-    description: "Workflow lengkap manajemen siklus broiler: registrasi farm, daily check-in, monitoring performance, harvest & reporting",
-    prompt: "Buat workflow budidaya broiler: registrasi farm dengan data peternak dan kapasitas kandang, QR code generation per kandang, input harian (mortalitas, pakan, berat, suhu), QR validation, mortality alert jika >2%, hitung FCR/ADG/mortality%, simpan ke sheet, proses panen, generate laporan PDF, kirim via WhatsApp",
+    description:
+      "Workflow lengkap manajemen siklus broiler: registrasi farm, daily check-in, monitoring performance, harvest & reporting",
+    prompt:
+      "Buat workflow budidaya broiler: registrasi farm dengan data peternak dan kapasitas kandang, QR code generation per kandang, input harian (mortalitas, pakan, berat, suhu), QR validation, mortality alert jika >2%, hitung FCR/ADG/mortality%, simpan ke sheet, proses panen, generate laporan PDF, kirim via WhatsApp",
     icon: "🐔",
     category: "Business Process",
   },
@@ -25,7 +27,7 @@ export const workflowPresets: WorkflowPreset[] = [
     category: "Customer Service",
   },
   {
-    id: "approvalWorkflow", 
+    id: "approvalWorkflow",
     label: "Approval Process",
     description: "Proses persetujuan dengan multiple decision points",
     prompt: "Start → Submit Request → [Manager Approval | Auto Approve] → Notification → End",
@@ -52,8 +54,9 @@ export const workflowPresets: WorkflowPreset[] = [
     id: "surveyFlow",
     label: "Survey Collection Process",
     description: "Proses pengumpulan survey dengan multiple question types",
-    prompt: "Start → Survey Start → [Question Type] → [Response Collection] → [Analysis | Report] → End",
+    prompt:
+      "Start → Survey Start → [Question Type] → [Response Collection] → [Analysis | Report] → End",
     icon: "📝",
     category: "Content Management",
-  }
+  },
 ];

@@ -33,8 +33,8 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#6B7280",
     suggestedLabels: {
       input: [],
-      output: ["flow.start"]
-    }
+      output: ["flow.start"],
+    },
   },
   ask_question: {
     id: "ask_question",
@@ -50,8 +50,8 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#3B82F6",
     suggestedLabels: {
       input: ["user.ready"],
-      output: ["ai.send", "data.processed"]
-    }
+      output: ["ai.send", "data.processed"],
+    },
   },
   sensor_data: {
     id: "sensor_data",
@@ -67,8 +67,8 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#3B82F6",
     suggestedLabels: {
       input: ["sensor.trigger"],
-      output: ["data.received", "sensor.error"]
-    }
+      output: ["data.received", "sensor.error"],
+    },
   },
   ai_analysis: {
     id: "ai_analysis",
@@ -84,8 +84,8 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#8B5CF6",
     suggestedLabels: {
       input: ["ai.send", "data.processed"],
-      output: ["ai.result", "data.transformed"]
-    }
+      output: ["ai.result", "data.transformed"],
+    },
   },
   calculate: {
     id: "calculate",
@@ -101,8 +101,8 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#8B5CF6",
     suggestedLabels: {
       input: ["data.processed"],
-      output: ["calculation.complete", "calculation.error"]
-    }
+      output: ["calculation.complete", "calculation.error"],
+    },
   },
   decision: {
     id: "decision",
@@ -118,8 +118,8 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#EAB308",
     suggestedLabels: {
       input: ["ai.result", "data.validated"],
-      output: ["logic.yes", "logic.no", "logic.highPriority", "logic.standard"]
-    }
+      output: ["logic.yes", "logic.no", "logic.highPriority", "logic.standard"],
+    },
   },
   send_message: {
     id: "send_message",
@@ -135,8 +135,8 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#10B981",
     suggestedLabels: {
       input: ["notify.user", "alert.triggered", "logic.yes"],
-      output: ["flow.complete"]
-    }
+      output: ["flow.complete"],
+    },
   },
   store_records: {
     id: "store_records",
@@ -152,8 +152,8 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#10B981",
     suggestedLabels: {
       input: ["db.save", "data.processed"],
-      output: ["flow.complete"]
-    }
+      output: ["flow.complete"],
+    },
   },
   fetch_external_data: {
     id: "fetch_external_data",
@@ -169,8 +169,8 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#3B82F6",
     suggestedLabels: {
       input: ["api.send"],
-      output: ["api.receive", "data.processed"]
-    }
+      output: ["api.receive", "data.processed"],
+    },
   },
   end: {
     id: "end",
@@ -186,7 +186,7 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     color: "#6B7280",
     suggestedLabels: {
       input: ["flow.complete", "flow.end"],
-      output: []
-    }
-  }
+      output: [],
+    },
+  },
 };

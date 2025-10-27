@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { connectionLabelLibrary } from '@/core/connectionLabelLibrary';
-import { ConnectionLabel } from '@/types/connectionLabel.types';
-import { useWorkflowState } from '@/hooks/useWorkflowState';
+import React, { useState, useEffect, useRef } from "react";
+import { Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { connectionLabelLibrary } from "@/core/connectionLabelLibrary";
+import { ConnectionLabel } from "@/types/connectionLabel.types";
+import { useWorkflowState } from "@/hooks/useWorkflowState";
 
 interface ConnectionLabelMenuProps {
   position: { x: number; y: number };
@@ -20,10 +20,10 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
   onSelect,
   onClose,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
   const { setConnectionLabel, getConnectionLabel } = useWorkflowState();
-  
+
   const currentLabel = getConnectionLabel(connectionId);
 
   // Close menu when clicking outside
@@ -34,20 +34,20 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
   // Close menu on Escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
   const handleSelect = (label: ConnectionLabel) => {
@@ -63,13 +63,16 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
   };
 
   // Filter labels based on search term
-  const filteredCategories = Object.entries(connectionLabelLibrary.categories).map(([key, category]) => ({
-    ...category,
-    labels: category.labels.filter(label =>
-      label.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      label.description.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })).filter(category => category.labels.length > 0);
+  const filteredCategories = Object.entries(connectionLabelLibrary.categories)
+    .map(([key, category]) => ({
+      ...category,
+      labels: category.labels.filter(
+        label =>
+          label.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          label.description.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    }))
+    .filter(category => category.labels.length > 0);
 
   return (
     <div
@@ -86,23 +89,18 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             Connection Label
           </h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-6 w-6 p-0"
-          >
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6 p-0">
             <X className="h-4 w-4" />
           </Button>
         </div>
-        
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search labels..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="pl-9 h-8 text-sm"
             autoFocus
           />
@@ -142,14 +140,17 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
             No labels found for "{searchTerm}"
           </div>
         ) : (
-          filteredCategories.map((category) => (
-            <div key={category.title} className="border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+          filteredCategories.map(category => (
+            <div
+              key={category.title}
+              className="border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+            >
               {/* Category Header */}
-              <div 
+              <div
                 className="px-3 py-2 border-l-4"
-                style={{ 
+                style={{
                   backgroundColor: `${category.color}10`,
-                  borderLeftColor: category.color 
+                  borderLeftColor: category.color,
                 }}
               >
                 <div className="flex items-center">
@@ -157,7 +158,7 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
                     className="w-4 h-4 rounded-full mr-3 border-2 border-white shadow-sm"
                     style={{ backgroundColor: category.color }}
                   />
-                  <span 
+                  <span
                     className="text-xs font-bold uppercase tracking-wider"
                     style={{ color: category.color }}
                   >
@@ -167,12 +168,14 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
               </div>
 
               {/* Category Labels */}
-              {category.labels.map((label) => (
+              {category.labels.map(label => (
                 <div
                   key={label.id}
                   onClick={() => handleSelect(label)}
                   className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-all duration-200 ${
-                    currentLabel?.id === label.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-500' : ''
+                    currentLabel?.id === label.id
+                      ? "bg-blue-50 dark:bg-blue-900/20 border-l-2 border-blue-500"
+                      : ""
                   }`}
                 >
                   <div className="flex items-center">
@@ -189,9 +192,7 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
                       </div>
                     </div>
                     {currentLabel?.id === label.id && (
-                      <div className="text-blue-600 dark:text-blue-400 text-sm font-bold">
-                        ✓
-                      </div>
+                      <div className="text-blue-600 dark:text-blue-400 text-sm font-bold">✓</div>
                     )}
                   </div>
                 </div>

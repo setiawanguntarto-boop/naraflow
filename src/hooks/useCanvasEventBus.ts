@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect } from "react";
 
 interface CanvasEvent {
   type: string;
@@ -20,41 +20,41 @@ export const useCanvasEventBus = () => {
   // Event types with namespacing
   const EVENT_TYPES = {
     NODE: {
-      UPDATE: 'node:update',
-      SELECT: 'node:select',
-      DESELECT: 'node:deselect',
-      ADD: 'node:add',
-      DELETE: 'node:delete',
-      MOVE: 'node:move',
-      RESIZE: 'node:resize',
+      UPDATE: "node:update",
+      SELECT: "node:select",
+      DESELECT: "node:deselect",
+      ADD: "node:add",
+      DELETE: "node:delete",
+      MOVE: "node:move",
+      RESIZE: "node:resize",
     },
     EDGE: {
-      CREATE: 'edge:create',
-      DELETE: 'edge:delete',
-      UPDATE: 'edge:update',
-      SELECT: 'edge:select',
+      CREATE: "edge:create",
+      DELETE: "edge:delete",
+      UPDATE: "edge:update",
+      SELECT: "edge:select",
     },
     SESSION: {
-      SAVE: 'session:save',
-      LOAD: 'session:load',
-      CREATE: 'session:create',
-      DELETE: 'session:delete',
-      SWITCH: 'session:switch',
+      SAVE: "session:save",
+      LOAD: "session:load",
+      CREATE: "session:create",
+      DELETE: "session:delete",
+      SWITCH: "session:switch",
     },
     EXECUTION: {
-      START: 'execution:start',
-      COMPLETE: 'execution:complete',
-      ERROR: 'execution:error',
-      CANCEL: 'execution:cancel',
+      START: "execution:start",
+      COMPLETE: "execution:complete",
+      ERROR: "execution:error",
+      CANCEL: "execution:cancel",
     },
     UI: {
-      ZOOM: 'ui:zoom',
-      PAN: 'ui:pan',
-      SELECTION_CHANGE: 'ui:selection:change',
+      ZOOM: "ui:zoom",
+      PAN: "ui:pan",
+      SELECTION_CHANGE: "ui:selection:change",
     },
   } as const;
 
-  const emit = useCallback((event: Omit<CanvasEvent, 'timestamp'>) => {
+  const emit = useCallback((event: Omit<CanvasEvent, "timestamp">) => {
     const canvasEvent: CanvasEvent = {
       ...event,
       timestamp: Date.now(),
@@ -100,10 +100,10 @@ export const useCanvasEventBus = () => {
 
   const processEventBatch = useCallback(() => {
     if (isProcessing.current) return;
-    
+
     isProcessing.current = true;
     const events = eventQueue.current.splice(0);
-    
+
     // Group events by type for efficient processing
     const eventGroups = new Map<string, CanvasEvent[]>();
     events.forEach(event => {
@@ -133,7 +133,7 @@ export const useCanvasEventBus = () => {
   }, []);
 
   // Immediate emit for critical events (no debouncing)
-  const emitImmediate = useCallback((event: Omit<CanvasEvent, 'timestamp'>) => {
+  const emitImmediate = useCallback((event: Omit<CanvasEvent, "timestamp">) => {
     const canvasEvent: CanvasEvent = {
       ...event,
       timestamp: Date.now(),
@@ -152,19 +152,22 @@ export const useCanvasEventBus = () => {
   }, []);
 
   // Batch emit for multiple events
-  const emitBatch = useCallback((events: Omit<CanvasEvent, 'timestamp'>[]) => {
-    events.forEach(event => {
-      eventQueue.current.push({
-        ...event,
-        timestamp: Date.now(),
+  const emitBatch = useCallback(
+    (events: Omit<CanvasEvent, "timestamp">[]) => {
+      events.forEach(event => {
+        eventQueue.current.push({
+          ...event,
+          timestamp: Date.now(),
+        });
       });
-    });
 
-    clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      processEventBatch();
-    }, 50); // Shorter debounce for batch operations
-  }, [processEventBatch]);
+      clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        processEventBatch();
+      }, 50); // Shorter debounce for batch operations
+    },
+    [processEventBatch]
+  );
 
   // Get event queue size for debugging
   const getQueueSize = useCallback(() => {
@@ -205,7 +208,7 @@ class GlobalCanvasEventBus {
   private debounceTimer: NodeJS.Timeout | null = null;
   private isProcessing = false;
 
-  emit(event: Omit<CanvasEvent, 'timestamp'>) {
+  emit(event: Omit<CanvasEvent, "timestamp">) {
     const canvasEvent: CanvasEvent = {
       ...event,
       timestamp: Date.now(),
@@ -219,7 +222,7 @@ class GlobalCanvasEventBus {
     }, 100);
   }
 
-  emitImmediate(event: Omit<CanvasEvent, 'timestamp'>) {
+  emitImmediate(event: Omit<CanvasEvent, "timestamp">) {
     const canvasEvent: CanvasEvent = {
       ...event,
       timestamp: Date.now(),
@@ -267,17 +270,17 @@ class GlobalCanvasEventBus {
   // Subscribe to all events
   subscribe(listener: EventListener) {
     // Store the listener for all events
-    if (!this.listeners.has('*')) {
-      this.listeners.set('*', new Set());
+    if (!this.listeners.has("*")) {
+      this.listeners.set("*", new Set());
     }
-    this.listeners.get('*')!.add(listener);
+    this.listeners.get("*")!.add(listener);
 
     return () => {
-      const eventListeners = this.listeners.get('*');
+      const eventListeners = this.listeners.get("*");
       if (eventListeners) {
         eventListeners.delete(listener);
         if (eventListeners.size === 0) {
-          this.listeners.delete('*');
+          this.listeners.delete("*");
         }
       }
     };
@@ -285,10 +288,10 @@ class GlobalCanvasEventBus {
 
   private processEventBatch() {
     if (this.isProcessing) return;
-    
+
     this.isProcessing = true;
     const events = this.eventQueue.splice(0);
-    
+
     const eventGroups = new Map<string, CanvasEvent[]>();
     events.forEach(event => {
       if (!eventGroups.has(event.type)) {
@@ -313,7 +316,7 @@ class GlobalCanvasEventBus {
     });
 
     // Also call wildcard listeners for all events
-    const wildcardListeners = this.listeners.get('*');
+    const wildcardListeners = this.listeners.get("*");
     if (wildcardListeners) {
       wildcardListeners.forEach(listener => {
         events.forEach(event => {

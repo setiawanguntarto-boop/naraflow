@@ -1,65 +1,73 @@
 import { useLanguage } from "@/hooks/use-language";
 export const WhatsAppMockup = () => {
-  const {
-    t
-  } = useLanguage();
-  const chats = [{
-    name: "Rahayu",
-    icon: "🐔",
-    message: "Sampling bobot hari ini sudah dikinm",
-    time: "09:41",
-    bgColor: "bg-green-500",
-    hasCheck: true
-  }, {
-    name: "Rodaya",
-    icon: "🏍️",
-    message: "Pesanan, warung Bu Siti sudah dicatat",
-    time: "09:41",
-    bgColor: "bg-blue-500",
-    hasEmoji: "👊"
-  }, {
-    name: "Tambakflow",
-    icon: "🦐",
-    message: "Kualhas air stabil, pakan 25 kg",
-    time: "09:41",
-    bgColor: "bg-purple-500",
-    hasCheck: true
-  }, {
-    name: "Kasaflow",
-    icon: "🌾",
-    message: "Nota timbang panen siap diverifikasi",
-    time: "09:41",
-    bgColor: "bg-green-600",
-    hasDocument: true
-  }, {
-    name: "Tamara",
-    icon: "🏨",
-    message: "Checklist kamar 207 sudah selesai",
-    time: "09:41",
-    bgColor: "bg-orange-500",
-    hasEmoji: "👍"
-  }, {
-    name: "Sortify",
-    icon: "♻️",
-    message: "Sampah plastik 15kg sudah tercatat",
-    time: "09:41",
-    bgColor: "bg-emerald-600",
-    hasCheck: true
-  }];
-  return <div className="w-full max-w-[340px] mx-auto h-[680px] bg-white rounded-[3rem] flex flex-col overflow-hidden border-[12px] border-gray-900 relative" style={{
-      boxShadow: `
+  const { t } = useLanguage();
+  const chats = [
+    {
+      name: "Rahayu",
+      icon: "🐔",
+      message: "Sampling bobot hari ini sudah dikinm",
+      time: "09:41",
+      bgColor: "bg-green-500",
+      hasCheck: true,
+    },
+    {
+      name: "Rodaya",
+      icon: "🏍️",
+      message: "Pesanan, warung Bu Siti sudah dicatat",
+      time: "09:41",
+      bgColor: "bg-blue-500",
+      hasEmoji: "👊",
+    },
+    {
+      name: "Tambakflow",
+      icon: "🦐",
+      message: "Kualhas air stabil, pakan 25 kg",
+      time: "09:41",
+      bgColor: "bg-purple-500",
+      hasCheck: true,
+    },
+    {
+      name: "Kasaflow",
+      icon: "🌾",
+      message: "Nota timbang panen siap diverifikasi",
+      time: "09:41",
+      bgColor: "bg-green-600",
+      hasDocument: true,
+    },
+    {
+      name: "Tamara",
+      icon: "🏨",
+      message: "Checklist kamar 207 sudah selesai",
+      time: "09:41",
+      bgColor: "bg-orange-500",
+      hasEmoji: "👍",
+    },
+    {
+      name: "Sortify",
+      icon: "♻️",
+      message: "Sampah plastik 15kg sudah tercatat",
+      time: "09:41",
+      bgColor: "bg-emerald-600",
+      hasCheck: true,
+    },
+  ];
+  return (
+    <div
+      className="w-full max-w-[340px] mx-auto h-[680px] bg-white rounded-[3rem] flex flex-col overflow-hidden border-[12px] border-gray-900 relative"
+      style={{
+        boxShadow: `
         0 2px 4px rgba(0, 0, 0, 0.1),
         0 8px 16px rgba(0, 0, 0, 0.15),
         0 16px 32px rgba(0, 0, 0, 0.2),
         0 32px 64px rgba(0, 0, 0, 0.25),
         inset 0 0 0 1px rgba(255, 255, 255, 0.1)
       `,
-      transform: 'translateZ(50px)',
-      transformStyle: 'preserve-3d'
-    }}>
+        transform: "translateZ(50px)",
+        transformStyle: "preserve-3d",
+      }}
+    >
       {/* iPhone Notch */}
-      
-      
+
       {/* Status Bar */}
       <div className="bg-[#075E54] text-white px-6 pt-3 pb-2 text-xs flex justify-between items-center">
         <span className="font-medium">9:41</span>
@@ -90,10 +98,22 @@ export const WhatsAppMockup = () => {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            className="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <rect x="3" y="8" width="18" height="12" rx="2" />
           </svg>
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            className="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <line x1="12" y1="5" x2="12" y2="5" strokeLinecap="round" />
             <line x1="12" y1="12" x2="12" y2="12" strokeLinecap="round" />
             <line x1="12" y1="19" x2="12" y2="19" strokeLinecap="round" />
@@ -103,11 +123,18 @@ export const WhatsAppMockup = () => {
 
       {/* Chat List */}
       <div className="flex-1 bg-white overflow-y-auto">
-        {chats.map((chat, index) => <div key={index} className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors" style={{
-        animation: `slideInRight 0.5s ease-out ${index * 0.1}s both`
-      }}>
+        {chats.map((chat, index) => (
+          <div
+            key={index}
+            className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+            style={{
+              animation: `slideInRight 0.5s ease-out ${index * 0.1}s both`,
+            }}
+          >
             {/* Avatar */}
-            <div className={`w-12 h-12 ${chat.bgColor} rounded-full flex items-center justify-center text-2xl flex-shrink-0`}>
+            <div
+              className={`w-12 h-12 ${chat.bgColor} rounded-full flex items-center justify-center text-2xl flex-shrink-0`}
+            >
               {chat.icon}
             </div>
 
@@ -119,18 +146,32 @@ export const WhatsAppMockup = () => {
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-600 truncate pr-2">{chat.message}</p>
-                {chat.hasCheck && <svg className="w-4 h-4 text-[#25D366] flex-shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                {chat.hasCheck && (
+                  <svg
+                    className="w-4 h-4 text-[#25D366] flex-shrink-0"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                  >
                     <path d="M13.5 2L6 9.5 2.5 6 1 7.5l5 5 9-9z" />
                     <path d="M11.5 2L4 9.5 2.5 8l-1.5 1.5 3 3 9-9z" opacity="0.6" />
-                  </svg>}
+                  </svg>
+                )}
                 {chat.hasEmoji && <span className="text-base flex-shrink-0">{chat.hasEmoji}</span>}
-                {chat.hasDocument && <svg className="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                {chat.hasDocument && (
+                  <svg
+                    className="w-4 h-4 text-gray-400 flex-shrink-0"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                  >
                     <path d="M4 0a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V6l-6-6H4z" />
                     <path d="M8 0v5h5L8 0z" opacity="0.5" />
-                  </svg>}
+                  </svg>
+                )}
               </div>
             </div>
-          </div>)}
+          </div>
+        ))}
       </div>
-    </div>;
+    </div>
+  );
 };

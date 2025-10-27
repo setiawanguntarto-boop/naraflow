@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 export interface ContextMenuItem {
   label: string;
   icon?: React.ReactNode;
   onClick?: () => void;
-  variant?: 'default' | 'destructive';
+  variant?: "default" | "destructive";
   disabled?: boolean;
   shortcut?: string;
 }
@@ -18,10 +18,7 @@ export interface ContextMenuState {
 export const useContextMenu = () => {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
-  const showContextMenu = useCallback((
-    event: React.MouseEvent,
-    items: ContextMenuItem[]
-  ) => {
+  const showContextMenu = useCallback((event: React.MouseEvent, items: ContextMenuItem[]) => {
     event.preventDefault();
     event.stopPropagation();
 

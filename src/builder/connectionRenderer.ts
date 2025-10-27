@@ -1,4 +1,4 @@
-import { ConnectionLabel } from '@/types/connectionLabel.types';
+import { ConnectionLabel } from "@/types/connectionLabel.types";
 
 export interface ConnectionLabelRenderOptions {
   text: string;
@@ -20,7 +20,7 @@ export function renderConnectionLabel(label: ConnectionLabel): ConnectionLabelRe
     padding: 6,
     cornerRadius: 6,
     fontSize: 12,
-    fontWeight: "500"
+    fontWeight: "500",
   };
 }
 
