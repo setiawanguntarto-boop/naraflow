@@ -103,6 +103,7 @@ export function MentionInput({
     
     const handleInput = () => {
       const text = contentEditableRef.current?.textContent || '';
+      console.log('🔍 Input text:', text);
       onChange(text);
       
       // Clear existing timeout
@@ -118,8 +119,10 @@ export function MentionInput({
       
       // Check for @ mentions
       const lastAtPos = text.lastIndexOf('@');
+      console.log('📍 Last @ position:', lastAtPos);
       
       if (lastAtPos === -1) {
+        console.log('❌ No @ found');
         setShowSuggestions(false);
         setSuggestions([]);
         return;
@@ -140,6 +143,8 @@ export function MentionInput({
         mentionText = textAfterAt;
       }
 
+      console.log('🎯 Mention text after @:', mentionText);
+
       if (mentionText.length > 0) {
         const query = mentionText.toLowerCase();
         const filtered = workflowPresets.filter((template) =>
@@ -149,13 +154,18 @@ export function MentionInput({
           template.id.toLowerCase().includes(query)
         );
         
+        console.log('📋 Filtered suggestions:', filtered.length);
         setSuggestions(filtered.slice(0, 6));
         setShowSuggestions(filtered.length > 0);
         setMentionStart(lastAtPos);
         setCursor(0);
       } else {
-        setShowSuggestions(false);
-        setSuggestions([]);
+        // Show ALL suggestions when just @ is typed (no filter)
+        console.log('✨ Showing all suggestions for empty mention');
+        setSuggestions(workflowPresets.slice(0, 6));
+        setShowSuggestions(workflowPresets.length > 0);
+        setMentionStart(lastAtPos);
+        setCursor(0);
       }
     };
 
@@ -169,8 +179,19 @@ export function MentionInput({
     };
     
     const div = contentEditableRef.current;
+    
+    // Always attach event listeners
     div.addEventListener('input', handleInput);
+    div.addEventListener('keyup', handleInput); // Fallback for contenteditable
+    div.addEventListener('keydown', (e) => {
+      // Also check on keydown for @
+      if (e.key === '@' || e.key === 'Shift') {
+        setTimeout(handleInput, 10); // Small delay to let the character be inserted
+      }
+    });
     div.addEventListener('blur', handleBlur);
+    
+    console.log('🔧 Event listeners attached to contentEditable');
     
     // Only do initial styled update if there are mentions in the value
     if (value && value.includes('@')) {
@@ -191,17 +212,27 @@ export function MentionInput({
       });
     } else {
       // Just set the text content for plain text
-      div.textContent = value;
+      div.textContent = value || '';
+    }
+    
+    // Trigger initial input check
+    if (contentEditableRef.current) {
+      const text = contentEditableRef.current.textContent || '';
+      console.log('📝 Initial text:', text);
+      if (text) {
+        handleInput();
+      }
     }
     
     return () => {
       div.removeEventListener('input', handleInput);
+      div.removeEventListener('keyup', handleInput);
       div.removeEventListener('blur', handleBlur);
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current);
       }
     };
-  }, []);
+  }, [value, onChange]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!showSuggestions || suggestions.length === 0) {
@@ -297,10 +328,10 @@ export function MentionInput({
       `}</style>
       
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 w-full z-[10000] mt-1">
+        <div className="absolute bottom-full left-0 w-full z-[9999] mb-2">
           <ul
             ref={suggestionsRef}
-            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-xl max-h-56 overflow-y-auto"
+            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-2xl max-h-72 overflow-y-auto"
           >
           {suggestions.map((s, i) => (
             <li
