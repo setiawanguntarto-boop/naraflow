@@ -323,19 +323,19 @@ export function DeployAgentModal({ open, onOpenChange, workflow }: DeployAgentMo
               <div className="space-y-2">
                 <Label htmlFor="environment">Environment</Label>
                 <Select value={environment} onValueChange={setEnvironment}>
-                  <SelectTrigger id="environment">
+                  <SelectTrigger id="environment" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-gray-800">
-                    <SelectItem value="staging" className="text-gray-900 dark:text-gray-100">
+                    <SelectItem value="staging" className="text-gray-900 dark:text-gray-100 cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <span>🔧 Staging</span>
+                        <span className="text-gray-900 dark:text-gray-100">🔧 Staging</span>
                         <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">For testing</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="production" className="text-gray-900 dark:text-gray-100">
+                    <SelectItem value="production" className="text-gray-900 dark:text-gray-100 cursor-pointer">
                       <div className="flex items-center gap-2">
-                        <span>🚀 Production</span>
+                        <span className="text-gray-900 dark:text-gray-100">🚀 Production</span>
                         <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">Live deployment</span>
                       </div>
                     </SelectItem>

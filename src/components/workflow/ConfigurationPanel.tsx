@@ -140,18 +140,18 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
           <div className="space-y-2">
             <Label htmlFor="environment">Environment</Label>
             <Select value={environment} onValueChange={setEnvironment}>
-              <SelectTrigger id="environment">
+              <SelectTrigger id="environment" className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800">
-                <SelectItem value="staging">
-                  <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                    <span>🔧 Staging</span>
+                <SelectItem value="staging" className="text-gray-900 dark:text-gray-100 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-900 dark:text-gray-100">🔧 Staging</span>
                   </div>
                 </SelectItem>
-                <SelectItem value="production">
-                  <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                    <span>🚀 Production</span>
+                <SelectItem value="production" className="text-gray-900 dark:text-gray-100 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-900 dark:text-gray-100">🚀 Production</span>
                   </div>
                 </SelectItem>
               </SelectContent>

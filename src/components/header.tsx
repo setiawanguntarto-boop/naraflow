@@ -25,16 +25,16 @@ export const Header = () => {
     label: t('nav.how-it-works'),
     isAnchor: false
   }, {
-    href: "/workflow-studio",
-    label: "Workflow Studio",
-    isAnchor: false
-  }, {
     href: "/pricing",
     label: t('nav.pricing'),
     isAnchor: false
   }, {
     href: "/faq",
     label: t('nav.faq'),
+    isAnchor: false
+  }, {
+    href: "/contact",
+    label: t('nav.contact'),
     isAnchor: false
   }];
   const solutionsDropdown = {
@@ -116,42 +116,19 @@ export const Header = () => {
                 </Link>)}
           </nav>
 
-          {/* Right side - Language switcher, LLaMA status, and CTA */}
-          <div className="hidden lg:flex items-center gap-4">
+          {/* Right side - Language switcher and Workflow Studio */}
+          <div className="hidden lg:flex items-center gap-3">
             <LanguageSwitcher />
             
-            {/* LLaMA Status Indicator */}
-            <button
-              onClick={() => setShowLlamaPanel(true)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                llamaConfig.llamaStatus === 'connected' 
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                  : llamaConfig.llamaStatus === 'checking'
-                  ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                  : 'bg-red-100 text-red-700 hover:bg-red-200'
-              }`}
+            {/* Workflow Studio Button */}
+            <Button 
+              variant="primary" 
+              asChild
+              className="bg-purple-600 hover:bg-purple-700 text-white"
             >
-              {llamaConfig.llamaStatus === 'checking' ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : llamaConfig.llamaStatus === 'connected' ? (
-                <Wifi className="w-3 h-3" />
-              ) : (
-                <WifiOff className="w-3 h-3" />
-              )}
-              {llamaConfig.mode === 'local' ? 'Local LLaMA' : 'Cloud LLaMA'}
-            </button>
-
-            {/* Responsible AI Button */}
-            <button
-              onClick={() => setShowResponsibleAIPanel(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
-            >
-              <Shield className="w-3 h-3" />
-              AI Ethics
-            </button>
-            
-            <Button variant="primary" asChild>
-              <Link to="/contact">{t('nav.contact')}</Link>
+              <Link to="/workflow-studio">
+                🚀 Workflow Studio
+              </Link>
             </Button>
           </div>
 
@@ -174,8 +151,14 @@ export const Header = () => {
                   </a> : <Link key={item.href} to={item.href} className="text-foreground-muted hover:text-brand-primary transition-colors font-medium py-2" onClick={() => setIsMenuOpen(false)}>
                     {item.label}
                   </Link>)}
-              <Button variant="primary" className="mt-4 w-full" asChild>
-                <Link to="/contact" onClick={() => setIsMenuOpen(false)}>{t('nav.contact')}</Link>
+              <Button 
+                variant="primary" 
+                className="mt-2 w-full bg-purple-600 hover:bg-purple-700" 
+                asChild
+              >
+                <Link to="/workflow-studio" onClick={() => setIsMenuOpen(false)}>
+                  🚀 Workflow Studio
+                </Link>
               </Button>
             </div>
           </nav>}

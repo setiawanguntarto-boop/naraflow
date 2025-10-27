@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, Suspense, lazy } from 'react';
-import { Sparkles, Trash2, Edit3, Box, Shield, Zap, Rocket, AlertCircle } from 'lucide-react';
+import { Sparkles, Trash2, Edit3, Box, Shield, Zap, Rocket, AlertCircle, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -46,6 +46,9 @@ const ExportImportPanel = lazy(() =>
 );
 const LlamaConnectionPanel = lazy(() =>
   import('@/components/LlamaConnectionPanel').then(mod => ({ default: mod.LlamaConnectionPanel }))
+);
+const ResponsibleAIPanel = lazy(() =>
+  import('@/components/Settings/ResponsibleAIPanel').then(mod => ({ default: mod.ResponsibleAIPanel }))
 );
 const GenerateWithLlamaButton = lazy(() =>
   import('@/components/GenerateWithLlamaButton').then(mod => ({ default: mod.GenerateWithLlamaButton }))
@@ -100,6 +103,9 @@ const WorkflowStudioContent = () => {
   
   // LLaMA connection panel state
   const [showLlamaPanel, setShowLlamaPanel] = useState(false);
+  
+  // Responsible AI panel state
+  const [showResponsibleAIPanel, setShowResponsibleAIPanel] = useState(false);
   
   // Deploy agent modal state
   const [showDeployModal, setShowDeployModal] = useState(false);
@@ -361,13 +367,27 @@ const WorkflowStudioContent = () => {
             <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5 flex flex-col h-[420px]">
               {/* Header - Fixed */}
               <div className="flex-shrink-0">
-                <h3 className="font-semibold text-foreground flex items-center gap-2 mb-1">
-                  <Edit3 className="w-5 h-5 text-brand-secondary" />
-                  1. Describe Workflow
-                </h3>
-                <p className="text-sm text-foreground-muted mb-4">
-                  Describe your workflow in natural language or select a Quick Template.
-                </p>
+                <div className="flex items-start justify-between mb-1">
+                  <div>
+                    <h3 className="font-semibold text-foreground flex items-center gap-2 mb-1">
+                      <Edit3 className="w-5 h-5 text-brand-secondary" />
+                      1. Describe Workflow
+                    </h3>
+                    <p className="text-sm text-foreground-muted">
+                      Describe your workflow in natural language or select a Quick Template.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => setShowResponsibleAIPanel(true)}
+                    variant="primary"
+                    size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    AI Ethics
+                  </Button>
+                </div>
+                <div className="mb-4"></div>
               </div>
 
               {/* Content Area */}
@@ -389,61 +409,47 @@ const WorkflowStudioContent = () => {
                       setSelectedTemplate(template);
                       setInterpreterTemplate(template);
                     }}
+                    selectedPreset={selectedPreset}
                     placeholder="Describe your workflow in natural language..."
                   />
                 </div>
             
-                {/* Active Template Badge */}
-                {selectedTemplate && (
-                  <div className="mt-2 p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-sm">
-                    <span className="text-indigo-700">
-                      Template: <strong>{selectedTemplate.label}</strong>
-                    </span>
-                  </div>
-                )}
-                
-                {/* Selected Preset Badge */}
-                {selectedPreset && (
-                  <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-sm">
-                    <span className="text-emerald-700">
-                      Preset: <strong>{selectedPreset.title}</strong>
-                    </span>
-                  </div>
-                )}
               </div>
               
               {/* Generate Buttons */}
-              <div className="flex-shrink-0 pt-3 border-t border-border/40 flex items-center gap-2 mt-2">
-                <Button 
-                  onClick={generateWorkflow} 
-                  disabled={isInterpreting || !prompt.trim()}
-                  className="flex-1 bg-brand-secondary hover:bg-brand-secondary-light text-white"
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  {isInterpreting ? 'Generating...' : 'Generate'}
-                </Button>
-                <Suspense fallback={null}>
-                  <GenerateWithLlamaButton 
-                    prompt={prompt}
-                    onUseWorkflow={(parsed) => {
-                      if (parsed && parsed.nodes && parsed.edges) {
-                        actions.batchUpdate({
-                          nodes: Object.fromEntries(parsed.nodes.map(node => [node.id, node])),
-                          edges: Object.fromEntries(parsed.edges.map(edge => [edge.id, edge])),
-                        });
-                        toast.success('LLaMA workflow applied to canvas');
-                      }
-                    }}
-                  />
-                </Suspense>
-                <Button 
-                  onClick={clearCanvas} 
-                  variant="outline" 
-                  size="icon" 
-                  title="Clear All"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+              <div className="flex-shrink-0 pt-3 border-t border-border/40 mt-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Button 
+                    onClick={generateWorkflow} 
+                    disabled={isInterpreting || !prompt.trim()}
+                    className="flex-1 bg-brand-secondary hover:bg-brand-secondary-light text-white"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {isInterpreting ? 'Generating...' : 'Generate'}
+                  </Button>
+                  <Suspense fallback={null}>
+                    <GenerateWithLlamaButton 
+                      prompt={prompt}
+                      onUseWorkflow={(parsed) => {
+                        if (parsed && parsed.nodes && parsed.edges) {
+                          actions.batchUpdate({
+                            nodes: Object.fromEntries(parsed.nodes.map(node => [node.id, node])),
+                            edges: Object.fromEntries(parsed.edges.map(edge => [edge.id, edge])),
+                          });
+                          toast.success('LLaMA workflow applied to canvas');
+                        }
+                      }}
+                    />
+                  </Suspense>
+                  <Button 
+                    onClick={clearCanvas} 
+                    variant="outline" 
+                    size="icon" 
+                    title="Clear All"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -642,6 +648,14 @@ const WorkflowStudioContent = () => {
         <LlamaConnectionPanel
           open={showLlamaPanel}
           onOpenChange={setShowLlamaPanel}
+        />
+      </Suspense>
+
+      {/* Responsible AI Panel */}
+      <Suspense fallback={null}>
+        <ResponsibleAIPanel
+          open={showResponsibleAIPanel}
+          onOpenChange={setShowResponsibleAIPanel}
         />
       </Suspense>
       

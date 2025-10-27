@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { workflowPresets, WorkflowPreset } from '@/lib/templates/workflowPresets';
+import { PresetType } from './PresetPanel';
 
 interface MentionInputProps {
   value: string;
   onChange: (value: string) => void;
   onTemplateSelect?: (template: WorkflowPreset) => void;
+  selectedPreset?: PresetType | null;
   placeholder?: string;
   className?: string;
 }
 
-// Color palette for each category - High contrast for readability
+// Color palette for @mention templates - High contrast for readability
 const categoryColors: Record<string, string> = {
   'Customer Service': 'bg-blue-500 text-white dark:bg-blue-600 dark:text-white border-blue-600 dark:border-blue-400',
   'Business Process': 'bg-emerald-600 text-white dark:bg-emerald-700 dark:text-white border-emerald-700 dark:border-emerald-500',
@@ -18,10 +20,21 @@ const categoryColors: Record<string, string> = {
   'Content Management': 'bg-rose-600 text-white dark:bg-rose-700 dark:text-white border-rose-700 dark:border-rose-500',
 };
 
+// Color palette for Quick Template badges - Gradient scale for better cohesion
+const presetColors: Record<string, string> = {
+  'broiler': 'bg-amber-500 text-white dark:bg-amber-600 dark:text-white border-amber-600 dark:border-amber-500',
+  'udang': 'bg-indigo-500 text-white dark:bg-indigo-600 dark:text-white border-indigo-600 dark:border-indigo-500',
+  'singkong': 'bg-pink-500 text-white dark:bg-pink-600 dark:text-white border-pink-600 dark:border-pink-500',
+  'sales': 'bg-purple-500 text-white dark:bg-purple-600 dark:text-white border-purple-600 dark:border-purple-500',
+  'hotel': 'bg-red-500 text-white dark:bg-red-600 dark:text-white border-red-600 dark:border-red-500',
+  'sampah': 'bg-lime-500 text-white dark:bg-lime-600 dark:text-white border-lime-600 dark:border-lime-500',
+};
+
 export function MentionInput({
   value,
   onChange,
   onTemplateSelect,
+  selectedPreset,
   placeholder = "Describe your workflow...",
   className
 }: MentionInputProps) {
@@ -34,43 +47,204 @@ export function MentionInput({
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
   const isInternalUpdate = useRef(false);
 
-  // Parse text and highlight mentions
-  const parseTextWithMentions = (text: string) => {
-    const mentionRegex = /@(\w+)/g;
-    const parts: Array<{ type: 'text' | 'mention'; content: string; template?: WorkflowPreset }> = [];
-    let lastIndex = 0;
-    let match;
+  // Helper functions to save and restore cursor position
+  const saveCursorPosition = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return null;
+    
+    const range = selection.getRangeAt(0);
+    const preCaretRange = range.cloneRange();
+    preCaretRange.selectNodeContents(contentEditableRef.current!);
+    preCaretRange.setEnd(range.startContainer, range.startOffset);
+    
+    return preCaretRange.toString().length;
+  };
 
-    while ((match = mentionRegex.exec(text)) !== null) {
-      // Add text before mention
-      if (match.index > lastIndex) {
-        parts.push({ type: 'text', content: text.substring(lastIndex, match.index) });
+  const restoreCursorPosition = (position: number) => {
+    if (!contentEditableRef.current) return;
+    
+    const textNodes: Text[] = [];
+    const treeWalker = document.createTreeWalker(
+      contentEditableRef.current,
+      NodeFilter.SHOW_TEXT
+    );
+    
+    let node: Text | null;
+    while ((node = treeWalker.nextNode() as Text)) {
+      textNodes.push(node);
+    }
+    
+    let currentPosition = 0;
+    for (const textNode of textNodes) {
+      const nodeLength = textNode.textContent?.length || 0;
+      if (currentPosition + nodeLength >= position) {
+        const range = document.createRange();
+        range.setStart(textNode, position - currentPosition);
+        range.setEnd(textNode, position - currentPosition);
+        
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        break;
+      }
+      currentPosition += nodeLength;
+    }
+  };
+
+  // Parse text and highlight mentions and preset badges
+  const parseTextWithMentions = (text: string, selectedPreset: PresetType | null = null) => {
+    const mentionRegex = /@(\w+)/g;
+    const parts: Array<{ type: 'text' | 'mention' | 'preset'; content: string; template?: WorkflowPreset; preset?: PresetType }> = [];
+    
+    // Special case: If we have a selected preset, always add it as a badge at the start
+    if (selectedPreset) {
+      // Find all @ mentions first
+      const mentionMatches: Array<{ type: 'mention'; index: number; length: number; data: any }> = [];
+    let match;
+      while ((match = mentionRegex.exec(text)) !== null) {
+        const mentionId = match[1];
+        const template = workflowPresets.find(p => p.id === mentionId);
+        mentionMatches.push({
+          type: 'mention',
+          index: match.index,
+          length: match[0].length,
+          data: { template, content: match[0] }
+        });
       }
       
-      // Find template for this mention
+      // Check if preset badge already exists in text to avoid duplicates
+      const presetBadgeText = `${selectedPreset.emoji} ${selectedPreset.title}`;
+      const alreadyHasBadge = text.includes(presetBadgeText);
+      
+      // Only add preset badge if it's not already in the text
+      if (!alreadyHasBadge) {
+        parts.push({
+          type: 'preset',
+          content: presetBadgeText,
+          preset: selectedPreset
+        });
+      }
+      
+      // Add text and mentions
+      if (mentionMatches.length > 0) {
+        // Process mentions with their text
+        let lastIndex = 0;
+        mentionMatches.sort((a, b) => a.index - b.index);
+        mentionMatches.forEach(mentionMatch => {
+      // Add text before mention
+          if (mentionMatch.index > lastIndex) {
+            const textBefore = text.substring(lastIndex, mentionMatch.index);
+            if (textBefore) {
+              parts.push({ type: 'text', content: textBefore });
+            }
+          }
+          
+          // Add mention badge
+          parts.push({
+            type: 'mention',
+            content: mentionMatch.data.content,
+            template: mentionMatch.data.template
+          });
+          
+          lastIndex = mentionMatch.index + mentionMatch.length;
+        });
+        
+        // Add remaining text after last mention
+        if (lastIndex < text.length) {
+          const remainingText = text.substring(lastIndex);
+          if (remainingText) {
+            parts.push({ type: 'text', content: remainingText });
+          }
+        }
+      } else {
+        // No mentions, just add the text
+        if (text) {
+          parts.push({ type: 'text', content: text });
+        }
+      }
+      
+      return parts.length > 0 ? parts : [{ type: 'text', content: '' }];
+    }
+    
+    // No preset selected - normal mention parsing
+    const matches: Array<{ type: 'mention'; index: number; length: number; data: any }> = [];
+    while ((match = mentionRegex.exec(text)) !== null) {
       const mentionId = match[1];
       const template = workflowPresets.find(p => p.id === mentionId);
+      matches.push({
+        type: 'mention',
+        index: match.index,
+        length: match[0].length,
+        data: { template, content: match[0] }
+      });
+    }
+    
+    if (matches.length === 0) {
+      return [{ type: 'text', content: text }];
+    }
+    
+    // Sort matches by index
+    matches.sort((a, b) => a.index - b.index);
+    
+    // Build parts array
+    let lastIndex = 0;
+    matches.forEach(match => {
+      // Add text before this match
+      if (match.index > lastIndex) {
+        const textBefore = text.substring(lastIndex, match.index);
+        if (textBefore) {
+          parts.push({ type: 'text', content: textBefore });
+        }
+      }
       
+      // Add the mention
       parts.push({ 
         type: 'mention', 
-        content: match[0], 
-        template 
+        content: match.data.content,
+        template: match.data.template
       });
       
-      lastIndex = match.index + match[0].length;
-    }
+      lastIndex = match.index + match.length;
+    });
     
     // Add remaining text
     if (lastIndex < text.length) {
-      parts.push({ type: 'text', content: text.substring(lastIndex) });
+      const remainingText = text.substring(lastIndex);
+      if (remainingText) {
+        parts.push({ type: 'text', content: remainingText });
+      }
     }
     
     return parts.length > 0 ? parts : [{ type: 'text', content: text }];
   };
 
+  // Helper function to get editable text excluding badges
+  const getEditableText = () => {
+    if (!contentEditableRef.current) return '';
+    
+    let text = '';
+    const walker = document.createTreeWalker(
+      contentEditableRef.current,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
+    
+    let node;
+    while ((node = walker.nextNode())) {
+      const parent = node.parentElement;
+      if (parent && parent.getAttribute('contenteditable') === 'false') {
+        // Skip content inside badges
+        continue;
+      }
+      text += node.textContent;
+    }
+    
+    return text;
+  };
+
   const handleContentChange = () => {
-    const text = contentEditableRef.current?.textContent || '';
-    onChange(text);
+    const text = getEditableText();
+    onChange(text.trim());
   };
 
   // Monitor for @ mentions and update styled content with debounce
@@ -78,20 +252,32 @@ export function MentionInput({
     if (!contentEditableRef.current || isInternalUpdate.current) return;
     
     const updateStyledContent = () => {
-      const text = contentEditableRef.current?.textContent || '';
+      const text = getEditableText();
+      
+      // Save cursor position before updating innerHTML
+      const cursorPosition = saveCursorPosition();
       
       // Parse and update styled content
-      const parts = parseTextWithMentions(text);
+      const parts = parseTextWithMentions(text, selectedPreset);
       
       // Update the content
       contentEditableRef.current!.innerHTML = '';
       
       parts.forEach(part => {
         if (part.type === 'mention' && part.template) {
+          // Render @mention badge
           const span = document.createElement('span');
           const colorClass = categoryColors[part.template.category] || 'bg-gray-600 text-white border-gray-700 dark:bg-gray-700 dark:text-white dark:border-gray-500';
           span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
           span.textContent = part.content;
+          span.setAttribute('contenteditable', 'false');
+          contentEditableRef.current?.appendChild(span);
+        } else if (part.type === 'preset' && part.preset) {
+          // Render Quick Template badge with different color palette
+          const span = document.createElement('span');
+          const colorClass = presetColors[part.preset.id] || 'bg-slate-700 text-white dark:bg-slate-800 dark:text-white border-slate-800 dark:border-slate-600';
+          span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
+          span.textContent = `${part.preset.emoji} ${part.preset.title}`;
           span.setAttribute('contenteditable', 'false');
           contentEditableRef.current?.appendChild(span);
         } else {
@@ -99,10 +285,15 @@ export function MentionInput({
           contentEditableRef.current?.appendChild(textNode);
         }
       });
+      
+      // Restore cursor position after updating innerHTML
+      if (cursorPosition !== null) {
+        setTimeout(() => restoreCursorPosition(cursorPosition), 0);
+      }
     };
     
     const handleInput = () => {
-      const text = contentEditableRef.current?.textContent || '';
+      const text = getEditableText();
       console.log('🔍 Input text:', text);
       onChange(text);
       
@@ -171,9 +362,9 @@ export function MentionInput({
 
     const handleBlur = () => {
       // Update styled content when user clicks away
-      const text = contentEditableRef.current?.textContent || '';
-      // Only update if there are mentions to style
-      if (text.includes('@')) {
+      const text = getEditableText();
+      // Update if there are mentions or preset selected
+      if (text.includes('@') || selectedPreset) {
         updateStyledContent();
       }
     };
@@ -193,16 +384,29 @@ export function MentionInput({
     
     console.log('🔧 Event listeners attached to contentEditable');
     
-    // Only do initial styled update if there are mentions in the value
-    if (value && value.includes('@')) {
-      const parts = parseTextWithMentions(value);
+    // Always update styled content if there are mentions or preset selected
+    if (value && (value.includes('@') || selectedPreset)) {
+      const parts = parseTextWithMentions(value, selectedPreset);
+      
+      // Save cursor position
+      const cursorPosition = saveCursorPosition();
+      
       div.innerHTML = '';
       parts.forEach(part => {
         if (part.type === 'mention' && part.template) {
+          // Render @mention badge
           const span = document.createElement('span');
           const colorClass = categoryColors[part.template.category] || 'bg-gray-600 text-white border-gray-700 dark:bg-gray-700 dark:text-white dark:border-gray-500';
           span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
           span.textContent = part.content;
+          span.setAttribute('contenteditable', 'false');
+          div.appendChild(span);
+        } else if (part.type === 'preset' && part.preset) {
+          // Render Quick Template badge
+          const span = document.createElement('span');
+          const colorClass = presetColors[part.preset.id] || 'bg-slate-700 text-white dark:bg-slate-800 dark:text-white border-slate-800 dark:border-slate-600';
+          span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
+          span.textContent = `${part.preset.emoji} ${part.preset.title}`;
           span.setAttribute('contenteditable', 'false');
           div.appendChild(span);
         } else {
@@ -210,18 +414,23 @@ export function MentionInput({
           div.appendChild(textNode);
         }
       });
+      
+      // Restore cursor position
+      if (cursorPosition !== null) {
+        setTimeout(() => restoreCursorPosition(cursorPosition), 0);
+      }
     } else {
       // Just set the text content for plain text
       div.textContent = value || '';
     }
     
     // Trigger initial input check
-    if (contentEditableRef.current) {
-      const text = contentEditableRef.current.textContent || '';
-      console.log('📝 Initial text:', text);
-      if (text) {
+    const initialText = getEditableText();
+    console.log('📝 Initial text:', initialText);
+    if (initialText) {
+      setTimeout(() => {
         handleInput();
-      }
+      }, 0);
     }
     
     return () => {
@@ -232,7 +441,7 @@ export function MentionInput({
         clearTimeout(updateTimeoutRef.current);
       }
     };
-  }, [value, onChange]);
+  }, [value, onChange, selectedPreset]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!showSuggestions || suggestions.length === 0) {
@@ -266,7 +475,7 @@ export function MentionInput({
 
     console.log('✅ Template selected:', template);
 
-    const text = contentEditableRef.current?.textContent || value;
+    const text = getEditableText();
     const beforeMention = text.substring(0, mentionStart);
     const afterMention = text.substring(mentionStart).replace(/@[\w-\s]*/, '');
     
