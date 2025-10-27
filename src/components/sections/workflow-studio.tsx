@@ -226,11 +226,11 @@ const WorkflowStudioContent = () => {
 
   // Auto-fill prompt when preset is selected
   useEffect(() => {
-    if (selectedPreset) {
+    if (selectedPreset && !prompt.trim()) {
       setPrompt(selectedPreset.prompt);
       toast.success(`Template "${selectedPreset.title}" loaded`);
     }
-  }, [selectedPreset]);
+  }, [selectedPreset, prompt]);
 
   // Count errors (not warnings) for badge display
   const errorCount = validationErrors?.filter(e => e.type === 'error').length || 0;

@@ -244,7 +244,8 @@ export function MentionInput({
 
   const handleContentChange = () => {
     const text = getEditableText();
-    onChange(text.trim());
+    // Don't trim automatically, let parent decide
+    onChange(text);
   };
 
   // Monitor for @ mentions and update styled content with debounce
