@@ -1,4 +1,6 @@
 import { NodeExecutor, ExecutionResult, ExecutionContext, ExecutionLog } from '@/types/workflow';
+import { generateWorkflowFromPrompt } from '@/lib/llamaClient';
+import { useWorkflowState } from '@/hooks/useWorkflowState';
 
 // Registry
 const executorRegistry = new Map<string, NodeExecutor>();
@@ -178,7 +180,107 @@ export const ProcessDataExecutor: NodeExecutor = {
   },
 };
 
+// ============= LLaMA Decision Executor =============
+export const LlamaDecisionExecutor: NodeExecutor = {
+  nodeType: 'LLaMA Decision',
+
+  async execute(node, inputs, context, llamaConfig?, appendLlamaLog?) {
+    const logs: ExecutionLog[] = [];
+    
+    // Default LLaMA config if not provided
+    const config = llamaConfig || {
+      endpoint: 'http://localhost:11434',
+      apiKey: undefined,
+      mode: 'local' as const,
+      lastModel: 'unknown',
+    };
+
+    const prompt = node.data.description || `Decide next step given context: ${JSON.stringify(context.variables)}`;
+
+    logs.push({
+      timestamp: new Date(),
+      level: 'info',
+      message: `Calling LLaMA with prompt: "${prompt.substring(0, 50)}${prompt.length > 50 ? '...' : ''}"`,
+      nodeId: node.id,
+    });
+
+    try {
+      const { raw, parsed } = await generateWorkflowFromPrompt(
+        config.endpoint,
+        config.apiKey,
+        prompt,
+        config.mode
+      );
+
+      logs.push({
+        timestamp: new Date(),
+        level: 'info',
+        message: 'LLaMA called successfully',
+        nodeId: node.id,
+      });
+
+      // Append to LLaMA logs if function is provided
+      if (appendLlamaLog) {
+        appendLlamaLog({
+          nodeId: node.id,
+          prompt,
+          timestamp: new Date().toISOString(),
+          model: config.lastModel || 'unknown',
+          mode: config.mode || 'local',
+          rawPreview: raw.slice(0, 1000), // Truncate for UI
+        });
+      }
+
+      return {
+        outputs: {
+          raw,
+          parsed,
+          decision: parsed ? 'LLaMA decision made' : 'LLaMA response received',
+        },
+        logs,
+      };
+    } catch (error) {
+      logs.push({
+        timestamp: new Date(),
+        level: 'error',
+        message: `LLaMA call failed: ${error}`,
+        nodeId: node.id,
+      });
+
+      return {
+        outputs: {
+          raw: '',
+          parsed: null,
+          decision: 'LLaMA call failed',
+        },
+        logs,
+        error: String(error),
+      };
+    }
+  },
+
+  validate(node) {
+    if (!node.data.description) {
+      return { valid: false, error: 'LLaMA prompt is required' };
+    }
+    return { valid: true };
+  },
+
+  getRequiredInputs() {
+    return [];
+  },
+
+  getOutputSchema() {
+    return {
+      raw: 'string',
+      parsed: 'object',
+      decision: 'string',
+    };
+  },
+};
+
 // Initialize registry
 registerExecutor(WhatsAppMessageExecutor);
 registerExecutor(InputDataExecutor);
 registerExecutor(ProcessDataExecutor);
+registerExecutor(LlamaDecisionExecutor);

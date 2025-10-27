@@ -4,8 +4,8 @@ import { HelpCircle, AlertCircle } from 'lucide-react';
 import { useWorkflowState } from '@/hooks/useWorkflowState';
 
 export const DecisionNode = memo(({ id, data, selected }: NodeProps) => {
-  const { getNodeErrors } = useWorkflowState();
-  const errors = getNodeErrors(id);
+  const { actions } = useWorkflowState();
+  const errors = actions.getNodeErrors(id);
   const hasErrors = errors.filter(e => e.type === 'error').length > 0;
   const hasWarnings = errors.filter(e => e.type === 'warning').length > 0;
   
@@ -43,21 +43,24 @@ export const DecisionNode = memo(({ id, data, selected }: NodeProps) => {
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 !bg-brand-secondary border-2 border-background !-left-1.5"
+        className="w-5 h-5 !bg-brand-secondary border-2 border-background !-left-1.5 cursor-pointer"
+        style={{ width: '16px', height: '16px' }}
       />
       
       <Handle
         type="source"
         position={Position.Top}
         id="yes"
-        className="w-3 h-3 !bg-brand-secondary border-2 border-background !-top-1.5"
+        className="w-5 h-5 !bg-brand-secondary border-2 border-background !-top-1.5 cursor-pointer"
+        style={{ width: '16px', height: '16px' }}
       />
       
       <Handle
         type="source"
         position={Position.Bottom}
         id="no"
-        className="w-3 h-3 !bg-brand-secondary border-2 border-background !-bottom-1.5"
+        className="w-5 h-5 !bg-brand-secondary border-2 border-background !-bottom-1.5 cursor-pointer"
+        style={{ width: '16px', height: '16px' }}
       />
     </div>
   );

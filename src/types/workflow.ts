@@ -9,6 +9,7 @@ export interface EdgeConditionData {
   conditionType: EdgeConditionType;
   label?: string;
   description?: string;
+  labelId?: string; // Reference to connection label library
   onUpdateLabel?: (edgeId: string, label: string) => void;
 }
 
@@ -100,7 +101,7 @@ export interface ExecutionContext {
 
 export interface NodeExecutor {
   nodeType: string;
-  execute: (node: any, inputs: Record<string, any>, context: ExecutionContext) => Promise<ExecutionResult>;
+  execute: (node: any, inputs: Record<string, any>, context: ExecutionContext, llamaConfig?: any, appendLlamaLog?: (entry: any) => void) => Promise<ExecutionResult>;
   validate: (node: any) => { valid: boolean; error?: string };
   getRequiredInputs: () => string[];
   getOutputSchema: () => Record<string, string>;

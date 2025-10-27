@@ -1,14 +1,35 @@
+/**
+ * Naraflow - CustomEdge Hybrid Fix
+ * Tujuan:
+ *  - Membuat edge otomatis berubah warna sesuai connection label (tanpa reload canvas)
+ *  - Menjaga struktur modular: BaseEdge + ConnectionLabelRenderer
+ *  - Menambahkan transisi halus (stroke color)
+ * 
+ * Kompatibel dengan React Flow 11+
+ */
+
+import React, { useEffect, useState } from 'react';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, getStraightPath, getSmoothStepPath, EdgeProps } from '@xyflow/react';
-import { memo, useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Edit2, CheckCircle, XCircle, AlertTriangle, GitBranch } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, GitBranch } from 'lucide-react';
 import { EdgeConditionType } from '@/types/workflow';
+import { ConnectionLabelRenderer } from '../ConnectionLabelRenderer';
+import { ConnectionMenu, ConnectionOption } from '../ConnectionMenu';
+import { ConnectionLabel } from '@/types/connectionLabel.types';
+import { useWorkflowState } from '@/hooks/useWorkflowState';
+import { CATEGORY_COLORS } from '@/data/nodeCategories';
 
 interface CustomEdgeProps extends EdgeProps {
   type?: string;
 }
 
-export const CustomEdge = memo(({
+/**
+ * CustomEdge Hybrid Version:
+ * Menggunakan BaseEdge bawaan React Flow untuk performa,
+ * dan renderer label terpisah untuk konsistensi visual.
+ * 
+ * Namun, sekarang stroke color sepenuhnya reaktif terhadap connection label color.
+ */
+export const CustomEdge = React.memo(({
   id,
   sourceX,
   sourceY,
@@ -20,11 +41,60 @@ export const CustomEdge = memo(({
   markerEnd,
   data,
   type = 'smoothstep',
+  selected = false,
 }: CustomEdgeProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [label, setLabel] = useState<string>((data?.label as string) || '');
+  const [isConnectionMenuOpen, setIsConnectionMenuOpen] = useState(false);
+  const [connectionMenuPosition, setConnectionMenuPosition] = useState({ x: 0, y: 0 });
   
-  // Get the correct path based on edge type
+  // 1️⃣ Ambil label info (termasuk warna) dari global workflow state
+  const connectionLabel = useWorkflowState((state) => {
+    const edge = state.edges[id];
+    return (edge?.data?.label as ConnectionLabel) || null;
+  });
+
+  // 2️⃣ Inisialisasi state lokal untuk warna edge (dengan fallback default)
+  const [strokeColor, setStrokeColor] = useState<string>(
+    connectionLabel?.color ?? '#9CA3AF'
+  );
+
+  // 3️⃣ Update warna edge secara reaktif setiap kali label color berubah
+  useEffect(() => {
+    if (connectionLabel?.color) {
+      setStrokeColor(connectionLabel.color);
+    } else {
+      setStrokeColor('#9CA3AF');
+    }
+  }, [connectionLabel?.color]);
+  
+  // Check if this edge has embedded connection menu
+  const hasConnectionMenu = data?.connectionMenu === true;
+  const connectionOptions: ConnectionOption[] = (data?.connectionOptions as ConnectionOption[]) || [];
+  
+  // Calculate connection point position (middle of the edge)
+  const connectionPointX = (sourceX + targetX) / 2;
+  const connectionPointY = (sourceY + targetY) / 2;
+  
+  // Handle connection point click
+  const handleConnectionPointClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    const rect = (event.target as Element).getBoundingClientRect();
+    setConnectionMenuPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    });
+    setIsConnectionMenuOpen(true);
+  };
+  
+  // Handle connection option selection
+  const handleConnectionOptionSelect = (option: ConnectionOption) => {
+    // Update edge data with selected option
+    if (data?.onConnectionSelect && typeof data.onConnectionSelect === 'function') {
+      data.onConnectionSelect(id, option);
+    }
+    setIsConnectionMenuOpen(false);
+  };
+  
+  // 4️⃣ Gunakan React Flow helper untuk menghasilkan path Bezier halus
   let edgePath, labelX, labelY;
   
   switch (type) {
@@ -58,32 +128,16 @@ export const CustomEdge = memo(({
       });
   }
   
-  const handleLabelChange = (newLabel: string) => {
-    setLabel(newLabel);
-    if (data?.onUpdateLabel && typeof data.onUpdateLabel === 'function') {
-      data.onUpdateLabel(id, newLabel);
-    }
-  };
   
-  // Determine stroke color based on condition type
-  const getConditionColor = () => {
-    switch (data?.conditionType as EdgeConditionType) {
-      case 'success':
-        return '#22c55e'; // green-500
-      case 'error':
-        return '#ef4444'; // red-500
-      case 'warning':
-        return '#eab308'; // yellow-500
-      case 'conditional':
-        return '#3b82f6'; // blue-500
-      default:
-        return style?.stroke || 'hsl(var(--brand-primary))';
-    }
-  };
+  // 5️⃣ Tentukan warna highlight jika edge sedang dipilih
+  const highlightColor = selected ? '#2563EB' : strokeColor;
   
   const edgeStyle = {
     ...style,
-    stroke: getConditionColor(),
+    stroke: highlightColor,
+    strokeWidth: selected ? 2.8 : 2,
+    transition: 'stroke 0.25s ease-in-out, stroke-width 0.25s ease-in-out',
+    opacity: 0.95,
   };
   
   // Get condition icon
@@ -105,7 +159,40 @@ export const CustomEdge = memo(({
   
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={edgeStyle} />
+      {/* ====== EDGE GARIS ====== */}
+      <BaseEdge 
+        id={id}
+        path={edgePath} 
+        markerEnd={markerEnd} 
+        style={edgeStyle}
+      />
+      
+      {/* Embedded Connection Point */}
+      {hasConnectionMenu && connectionOptions.length > 0 && (
+        <g>
+          <circle 
+            cx={connectionPointX}
+            cy={connectionPointY}
+            r="10"
+            fill="white"
+            stroke="#3b82f6"
+            strokeWidth="2"
+            className="cursor-pointer hover:fill-blue-50 hover:stroke-blue-600 transition-colors"
+            onClick={handleConnectionPointClick}
+          />
+        </g>
+      )}
+      
+      {/* ====== EDGE LABEL (separate renderer) ====== */}
+      {connectionLabel && (
+        <ConnectionLabelRenderer 
+          edge={{ id, sourceX, sourceY, targetX, targetY } as any}
+          label={connectionLabel}
+          labelX={labelX}
+          labelY={labelY}
+          color={strokeColor}
+        />
+      )}
       
       <EdgeLabelRenderer>
         <div
@@ -119,40 +206,21 @@ export const CustomEdge = memo(({
           {/* Condition icon */}
           {data?.conditionType && data.conditionType !== 'default' && getConditionIcon()}
           
-          {/* Label */}
-          {isEditing ? (
-            <Input
-              value={label}
-              onChange={(e) => handleLabelChange(e.target.value)}
-              onBlur={() => setIsEditing(false)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') setIsEditing(false);
-                if (e.key === 'Escape') {
-                  setLabel((data?.label as string) || '');
-                  setIsEditing(false);
-                }
-              }}
-              className="w-32 h-7 text-xs bg-card border-brand-primary"
-              autoFocus
-              placeholder="Add label..."
-            />
-          ) : (
-            <div
-              className="group flex items-center gap-1 px-2 py-1 bg-card/90 backdrop-blur-sm border border-border rounded-md text-xs font-medium text-foreground shadow-sm cursor-pointer hover:bg-card hover:border-brand-primary/50 transition-all"
-              onClick={() => setIsEditing(true)}
-            >
-              {label ? (
-                <span>{label}</span>
-              ) : (
-                <span className="text-foreground-muted flex items-center gap-1">
-                  <Edit2 className="w-3 h-3" />
-                  Add label
-                </span>
-              )}
-            </div>
-          )}
         </div>
       </EdgeLabelRenderer>
+      
+      {/* Connection Menu */}
+      {isConnectionMenuOpen && (
+        <ConnectionMenu
+          position={connectionMenuPosition}
+          options={connectionOptions}
+          onSelect={handleConnectionOptionSelect}
+          onClose={() => setIsConnectionMenuOpen(false)}
+          title="Connection Options"
+          description="Choose how this connection should behave"
+        />
+      )}
+      
     </>
   );
 });

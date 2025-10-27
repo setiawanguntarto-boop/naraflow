@@ -6,7 +6,9 @@ export class WorkflowEngine {
   async executeWorkflow(
     nodes: any[],
     edges: Edge[],
-    startNodeId: string = 'start'
+    startNodeId: string = 'start',
+    llamaConfig?: any,
+    appendLlamaLog?: (entry: any) => void
   ): Promise<Map<string, ExecutionResult>> {
     const results = new Map<string, ExecutionResult>();
     const context: ExecutionContext = {
@@ -52,7 +54,7 @@ export class WorkflowEngine {
         }
 
         // Execute node
-        const result = await executor.execute(node, inputs, context);
+        const result = await executor.execute(node, inputs, context, llamaConfig, appendLlamaLog);
         results.set(nodeId, result);
 
         // Update context variables

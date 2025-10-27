@@ -1,0 +1,237 @@
+{
+  "version": "2.0.0",
+  "description": "Naraflow Node Library v2.0 - Enhanced for real-world automation",
+  "categories": {
+    "input": {
+      "title": "Input",
+      "color": "#3B82F6",
+      "description": "Capture information or trigger events"
+    },
+    "processing": {
+      "title": "Processing", 
+      "color": "#8B5CF6",
+      "description": "Transform, summarize, or compute data"
+    },
+    "logic": {
+      "title": "Logic",
+      "color": "#EAB308", 
+      "description": "Control flow and decisions"
+    },
+    "output": {
+      "title": "Output",
+      "color": "#10B981",
+      "description": "Send results or trigger external actions"
+    },
+    "meta": {
+      "title": "Meta",
+      "color": "#6B7280",
+      "description": "Manage workflow behavior"
+    }
+  },
+  "nodes": {
+    "start": {
+      "id": "start",
+      "displayName": "Start Workflow",
+      "category": "meta",
+      "description": "Entry point that triggers the workflow",
+      "inputType": "trigger",
+      "outputType": "flow",
+      "defaultConnections": ["flow.start"],
+      "exampleUseCase": "Begin automated farm monitoring when sensor detects sunrise",
+      "icon": "play-circle",
+      "color": "#6B7280"
+    },
+    "ask_question": {
+      "id": "ask_question", 
+      "displayName": "Ask Question",
+      "category": "input",
+      "description": "Collect text, number, or multiple-choice input from user",
+      "inputType": "user",
+      "outputType": "text",
+      "defaultConnections": ["user.response", "user.declined"],
+      "exampleUseCase": "Ask farm owner to input current flock age via WhatsApp",
+      "icon": "message-circle",
+      "color": "#3B82F6"
+    },
+    "sensor_data": {
+      "id": "sensor_data",
+      "displayName": "Sensor Data",
+      "category": "input", 
+      "description": "Receive data from IoT sensors (temperature, humidity, pH, etc.)",
+      "inputType": "sensor",
+      "outputType": "numeric",
+      "defaultConnections": ["data.received", "sensor.error"],
+      "exampleUseCase": "Collect temperature readings from chicken coop sensors",
+      "icon": "thermometer",
+      "color": "#3B82F6"
+    },
+    "ai_analysis": {
+      "id": "ai_analysis",
+      "displayName": "AI Analysis", 
+      "category": "processing",
+      "description": "Analyze data using AI to extract insights and patterns",
+      "inputType": "data",
+      "outputType": "insights",
+      "defaultConnections": ["analysis.complete", "analysis.failed"],
+      "exampleUseCase": "Analyze feed consumption patterns to predict optimal feeding times",
+      "icon": "brain",
+      "color": "#8B5CF6"
+    },
+    "calculate": {
+      "id": "calculate",
+      "displayName": "Calculate",
+      "category": "processing",
+      "description": "Perform mathematical calculations (sum, average, ratio, etc.)",
+      "inputType": "numeric",
+      "outputType": "numeric", 
+      "defaultConnections": ["calculation.complete", "calculation.error"],
+      "exampleUseCase": "Calculate Feed Conversion Ratio (FCR) from feed and weight data",
+      "icon": "calculator",
+      "color": "#8B5CF6"
+    },
+    "transform_data": {
+      "id": "transform_data",
+      "displayName": "Transform Data",
+      "category": "processing",
+      "description": "Convert data format or structure (CSV to JSON, units conversion, etc.)",
+      "inputType": "data",
+      "outputType": "data",
+      "defaultConnections": ["transform.complete", "transform.error"],
+      "exampleUseCase": "Convert temperature from Celsius to Fahrenheit for reporting",
+      "icon": "refresh-cw",
+      "color": "#8B5CF6"
+    },
+    "filter_data": {
+      "id": "filter_data", 
+      "displayName": "Filter Data",
+      "category": "processing",
+      "description": "Filter data based on conditions (date range, value thresholds, etc.)",
+      "inputType": "data",
+      "outputType": "data",
+      "defaultConnections": ["filter.match", "filter.no_match"],
+      "exampleUseCase": "Filter temperature readings above 35°C for heat stress alerts",
+      "icon": "filter",
+      "color": "#8B5CF6"
+    },
+    "decision": {
+      "id": "decision",
+      "displayName": "Decision",
+      "category": "logic",
+      "description": "Route workflow based on conditions (if-then-else logic)",
+      "inputType": "condition",
+      "outputType": "route",
+      "defaultConnections": ["decision.yes", "decision.no"],
+      "exampleUseCase": "Route to alert if temperature exceeds safe threshold",
+      "icon": "git-branch",
+      "color": "#EAB308"
+    },
+    "wait": {
+      "id": "wait",
+      "displayName": "Wait",
+      "category": "meta",
+      "description": "Pause workflow for specified time or until condition is met",
+      "inputType": "trigger",
+      "outputType": "trigger",
+      "defaultConnections": ["wait.complete", "wait.timeout"],
+      "exampleUseCase": "Wait 1 hour before sending follow-up reminder",
+      "icon": "clock",
+      "color": "#6B7280"
+    },
+    "approval": {
+      "id": "approval",
+      "displayName": "Approval Gate",
+      "category": "logic",
+      "description": "Pause workflow until supervisor approves or rejects",
+      "inputType": "request",
+      "outputType": "decision",
+      "defaultConnections": ["approval.approved", "approval.rejected"],
+      "exampleUseCase": "Require supervisor approval before ordering expensive feed",
+      "icon": "shield-check",
+      "color": "#EAB308"
+    },
+    "send_message": {
+      "id": "send_message",
+      "displayName": "Send Message",
+      "category": "output",
+      "description": "Send WhatsApp message with dynamic content",
+      "inputType": "message",
+      "outputType": "confirmation",
+      "defaultConnections": ["message.sent", "message.failed"],
+      "exampleUseCase": "Notify farmer of critical temperature alert via WhatsApp",
+      "icon": "send",
+      "color": "#10B981"
+    },
+    "generate_report": {
+      "id": "generate_report",
+      "displayName": "Generate Report",
+      "category": "output",
+      "description": "Create PDF or text reports with charts and data summaries",
+      "inputType": "data",
+      "outputType": "document",
+      "defaultConnections": ["report.generated", "report.failed"],
+      "exampleUseCase": "Generate weekly farm performance report with charts",
+      "icon": "file-text",
+      "color": "#10B981"
+    },
+    "update_dashboard": {
+      "id": "update_dashboard",
+      "displayName": "Update Dashboard",
+      "category": "output",
+      "description": "Push live data to external dashboards or spreadsheets",
+      "inputType": "data",
+      "outputType": "confirmation",
+      "defaultConnections": ["dashboard.updated", "dashboard.failed"],
+      "exampleUseCase": "Update Google Sheets with daily harvest data",
+      "icon": "bar-chart",
+      "color": "#10B981"
+    },
+    "store_records": {
+      "id": "store_records",
+      "displayName": "Store Records",
+      "category": "output",
+      "description": "Save data to database or file system",
+      "inputType": "data",
+      "outputType": "confirmation",
+      "defaultConnections": ["records.saved", "records.failed"],
+      "exampleUseCase": "Save daily feed consumption data to farm database",
+      "icon": "database",
+      "color": "#10B981"
+    },
+    "fetch_external_data": {
+      "id": "fetch_external_data",
+      "displayName": "Fetch External Data",
+      "category": "input",
+      "description": "Retrieve data from external APIs or web services",
+      "inputType": "request",
+      "outputType": "data",
+      "defaultConnections": ["data.fetched", "fetch.failed"],
+      "exampleUseCase": "Get weather forecast from weather API for farm planning",
+      "icon": "globe",
+      "color": "#3B82F6"
+    },
+    "error_handler": {
+      "id": "error_handler",
+      "displayName": "Error Handler",
+      "category": "meta",
+      "description": "Catch errors and retry or send alerts",
+      "inputType": "error",
+      "outputType": "action",
+      "defaultConnections": ["error.retry", "error.alert", "error.abort"],
+      "exampleUseCase": "Retry failed WhatsApp message 3 times before alerting admin",
+      "icon": "alert-triangle",
+      "color": "#6B7280"
+    },
+    "end": {
+      "id": "end",
+      "displayName": "End Workflow",
+      "category": "meta",
+      "description": "Terminate workflow execution",
+      "inputType": "flow",
+      "outputType": "none",
+      "defaultConnections": [],
+      "exampleUseCase": "Complete daily farm monitoring workflow",
+      "icon": "stop-circle",
+      "color": "#6B7280"
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "version": "1.0.0",
+  "name": "Agriculture Pack",
+  "description": "Specialized nodes for agricultural automation workflows",
+  "category": "agriculture",
+  "nodes": {
+    "feed_conversion_calc": {
+      "id": "feed_conversion_calc",
+      "displayName": "Feed Conversion Calculator",
+      "category": "processing",
+      "description": "Calculate Feed Conversion Ratio (FCR) based on feed consumed and weight gained",
+      "inputType": "agriculture_data",
+      "outputType": "ratio",
+      "defaultConnections": ["fcr.calculated", "fcr.error"],
+      "exampleUseCase": "Calculate FCR for broiler chickens from daily feed and weight data",
+      "icon": "calculator",
+      "color": "#8B5CF6",
+      "formula": "FCR = Feed Consumed (kg) / Weight Gained (kg)",
+      "inputs": {
+        "feed_consumed": "number",
+        "weight_gained": "number",
+        "period_days": "number"
+      },
+      "outputs": {
+        "fcr_ratio": "number",
+        "efficiency_score": "string",
+        "recommendation": "string"
+      }
+    },
+    "temperature_monitor": {
+      "id": "temperature_monitor",
+      "displayName": "Temperature Monitor",
+      "category": "processing",
+      "description": "Monitor temperature readings and detect heat stress conditions",
+      "inputType": "temperature_data",
+      "outputType": "alert",
+      "defaultConnections": ["temp.normal", "temp.warning", "temp.critical"],
+      "exampleUseCase": "Monitor chicken coop temperature and alert for heat stress",
+      "icon": "thermometer",
+      "color": "#8B5CF6",
+      "thresholds": {
+        "optimal_min": 18,
+        "optimal_max": 24,
+        "warning_min": 15,
+        "warning_max": 28,
+        "critical_min": 10,
+        "critical_max": 35
+      }
+    },
+    "water_quality_check": {
+      "id": "water_quality_check",
+      "displayName": "Water Quality Check",
+      "category": "processing",
+      "description": "Analyze water quality parameters (pH, DO, temperature) for aquaculture",
+      "inputType": "water_data",
+      "outputType": "quality_report",
+      "defaultConnections": ["quality.good", "quality.poor", "quality.critical"],
+      "exampleUseCase": "Check shrimp pond water quality and recommend adjustments",
+      "icon": "droplets",
+      "color": "#8B5CF6",
+      "parameters": {
+        "ph": {"min": 6.5, "max": 8.5, "optimal": 7.5},
+        "dissolved_oxygen": {"min": 4, "max": 8, "optimal": 6},
+        "temperature": {"min": 26, "max": 32, "optimal": 29}
+      }
+    },
+    "harvest_scheduler": {
+      "id": "harvest_scheduler",
+      "displayName": "Harvest Scheduler",
+      "category": "processing",
+      "description": "Calculate optimal harvest timing based on growth metrics",
+      "inputType": "growth_data",
+      "outputType": "schedule",
+      "defaultConnections": ["harvest.ready", "harvest.wait", "harvest.overdue"],
+      "exampleUseCase": "Determine optimal harvest date for broiler chickens based on weight and age",
+      "icon": "calendar",
+      "color": "#8B5CF6",
+      "criteria": {
+        "target_weight": "number",
+        "max_age": "number",
+        "growth_rate": "number"
+      }
+    },
+    "feed_optimizer": {
+      "id": "feed_optimizer",
+      "displayName": "Feed Optimizer",
+      "category": "processing",
+      "description": "Optimize feed amounts based on animal age, weight, and performance",
+      "inputType": "animal_data",
+      "outputType": "feed_recommendation",
+      "defaultConnections": ["feed.optimized", "feed.adjustment_needed"],
+      "exampleUseCase": "Calculate optimal daily feed amount for growing chickens",
+      "icon": "package",
+      "color": "#8B5CF6",
+      "factors": {
+        "animal_age": "number",
+        "current_weight": "number",
+        "target_weight": "number",
+        "feed_type": "string"
+      }
+    },
+    "disease_detector": {
+      "id": "disease_detector",
+      "displayName": "Disease Detector",
+      "category": "processing",
+      "description": "Analyze symptoms and behavior patterns to detect potential diseases",
+      "inputType": "health_data",
+      "outputType": "diagnosis",
+      "defaultConnections": ["health.normal", "health.suspicious", "health.critical"],
+      "exampleUseCase": "Detect early signs of respiratory issues in chicken flocks",
+      "icon": "stethoscope",
+      "color": "#8B5CF6",
+      "symptoms": {
+        "respiratory_rate": "number",
+        "activity_level": "string",
+        "feed_intake": "number",
+        "mortality_rate": "number"
+      }
+    }
+  }
+}

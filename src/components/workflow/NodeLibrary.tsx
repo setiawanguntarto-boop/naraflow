@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { Search, ChevronDown, ChevronRight } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Search, ChevronDown, ChevronRight, Zap } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { NODE_CATEGORIES, CATEGORY_COLORS, type NodeCategory } from '@/data/nodeCategories';
+import { NODE_CATEGORIES, CATEGORY_COLORS, type NodeCategory, getCategoryForNode } from '@/data/nodeCategories';
 import { getIconForLabel } from '@/data/nodeIcons';
 import { cn } from '@/lib/utils';
+import { nodeTypeRegistry } from '@/lib/nodeTypeRegistry';
+import { Badge } from '@/components/ui/badge';
 
 interface NodeLibraryProps {
   onNodeDragStart: (event: React.DragEvent, label: string) => void;
@@ -15,6 +17,54 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
     new Set(Object.keys(NODE_CATEGORIES) as NodeCategory[])
   );
 
+  // Get all nodes from v3 registry and group them
+  const v3NodesByCategory = useMemo(() => {
+    const grouped = nodeTypeRegistry.getAllNodeTypesGroupedByCategory();
+    
+    // Map v3 categories to UI categories
+    const categoryMap: Record<string, NodeCategory> = {
+      'trigger': 'Input',
+      'logic': 'Processing',
+      'control': 'Logic',
+      'output': 'Output',
+      'utility': 'Meta'
+    };
+    
+    const result: Record<NodeCategory, Array<{ id: string; label: string; isV3: boolean }>> = {
+      Input: [],
+      Processing: [],
+      Logic: [],
+      Output: [],
+      Meta: []
+    };
+    
+    Object.entries(grouped).forEach(([v3Category, nodes]) => {
+      const uiCategory = categoryMap[v3Category] || 'Meta';
+      nodes.forEach(node => {
+        result[uiCategory].push({
+          id: node.id,
+          label: node.label,
+          isV3: true
+        });
+      });
+    });
+    
+    // Also add legacy v2 nodes
+    Object.entries(NODE_CATEGORIES).forEach(([category, nodes]) => {
+      nodes.forEach(node => {
+        if (!result[category as NodeCategory].find(n => n.label === node)) {
+          result[category as NodeCategory].push({
+            id: node.toLowerCase().replace(/\s+/g, '_'),
+            label: node,
+            isV3: false
+          });
+        }
+      });
+    });
+    
+    return result;
+  }, []);
+
   const toggleCategory = (category: NodeCategory) => {
     const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(category)) {
@@ -25,15 +75,16 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
     setExpandedCategories(newExpanded);
   };
 
-  const filterNodes = (nodes: readonly string[]) => {
+  const filterNodes = (nodes: Array<{ id: string; label: string; isV3: boolean }>) => {
     if (!searchTerm) return nodes;
-    return nodes.filter(label => 
-      label.toLowerCase().includes(searchTerm.toLowerCase())
+    return nodes.filter(node => 
+      node.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      node.id.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
   const hasVisibleNodes = (category: NodeCategory) => {
-    return filterNodes(NODE_CATEGORIES[category]).length > 0;
+    return filterNodes(v3NodesByCategory[category]).length > 0;
   };
 
   return (
@@ -51,8 +102,8 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
 
       {/* Categories */}
       <div className="space-y-2">
-        {(Object.keys(NODE_CATEGORIES) as NodeCategory[]).map(category => {
-          const filteredNodes = filterNodes(NODE_CATEGORIES[category]);
+        {(Object.keys(v3NodesByCategory) as NodeCategory[]).map(category => {
+          const filteredNodes = filterNodes(v3NodesByCategory[category]);
           if (filteredNodes.length === 0 && searchTerm) return null;
 
           const isExpanded = expandedCategories.has(category);
@@ -64,10 +115,11 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
               <button
                 onClick={() => toggleCategory(category)}
                 className={cn(
-                  "w-full flex items-center justify-between px-3 py-2 font-medium text-sm transition-colors",
-                  colors.bg,
+                  "w-full flex items-center justify-between px-4 py-3 font-semibold text-sm transition-all",
+                  "bg-white border-l-4",
+                  colors.border.replace('border-', 'border-l-'),
                   colors.text,
-                  "hover:opacity-80"
+                  "hover:bg-gray-50 hover:shadow-sm"
                 )}
               >
                 <span className="flex items-center gap-2">
@@ -78,31 +130,46 @@ export const NodeLibrary = ({ onNodeDragStart }: NodeLibraryProps) => {
                   )}
                   {category}
                 </span>
-                <span className="text-xs opacity-70">{filteredNodes.length}</span>
+                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full font-medium">
+                  {filteredNodes.length}
+                </span>
               </button>
 
               {/* Category Nodes */}
               {isExpanded && (
                 <div className="p-2 space-y-1 bg-card">
-                  {filteredNodes.map(label => {
-                    const Icon = getIconForLabel(label);
+                  {filteredNodes.map(node => {
+                    const Icon = getIconForLabel(node.label);
+                    const nodeCategory = getCategoryForNode(node.label);
+                    const nodeColors = nodeCategory ? CATEGORY_COLORS[nodeCategory] : null;
+                    
                     return (
                       <div
-                        key={label}
+                        key={node.id}
                         draggable
-                        onDragStart={(e) => onNodeDragStart(e, label)}
+                        onDragStart={(e) => onNodeDragStart(e, node.label)}
                         className={cn(
-                          "flex items-center gap-2 px-3 py-2 rounded-md",
+                          "flex items-center gap-3 px-4 py-3 rounded-lg",
                           "cursor-grab active:cursor-grabbing",
                           "transition-all hover:scale-102",
-                          colors.bg,
-                          "border",
-                          colors.border,
-                          "hover:shadow-sm"
+                          "border-2",
+                          nodeColors?.bg || 'bg-white',
+                          nodeColors?.border || 'border-gray-200',
+                          "hover:shadow-md hover:border-opacity-80"
                         )}
                       >
-                        <Icon className={cn("w-4 h-4 flex-shrink-0", colors.icon)} />
-                        <span className="text-sm font-medium text-foreground">{label}</span>
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center",
+                          nodeColors?.bg || 'bg-gray-100',
+                          nodeColors?.border || 'border border-gray-200'
+                        )}>
+                          <Icon className={cn("w-4 h-4", nodeColors?.icon || 'text-gray-600')} />
+                        </div>
+                        <div className="flex-1">
+                          <span className={cn("text-sm font-medium", nodeColors?.text || 'text-foreground')}>
+                            {node.label}
+                          </span>
+                        </div>
                       </div>
                     );
                   })}

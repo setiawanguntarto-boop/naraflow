@@ -10,7 +10,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
-import { Trash2, Info, Waves, Minus, Square, Move, Zap, Settings2, Tag, CheckCircle, XCircle, AlertTriangle, GitBranch } from 'lucide-react';
+import { Trash2, Info, Waves, Minus, Square, Move, Zap, Tag, CheckCircle, XCircle, AlertTriangle, GitBranch } from 'lucide-react';
 import { toast } from 'sonner';
 import { EdgeConditionType } from '@/types/workflow';
 
@@ -112,7 +112,7 @@ export const EdgeContextMenu = ({ edge, onDeleteEdge, onUpdateEdge, children }: 
       <ContextMenuTrigger asChild>
         {children}
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-56">
+      <ContextMenuContent className="w-56 bg-white border border-gray-200 shadow-lg">
         <ContextMenuItem onClick={handleAddLabel}>
           <Tag className="w-4 h-4 mr-2" />
           {edge.data?.label ? 'Edit Label' : 'Add Label'}
@@ -125,7 +125,7 @@ export const EdgeContextMenu = ({ edge, onDeleteEdge, onUpdateEdge, children }: 
             <GitBranch className="w-4 h-4 mr-2" />
             Condition Type
           </ContextMenuSubTrigger>
-          <ContextMenuSubContent>
+          <ContextMenuSubContent className="bg-white border border-gray-200 shadow-lg">
             <ContextMenuItem onClick={() => handleConditionChange('default')}>
               <div className="w-4 h-0.5 bg-gray-500 mr-2" />
               Default Flow
@@ -151,10 +151,9 @@ export const EdgeContextMenu = ({ edge, onDeleteEdge, onUpdateEdge, children }: 
         
         <ContextMenuSub>
           <ContextMenuSubTrigger>
-            <Settings2 className="w-4 h-4 mr-2" />
             Edge Type
           </ContextMenuSubTrigger>
-          <ContextMenuSubContent>
+          <ContextMenuSubContent className="bg-white border border-gray-200 shadow-lg">
             <ContextMenuItem 
               onClick={() => handleEdgeTypeChange('smoothstep')}
               className={currentType === 'smoothstep' ? 'bg-brand-primary/10' : ''}
@@ -188,10 +187,9 @@ export const EdgeContextMenu = ({ edge, onDeleteEdge, onUpdateEdge, children }: 
 
         <ContextMenuSub>
           <ContextMenuSubTrigger>
-            <Settings2 className="w-4 h-4 mr-2" />
             Line Style
           </ContextMenuSubTrigger>
-          <ContextMenuSubContent>
+          <ContextMenuSubContent className="bg-white border border-gray-200 shadow-lg">
             <ContextMenuItem 
               onClick={() => handleLineStyleChange('solid')}
               className={currentStyle === 'solid' ? 'bg-brand-primary/10' : ''}

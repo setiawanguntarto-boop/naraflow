@@ -1,4 +1,4 @@
-import { Settings2, Waves, Minus, Square, Move, Zap, CheckCircle, XCircle, AlertTriangle, GitBranch } from 'lucide-react';
+import { Waves, Minus, Square, Move, Zap, CheckCircle, XCircle, AlertTriangle, GitBranch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -59,7 +59,6 @@ export const EdgeSettingsPanel = () => {
   return (
     <div className="h-full bg-card border-l border-border-light p-4 overflow-y-auto">
       <div className="flex items-center gap-2 mb-4">
-        <Settings2 className="w-5 h-5 text-brand-primary" />
         <h3 className="font-semibold text-foreground">Edge Settings</h3>
       </div>
 

@@ -1,0 +1,115 @@
+{
+  "version": "1.0.0",
+  "name": "Sales & CRM Pack",
+  "description": "Specialized nodes for sales automation and customer relationship management",
+  "category": "sales",
+  "nodes": {
+    "lead_scorer": {
+      "id": "lead_scorer",
+      "displayName": "Lead Scorer",
+      "category": "processing",
+      "description": "Score leads based on engagement, demographics, and behavior patterns",
+      "inputType": "lead_data",
+      "outputType": "score",
+      "defaultConnections": ["lead.hot", "lead.warm", "lead.cold"],
+      "exampleUseCase": "Score sales leads from website visits and email interactions",
+      "icon": "target",
+      "color": "#8B5CF6",
+      "scoring_factors": {
+        "engagement_score": "number",
+        "demographic_match": "number",
+        "behavior_pattern": "string",
+        "company_size": "string"
+      }
+    },
+    "follow_up_scheduler": {
+      "id": "follow_up_scheduler",
+      "displayName": "Follow-up Scheduler",
+      "category": "processing",
+      "description": "Schedule optimal follow-up times based on customer behavior and preferences",
+      "inputType": "customer_data",
+      "outputType": "schedule",
+      "defaultConnections": ["followup.scheduled", "followup.immediate", "followup.delayed"],
+      "exampleUseCase": "Schedule follow-up calls based on customer timezone and response patterns",
+      "icon": "clock",
+      "color": "#8B5CF6",
+      "factors": {
+        "last_interaction": "datetime",
+        "response_time": "number",
+        "timezone": "string",
+        "preferred_contact": "string"
+      }
+    },
+    "deal_predictor": {
+      "id": "deal_predictor",
+      "displayName": "Deal Predictor",
+      "category": "processing",
+      "description": "Predict deal closure probability based on sales stage and interactions",
+      "inputType": "deal_data",
+      "outputType": "probability",
+      "defaultConnections": ["deal.high_probability", "deal.medium_probability", "deal.low_probability"],
+      "exampleUseCase": "Predict likelihood of closing enterprise software deals",
+      "icon": "trending-up",
+      "color": "#8B5CF6",
+      "indicators": {
+        "sales_stage": "string",
+        "interaction_count": "number",
+        "decision_maker_engagement": "number",
+        "budget_confirmed": "boolean"
+      }
+    },
+    "customer_segmenter": {
+      "id": "customer_segmenter",
+      "displayName": "Customer Segmenter",
+      "category": "processing",
+      "description": "Segment customers based on value, behavior, and characteristics",
+      "inputType": "customer_data",
+      "outputType": "segment",
+      "defaultConnections": ["segment.vip", "segment.regular", "segment.at_risk"],
+      "exampleUseCase": "Segment customers for targeted marketing campaigns",
+      "icon": "users",
+      "color": "#8B5CF6",
+      "criteria": {
+        "lifetime_value": "number",
+        "purchase_frequency": "number",
+        "engagement_score": "number",
+        "company_size": "string"
+      }
+    },
+    "sales_report_generator": {
+      "id": "sales_report_generator",
+      "displayName": "Sales Report Generator",
+      "category": "output",
+      "description": "Generate comprehensive sales reports with KPIs and trends",
+      "inputType": "sales_data",
+      "outputType": "report",
+      "defaultConnections": ["report.generated", "report.failed"],
+      "exampleUseCase": "Generate monthly sales performance report for management",
+      "icon": "bar-chart",
+      "color": "#10B981",
+      "metrics": {
+        "revenue": "number",
+        "deals_closed": "number",
+        "conversion_rate": "number",
+        "average_deal_size": "number"
+      }
+    },
+    "appointment_reminder": {
+      "id": "appointment_reminder",
+      "displayName": "Appointment Reminder",
+      "category": "output",
+      "description": "Send automated appointment reminders via WhatsApp",
+      "inputType": "appointment_data",
+      "outputType": "confirmation",
+      "defaultConnections": ["reminder.sent", "reminder.failed"],
+      "exampleUseCase": "Send WhatsApp reminders for sales meetings and demos",
+      "icon": "calendar",
+      "color": "#10B981",
+      "timing": {
+        "24_hours_before": "boolean",
+        "2_hours_before": "boolean",
+        "custom_timing": "number"
+      }
+    }
+  }
+}

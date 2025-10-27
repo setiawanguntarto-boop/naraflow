@@ -4,11 +4,18 @@ import { NaraflowLogo } from "./ui/icons";
 import { Button } from "./ui/button-extended";
 import { useLanguage } from "@/hooks/use-language";
 import { LanguageSwitcher } from "./language-switcher";
+import { useWorkflowState } from "@/hooks/useWorkflowState";
+import { LlamaConnectionPanel } from "./LlamaConnectionPanel";
+import { ResponsibleAIPanel } from "./Settings/ResponsibleAIPanel";
+import { Shield, Wifi, WifiOff, Loader2 } from "lucide-react";
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showLlamaPanel, setShowLlamaPanel] = useState(false);
+  const [showResponsibleAIPanel, setShowResponsibleAIPanel] = useState(false);
   const {
     t
   } = useLanguage();
+  const { llamaConfig } = useWorkflowState();
   const navItems = [{
     href: "/about",
     label: t('nav.about'),
@@ -109,9 +116,40 @@ export const Header = () => {
                 </Link>)}
           </nav>
 
-          {/* Right side - Language switcher and CTA */}
+          {/* Right side - Language switcher, LLaMA status, and CTA */}
           <div className="hidden lg:flex items-center gap-4">
             <LanguageSwitcher />
+            
+            {/* LLaMA Status Indicator */}
+            <button
+              onClick={() => setShowLlamaPanel(true)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                llamaConfig.llamaStatus === 'connected' 
+                  ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                  : llamaConfig.llamaStatus === 'checking'
+                  ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                  : 'bg-red-100 text-red-700 hover:bg-red-200'
+              }`}
+            >
+              {llamaConfig.llamaStatus === 'checking' ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : llamaConfig.llamaStatus === 'connected' ? (
+                <Wifi className="w-3 h-3" />
+              ) : (
+                <WifiOff className="w-3 h-3" />
+              )}
+              {llamaConfig.mode === 'local' ? 'Local LLaMA' : 'Cloud LLaMA'}
+            </button>
+
+            {/* Responsible AI Button */}
+            <button
+              onClick={() => setShowResponsibleAIPanel(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+            >
+              <Shield className="w-3 h-3" />
+              AI Ethics
+            </button>
+            
             <Button variant="primary" asChild>
               <Link to="/contact">{t('nav.contact')}</Link>
             </Button>
@@ -142,5 +180,17 @@ export const Header = () => {
             </div>
           </nav>}
       </div>
+
+      {/* LLaMA Connection Panel */}
+      <LlamaConnectionPanel
+        open={showLlamaPanel}
+        onOpenChange={setShowLlamaPanel}
+      />
+
+      {/* Responsible AI Panel */}
+      <ResponsibleAIPanel
+        open={showResponsibleAIPanel}
+        onOpenChange={setShowResponsibleAIPanel}
+      />
     </header>;
 };

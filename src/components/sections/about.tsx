@@ -1,6 +1,6 @@
 import { SectionHeader } from "@/components/section-header";
 import { useLanguage } from "@/hooks/use-language";
-import { FileX, Smartphone, MessageSquare, Eye, CheckCircle2, Sprout, Waves } from "lucide-react";
+import { FileX, Smartphone, MessageSquare, CheckCircle2, Sprout, Waves } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const About = () => {
@@ -69,7 +69,7 @@ export const About = () => {
           <Card className="border-border-light hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
             <CardContent className="p-8 text-center">
               <div className="bg-brand-primary/10 text-brand-primary w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5">
-                <Eye className="w-7 h-7" />
+                <CheckCircle2 className="w-7 h-7" />
               </div>
               <h3 className="text-2xl font-bold text-foreground mb-4">{t('about.vision.title')}</h3>
               <p className="text-foreground-muted leading-relaxed text-lg">

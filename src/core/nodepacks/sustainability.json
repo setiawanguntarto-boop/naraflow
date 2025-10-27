@@ -1,0 +1,116 @@
+{
+  "version": "1.0.0",
+  "name": "Sustainability Pack",
+  "description": "Specialized nodes for environmental monitoring and sustainability workflows",
+  "category": "sustainability",
+  "nodes": {
+    "carbon_footprint_calculator": {
+      "id": "carbon_footprint_calculator",
+      "displayName": "Carbon Footprint Calculator",
+      "category": "processing",
+      "description": "Calculate carbon footprint based on energy consumption and activities",
+      "inputType": "energy_data",
+      "outputType": "footprint",
+      "defaultConnections": ["footprint.calculated", "footprint.error"],
+      "exampleUseCase": "Calculate farm carbon footprint from energy and fuel usage",
+      "icon": "leaf",
+      "color": "#8B5CF6",
+      "factors": {
+        "electricity_usage": "number",
+        "fuel_consumption": "number",
+        "waste_production": "number",
+        "transportation": "number"
+      }
+    },
+    "waste_tracker": {
+      "id": "waste_tracker",
+      "displayName": "Waste Tracker",
+      "category": "processing",
+      "description": "Track waste production and recycling rates",
+      "inputType": "waste_data",
+      "outputType": "tracking_report",
+      "defaultConnections": ["waste.tracked", "waste.target_met", "waste.target_missed"],
+      "exampleUseCase": "Track waste bank transactions and recycling efficiency",
+      "icon": "recycle",
+      "color": "#8B5CF6",
+      "metrics": {
+        "waste_produced": "number",
+        "waste_recycled": "number",
+        "recycling_rate": "number",
+        "waste_type": "array"
+      }
+    },
+    "energy_monitor": {
+      "id": "energy_monitor",
+      "displayName": "Energy Monitor",
+      "category": "processing",
+      "description": "Monitor energy consumption and identify optimization opportunities",
+      "inputType": "energy_data",
+      "outputType": "efficiency_report",
+      "defaultConnections": ["energy.efficient", "energy.inefficient", "energy.critical"],
+      "exampleUseCase": "Monitor solar panel efficiency and energy consumption patterns",
+      "icon": "zap",
+      "color": "#8B5CF6",
+      "parameters": {
+        "consumption_rate": "number",
+        "generation_rate": "number",
+        "efficiency_score": "number",
+        "peak_hours": "array"
+      }
+    },
+    "water_conservation_analyzer": {
+      "id": "water_conservation_analyzer",
+      "displayName": "Water Conservation Analyzer",
+      "category": "processing",
+      "description": "Analyze water usage patterns and conservation opportunities",
+      "inputType": "water_data",
+      "outputType": "conservation_plan",
+      "defaultConnections": ["water.efficient", "water.conservation_needed", "water.critical"],
+      "exampleUseCase": "Analyze hotel water usage and recommend conservation measures",
+      "icon": "droplets",
+      "color": "#8B5CF6",
+      "analysis": {
+        "usage_patterns": "array",
+        "conservation_potential": "number",
+        "leak_detection": "boolean",
+        "efficiency_score": "number"
+      }
+    },
+    "sustainability_reporter": {
+      "id": "sustainability_reporter",
+      "displayName": "Sustainability Reporter",
+      "category": "output",
+      "description": "Generate sustainability reports and ESG metrics",
+      "inputType": "sustainability_data",
+      "outputType": "report",
+      "defaultConnections": ["report.generated", "report.failed"],
+      "exampleUseCase": "Generate monthly sustainability report for stakeholders",
+      "icon": "file-text",
+      "color": "#10B981",
+      "metrics": {
+        "carbon_reduction": "number",
+        "energy_efficiency": "number",
+        "waste_reduction": "number",
+        "renewable_energy_percentage": "number"
+      }
+    },
+    "eco_alert_system": {
+      "id": "eco_alert_system",
+      "displayName": "Eco Alert System",
+      "category": "output",
+      "description": "Send alerts for environmental thresholds and sustainability goals",
+      "inputType": "environmental_data",
+      "outputType": "alert",
+      "defaultConnections": ["alert.sent", "alert.escalated"],
+      "exampleUseCase": "Alert when energy consumption exceeds sustainability targets",
+      "icon": "alert-triangle",
+      "color": "#10B981",
+      "thresholds": {
+        "energy_limit": "number",
+        "waste_limit": "number",
+        "water_limit": "number",
+        "carbon_limit": "number"
+      }
+    }
+  }
+}

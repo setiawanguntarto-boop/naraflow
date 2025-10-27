@@ -1,0 +1,428 @@
+{
+  "version": "1.0.0",
+  "description": "Master Connection Label Library for Naraflow Workflow Automation",
+  "categories": {
+    "flowControl": {
+      "title": "Flow Control",
+      "color": "#9CA3AF",
+      "labels": [
+        {
+          "id": "flow.start",
+          "displayName": "Start",
+          "category": "flowControl",
+          "color": "#9CA3AF",
+          "description": "Entry point of the workflow",
+          "direction": "forward"
+        },
+        {
+          "id": "flow.complete",
+          "displayName": "Complete",
+          "category": "flowControl",
+          "color": "#9CA3AF",
+          "description": "Marks successful completion of a path",
+          "direction": "forward"
+        },
+        {
+          "id": "flow.end",
+          "displayName": "End",
+          "category": "flowControl",
+          "color": "#9CA3AF",
+          "description": "Terminates workflow",
+          "direction": "forward"
+        },
+        {
+          "id": "flow.abort",
+          "displayName": "Abort",
+          "category": "flowControl",
+          "color": "#9CA3AF",
+          "description": "Stops workflow due to failure or user cancel",
+          "direction": "forward"
+        }
+      ]
+    },
+    "userInteraction": {
+      "title": "User Interaction",
+      "color": "#3B82F6",
+      "labels": [
+        {
+          "id": "user.ready",
+          "displayName": "User Ready",
+          "category": "userInteraction",
+          "color": "#3B82F6",
+          "description": "User has confirmed readiness to continue",
+          "direction": "forward"
+        },
+        {
+          "id": "user.confirmed",
+          "displayName": "User Confirmed",
+          "category": "userInteraction",
+          "color": "#3B82F6",
+          "description": "User agreed to prompt",
+          "direction": "forward"
+        },
+        {
+          "id": "user.declined",
+          "displayName": "User Declined",
+          "category": "userInteraction",
+          "color": "#3B82F6",
+          "description": "User opted out of next step",
+          "direction": "forward"
+        },
+        {
+          "id": "user.response",
+          "displayName": "User Response",
+          "category": "userInteraction",
+          "color": "#3B82F6",
+          "description": "User provided input or response",
+          "direction": "forward"
+        }
+      ]
+    },
+    "aiAutomation": {
+      "title": "AI & Automation",
+      "color": "#8B5CF6",
+      "labels": [
+        {
+          "id": "ai.send",
+          "displayName": "Send to AI",
+          "category": "aiAutomation",
+          "color": "#8B5CF6",
+          "description": "Forward data to AI processor",
+          "direction": "forward"
+        },
+        {
+          "id": "ai.result",
+          "displayName": "AI Result",
+          "category": "aiAutomation",
+          "color": "#8B5CF6",
+          "description": "Return from AI node",
+          "direction": "forward"
+        },
+        {
+          "id": "ai.classify",
+          "displayName": "Classify as",
+          "category": "aiAutomation",
+          "color": "#8B5CF6",
+          "description": "AI classification output",
+          "direction": "forward"
+        },
+        {
+          "id": "analysis.complete",
+          "displayName": "Analysis Complete",
+          "category": "aiAutomation",
+          "color": "#8B5CF6",
+          "description": "AI analysis finished successfully",
+          "direction": "forward"
+        },
+        {
+          "id": "analysis.failed",
+          "displayName": "Analysis Failed",
+          "category": "aiAutomation",
+          "color": "#8B5CF6",
+          "description": "AI analysis encountered an error",
+          "direction": "forward"
+        }
+      ]
+    },
+    "logicRouting": {
+      "title": "Logic & Routing",
+      "color": "#EAB308",
+      "labels": [
+        {
+          "id": "logic.yes",
+          "displayName": "Yes",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Conditional path — true branch",
+          "direction": "forward"
+        },
+        {
+          "id": "logic.no",
+          "displayName": "No",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Conditional path — false branch",
+          "direction": "forward"
+        },
+        {
+          "id": "logic.highPriority",
+          "displayName": "High Priority",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "AI classified input as high priority",
+          "direction": "forward"
+        },
+        {
+          "id": "logic.standard",
+          "displayName": "Standard",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Default or normal route",
+          "direction": "forward"
+        },
+        {
+          "id": "decision.yes",
+          "displayName": "Decision: Yes",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Decision evaluated to true",
+          "direction": "forward"
+        },
+        {
+          "id": "decision.no",
+          "displayName": "Decision: No",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Decision evaluated to false",
+          "direction": "forward"
+        }
+      ]
+    },
+    "dataProcessing": {
+      "title": "Data Processing",
+      "color": "#A855F7",
+      "labels": [
+        {
+          "id": "data.processed",
+          "displayName": "Processed",
+          "category": "dataProcessing",
+          "color": "#A855F7",
+          "description": "Data processed successfully",
+          "direction": "forward"
+        },
+        {
+          "id": "data.transformed",
+          "displayName": "Transformed",
+          "category": "dataProcessing",
+          "color": "#A855F7",
+          "description": "Data structure changed",
+          "direction": "forward"
+        },
+        {
+          "id": "data.filtered",
+          "displayName": "Filtered",
+          "category": "dataProcessing",
+          "color": "#A855F7",
+          "description": "Filtered subset passed through",
+          "direction": "forward"
+        },
+        {
+          "id": "data.validated",
+          "displayName": "Validated",
+          "category": "dataProcessing",
+          "color": "#A855F7",
+          "description": "Data validation completed",
+          "direction": "forward"
+        },
+        {
+          "id": "data.received",
+          "displayName": "Data Received",
+          "category": "dataProcessing",
+          "color": "#A855F7",
+          "description": "Data successfully received from source",
+          "direction": "forward"
+        },
+        {
+          "id": "calculation.complete",
+          "displayName": "Calculation Complete",
+          "category": "dataProcessing",
+          "color": "#A855F7",
+          "description": "Mathematical calculation finished",
+          "direction": "forward"
+        },
+        {
+          "id": "calculation.error",
+          "displayName": "Calculation Error",
+          "category": "dataProcessing",
+          "color": "#A855F7",
+          "description": "Calculation encountered an error",
+          "direction": "forward"
+        }
+      ]
+    },
+    "notifications": {
+      "title": "Notifications",
+      "color": "#10B981",
+      "labels": [
+        {
+          "id": "notify.user",
+          "displayName": "Notify User",
+          "category": "notifications",
+          "color": "#10B981",
+          "description": "Send user notification",
+          "direction": "forward"
+        },
+        {
+          "id": "notify.admin",
+          "displayName": "Notify Admin",
+          "category": "notifications",
+          "color": "#10B981",
+          "description": "Send admin notification",
+          "direction": "forward"
+        },
+        {
+          "id": "alert.triggered",
+          "displayName": "Alert Triggered",
+          "category": "notifications",
+          "color": "#10B981",
+          "description": "Trigger alert event",
+          "direction": "forward"
+        },
+        {
+          "id": "message.sent",
+          "displayName": "Message Sent",
+          "category": "notifications",
+          "color": "#10B981",
+          "description": "Message successfully sent",
+          "direction": "forward"
+        },
+        {
+          "id": "message.failed",
+          "displayName": "Message Failed",
+          "category": "notifications",
+          "color": "#10B981",
+          "description": "Message sending failed",
+          "direction": "forward"
+        }
+      ]
+    },
+    "integration": {
+      "title": "Integration Hooks",
+      "color": "#F97316",
+      "labels": [
+        {
+          "id": "api.send",
+          "displayName": "Send to API",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "Push data to external API",
+          "direction": "forward"
+        },
+        {
+          "id": "api.receive",
+          "displayName": "Receive Update",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "Webhook or data callback received",
+          "direction": "forward"
+        },
+        {
+          "id": "db.save",
+          "displayName": "Save to Database",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "Commit data to DB",
+          "direction": "forward"
+        },
+        {
+          "id": "data.fetched",
+          "displayName": "Data Fetched",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "External data retrieved successfully",
+          "direction": "forward"
+        },
+        {
+          "id": "fetch.failed",
+          "displayName": "Fetch Failed",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "External data fetch failed",
+          "direction": "forward"
+        },
+        {
+          "id": "records.saved",
+          "displayName": "Records Saved",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "Data successfully saved to storage",
+          "direction": "forward"
+        },
+        {
+          "id": "records.failed",
+          "displayName": "Records Failed",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "Data save operation failed",
+          "direction": "forward"
+        }
+      ]
+    },
+    "errorHandling": {
+      "title": "Error Handling",
+      "color": "#EF4444",
+      "labels": [
+        {
+          "id": "error.retry",
+          "displayName": "Retry",
+          "category": "errorHandling",
+          "color": "#EF4444",
+          "description": "Retry operation after error",
+          "direction": "forward"
+        },
+        {
+          "id": "error.alert",
+          "displayName": "Alert",
+          "category": "errorHandling",
+          "color": "#EF4444",
+          "description": "Send alert for error",
+          "direction": "forward"
+        },
+        {
+          "id": "error.abort",
+          "displayName": "Abort",
+          "category": "errorHandling",
+          "color": "#EF4444",
+          "description": "Abort workflow due to error",
+          "direction": "forward"
+        },
+        {
+          "id": "error.escalated",
+          "displayName": "Escalated",
+          "category": "errorHandling",
+          "color": "#EF4444",
+          "description": "Error escalated to supervisor",
+          "direction": "forward"
+        },
+        {
+          "id": "sensor.error",
+          "displayName": "Sensor Error",
+          "category": "errorHandling",
+          "color": "#EF4444",
+          "description": "IoT sensor communication failed",
+          "direction": "forward"
+        }
+      ]
+    },
+    "timing": {
+      "title": "Timing",
+      "color": "#8B5CF6",
+      "labels": [
+        {
+          "id": "wait.complete",
+          "displayName": "Wait Complete",
+          "category": "timing",
+          "color": "#8B5CF6",
+          "description": "Wait period completed",
+          "direction": "forward"
+        },
+        {
+          "id": "wait.timeout",
+          "displayName": "Wait Timeout",
+          "category": "timing",
+          "color": "#8B5CF6",
+          "description": "Wait period timed out",
+          "direction": "forward"
+        },
+        {
+          "id": "schedule.ready",
+          "displayName": "Schedule Ready",
+          "category": "timing",
+          "color": "#8B5CF6",
+          "description": "Scheduled time reached",
+          "direction": "forward"
+        }
+      ]
+    }
+  }
+}

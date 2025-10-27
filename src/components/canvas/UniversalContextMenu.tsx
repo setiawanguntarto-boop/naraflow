@@ -38,7 +38,7 @@ export const UniversalContextMenu = ({ menu, onClose }: UniversalContextMenuProp
       className="animate-in fade-in-0 zoom-in-95 duration-200"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="w-56 rounded-md border border-border bg-popover p-1 shadow-md">
+      <div className="w-56 rounded-md border border-gray-200 bg-white p-1 shadow-lg">
         {menu.items.map((item, idx) => (
           <div key={idx}>
             {item.label === '---' ? (

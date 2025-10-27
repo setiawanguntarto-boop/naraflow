@@ -199,7 +199,7 @@ export const TipiShowcase = () => {
             </div>
             
             <div className="bg-gradient-to-br from-brand-primary to-brand-primary/80 p-6 rounded-2xl shadow-elegant border border-brand-primary/20 hover:shadow-glow transition-all duration-300">
-              <div className="text-4xl mb-4">⚙️</div>
+              <div className="text-4xl mb-4">📱</div>
               <h4 className="text-xl font-bold text-white mb-2">Desain Kompak</h4>
               <p className="text-white/90">82.6 x 86 x 25 mm - mudah dipasang di berbagai lokasi</p>
             </div>

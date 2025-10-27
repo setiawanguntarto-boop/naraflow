@@ -1,0 +1,116 @@
+{
+  "version": "1.0.0",
+  "name": "Hospitality Pack",
+  "description": "Specialized nodes for hotel and hospitality management workflows",
+  "category": "hospitality",
+  "nodes": {
+    "room_status_tracker": {
+      "id": "room_status_tracker",
+      "displayName": "Room Status Tracker",
+      "category": "processing",
+      "description": "Track and update room status (occupied, vacant, cleaning, maintenance)",
+      "inputType": "room_data",
+      "outputType": "status",
+      "defaultConnections": ["room.occupied", "room.vacant", "room.cleaning", "room.maintenance"],
+      "exampleUseCase": "Track hotel room status and coordinate housekeeping",
+      "icon": "home",
+      "color": "#8B5CF6",
+      "statuses": {
+        "occupied": "Guest currently in room",
+        "vacant": "Room available for check-in",
+        "cleaning": "Housekeeping in progress",
+        "maintenance": "Room under repair"
+      }
+    },
+    "guest_preference_analyzer": {
+      "id": "guest_preference_analyzer",
+      "displayName": "Guest Preference Analyzer",
+      "category": "processing",
+      "description": "Analyze guest preferences and behavior for personalized service",
+      "inputType": "guest_data",
+      "outputType": "preferences",
+      "defaultConnections": ["preferences.analyzed", "preferences.insufficient_data"],
+      "exampleUseCase": "Analyze guest preferences for room upgrades and amenities",
+      "icon": "user-check",
+      "color": "#8B5CF6",
+      "preferences": {
+        "room_type": "string",
+        "floor_preference": "string",
+        "amenities": "array",
+        "dining_preferences": "array"
+      }
+    },
+    "cleaning_scheduler": {
+      "id": "cleaning_scheduler",
+      "displayName": "Cleaning Scheduler",
+      "category": "processing",
+      "description": "Schedule room cleaning based on check-out times and occupancy",
+      "inputType": "cleaning_data",
+      "outputType": "schedule",
+      "defaultConnections": ["cleaning.scheduled", "cleaning.urgent", "cleaning.delayed"],
+      "exampleUseCase": "Schedule housekeeping based on check-out times and room priority",
+      "icon": "sparkles",
+      "color": "#8B5CF6",
+      "factors": {
+        "checkout_time": "datetime",
+        "room_type": "string",
+        "guest_status": "string",
+        "cleaning_duration": "number"
+      }
+    },
+    "revenue_optimizer": {
+      "id": "revenue_optimizer",
+      "displayName": "Revenue Optimizer",
+      "category": "processing",
+      "description": "Optimize room rates and inventory based on demand and seasonality",
+      "inputType": "revenue_data",
+      "outputType": "recommendations",
+      "defaultConnections": ["revenue.optimized", "revenue.no_change_needed"],
+      "exampleUseCase": "Optimize room rates based on occupancy and seasonal demand",
+      "icon": "dollar-sign",
+      "color": "#8B5CF6",
+      "factors": {
+        "occupancy_rate": "number",
+        "seasonal_demand": "number",
+        "competitor_rates": "number",
+        "event_calendar": "array"
+      }
+    },
+    "guest_feedback_processor": {
+      "id": "guest_feedback_processor",
+      "displayName": "Guest Feedback Processor",
+      "category": "processing",
+      "description": "Process and analyze guest feedback for service improvement",
+      "inputType": "feedback_data",
+      "outputType": "insights",
+      "defaultConnections": ["feedback.positive", "feedback.neutral", "feedback.negative"],
+      "exampleUseCase": "Analyze guest reviews and identify areas for improvement",
+      "icon": "message-square",
+      "color": "#8B5CF6",
+      "analysis": {
+        "sentiment_score": "number",
+        "key_themes": "array",
+        "improvement_areas": "array",
+        "satisfaction_rating": "number"
+      }
+    },
+    "concierge_assistant": {
+      "id": "concierge_assistant",
+      "displayName": "Concierge Assistant",
+      "category": "output",
+      "description": "Send personalized recommendations and assistance via WhatsApp",
+      "inputType": "guest_request",
+      "outputType": "assistance",
+      "defaultConnections": ["assistance.provided", "assistance.escalated"],
+      "exampleUseCase": "Send restaurant recommendations and local activity suggestions",
+      "icon": "headphones",
+      "color": "#10B981",
+      "services": {
+        "restaurant_recommendations": "array",
+        "local_attractions": "array",
+        "transportation": "array",
+        "special_requests": "array"
+      }
+    }
+  }
+}

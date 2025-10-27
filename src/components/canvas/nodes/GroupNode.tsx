@@ -28,19 +28,19 @@ export const GroupNode = memo(({ id, data, selected }: NodeProps) => {
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 !bg-brand-primary border-2 border-background"
-        style={{ top: '50%' }}
+        className="w-5 h-5 !bg-brand-primary border-2 border-background cursor-pointer"
+        style={{ top: '50%', width: '16px', height: '16px' }}
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 !bg-brand-primary border-2 border-background"
-        style={{ top: '50%' }}
+        className="w-5 h-5 !bg-brand-primary border-2 border-background cursor-pointer"
+        style={{ top: '50%', width: '16px', height: '16px' }}
       />
       
       {/* Description */}
       {data.description && (
-        <div className="absolute bottom-2 left-2 right-2 text-xs text-foreground-muted bg-card/50 p-2 rounded">
+        <div className="absolute bottom-2 left-2 right-2 text-xs text-foreground bg-card/80 p-2 rounded border border-border">
           {String(data.description)}
         </div>
       )}

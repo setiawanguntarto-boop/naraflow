@@ -1,4 +1,4 @@
-import { MapPin, Database, Wifi, CheckSquare, FileText, Send, HelpCircle, Folder } from 'lucide-react';
+import { MapPin, Database, Wifi, CheckSquare, FileText, Send, HelpCircle, Folder, Sparkles } from 'lucide-react';
 import { Node } from '@xyflow/react';
 import { NODE_COLORS, NodeIconType } from '@/types/workflow';
 
@@ -10,6 +10,7 @@ const toolboxItems = [
   { label: 'Buat PDF', icon: 'file-text', IconComponent: FileText, type: 'default' },
   { label: 'Notifikasi', icon: 'send', IconComponent: Send, type: 'default' },
   { label: 'Keputusan', icon: 'help-circle', IconComponent: HelpCircle, type: 'decision' },
+  { label: 'LLaMA Decision', icon: 'sparkles', IconComponent: Sparkles, type: 'llama-decision' },
   { label: 'Group', icon: 'folder', IconComponent: Folder, type: 'group' },
 ];
 
@@ -49,6 +50,8 @@ export const ToolboxPanel = () => {
               cursor-grab active:cursor-grabbing transition-all
               ${item.type === 'decision' 
                 ? 'bg-brand-secondary/10 hover:bg-brand-secondary/20 text-brand-secondary' 
+                : item.type === 'llama-decision'
+                ? 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400'
                 : item.type === 'group'
                 ? 'bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary'
                 : NODE_COLORS[item.icon as NodeIconType]?.toolbox || 'bg-surface-muted hover:bg-surface-muted/80 text-foreground'

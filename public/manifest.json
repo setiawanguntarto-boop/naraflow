@@ -1,0 +1,141 @@
+{
+  "name": "Naraflow - Workflow Studio",
+  "short_name": "Naraflow",
+  "description": "Build and manage workflow automations with AI-powered suggestions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "business", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/placeholder.svg",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Naraflow Workflow Studio Dashboard"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "750x1334",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Naraflow Mobile Interface"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Workflow",
+      "short_name": "New",
+      "description": "Create a new workflow",
+      "url": "/workflow-studio",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Template Marketplace",
+      "short_name": "Templates",
+      "description": "Browse workflow templates",
+      "url": "/workflow-studio?tab=templates",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Session Manager",
+      "short_name": "Sessions",
+      "description": "Manage your workflow sessions",
+      "url": "/workflow-studio?tab=sessions",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "protocol_handlers": [
+    {
+      "protocol": "web+naraflow",
+      "url": "/workflow-studio?import=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/workflow-studio",
+      "accept": {
+        "application/json": [".naraflow.json", ".json"]
+      }
+    }
+  ],
+  "share_target": {
+    "action": "/workflow-studio",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "workflow",
+          "accept": ["application/json", ".naraflow.json"]
+        }
+      ]
+    }
+  }
+}

@@ -1,45 +1,95 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Sparkles, Trash2, Smartphone, Edit3, Box, Settings2, Undo2, Redo2, Shield } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback, Suspense, lazy } from 'react';
+import { Sparkles, Trash2, Edit3, Box, Shield, Zap, Rocket, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Node, Edge, ReactFlowProvider } from '@xyflow/react';
-import { WorkflowCanvas } from '@/components/canvas/WorkflowCanvas';
-import { NodeLibrary } from '@/components/workflow/NodeLibrary';
-import { NodeConfigPanel } from '@/components/workflow/NodeConfigPanel';
-import { NodeExecutionPanel } from '@/components/workflow/NodeExecutionPanel';
-import { MetricsInputPanel } from '@/components/canvas/MetricsInputPanel';
-import { EdgeSettingsPanel } from '@/components/canvas/EdgeSettingsPanel';
-import { KeyboardShortcutsPanel } from '@/components/canvas/KeyboardShortcutsPanel';
-import { ValidationPanel } from '@/components/canvas/ValidationPanel';
-import { ExportImportPanel } from '@/components/canvas/ExportImportPanel';
-import { useWorkflowState } from '@/hooks/useWorkflowState';
+import { useWorkflowState, useNodes, useEdges, useWorkflowActions, useUIState } from '@/hooks/useWorkflowState';
 import { getIconForLabel } from '@/data/nodeIcons';
 import { WorkflowEngine } from '@/lib/workflowEngine';
 import { ExecutionResult } from '@/types/workflow';
+import { detectLocalLlama } from '@/lib/llamaClient';
+import { workflowPresets, WorkflowPreset } from '@/lib/templates/workflowPresets';
+import { workflowTemplates } from '@/lib/templates/workflowTemplates';
 import { toast } from 'sonner';
+import { usePromptInterpreter } from '@/hooks/usePromptInterpreter';
+import { useGenerationStore } from '@/store/generationStore';
+import { MentionInput } from '@/components/workflow/MentionInput';
+import { globalCanvasEventBus } from '@/hooks/useCanvasEventBus';
 import '@xyflow/react/dist/style.css';
-const scenarios = [
-  {
-    label: '💬 WhatsApp Welcome Flow',
-    prompt: 'Ask Input → WhatsApp Message → Process Data → WhatsApp Message'
-  },
-  {
-    label: '📊 Data Collection Flow',
-    prompt: 'Receive Update → Process Data → Filter Data → Report (PDF) → Email'
-  }
-];
+
+// Lazy load heavy components
+const WorkflowCanvas = lazy(() =>
+  import('@/components/canvas/WorkflowCanvas').then(mod => ({ default: mod.WorkflowCanvas }))
+);
+const NodeLibrary = lazy(() =>
+  import('@/components/workflow/NodeLibrary').then(mod => ({ default: mod.NodeLibrary }))
+);
+const NodeConfigPanel = lazy(() =>
+  import('@/components/workflow/NodeConfigPanel').then(mod => ({ default: mod.NodeConfigPanel }))
+);
+const NodeExecutionPanel = lazy(() =>
+  import('@/components/workflow/NodeExecutionPanel').then(mod => ({ default: mod.NodeExecutionPanel }))
+);
+const MetricsInputPanel = lazy(() =>
+  import('@/components/canvas/MetricsInputPanel').then(mod => ({ default: mod.MetricsInputPanel }))
+);
+const ValidationPanel = lazy(() =>
+  import('@/components/canvas/ValidationPanel').then(mod => ({ default: mod.ValidationPanel }))
+);
+const WorkflowAssistant = lazy(() =>
+  import('@/components/workflow/WorkflowAssistant').then(mod => ({ default: mod.WorkflowAssistant }))
+);
+const ExportImportPanel = lazy(() =>
+  import('@/components/canvas/ExportImportPanel').then(mod => ({ default: mod.ExportImportPanel }))
+);
+const LlamaConnectionPanel = lazy(() =>
+  import('@/components/LlamaConnectionPanel').then(mod => ({ default: mod.LlamaConnectionPanel }))
+);
+const GenerateWithLlamaButton = lazy(() =>
+  import('@/components/GenerateWithLlamaButton').then(mod => ({ default: mod.GenerateWithLlamaButton }))
+);
+const WorkflowPreviewModal = lazy(() =>
+  import('@/components/workflow/WorkflowPreviewModal').then(mod => ({ default: mod.WorkflowPreviewModal }))
+);
+const DeployAgentModal = lazy(() =>
+  import('@/components/workflow/DeployAgentModal').then(mod => ({ default: mod.DeployAgentModal }))
+);
+const ConfigurationPanel = lazy(() =>
+  import('@/components/workflow/ConfigurationPanel').then(mod => ({ default: mod.ConfigurationPanel }))
+);
+const WhatsAppSimulationPanel = lazy(() =>
+  import('@/components/workflow/WhatsAppSimulationPanel').then(mod => ({ default: mod.WhatsAppSimulationPanel }))
+);
+const FloatingChatButton = lazy(() =>
+  import('@/components/workflow/FloatingChatButton').then(mod => ({ default: mod.FloatingChatButton }))
+);
+
+// Loading component for canvas
+const CanvasLoader = () => (
+  <div className="flex-1 flex items-center justify-center bg-muted/20">
+    <div className="flex flex-col items-center space-y-4">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+      <p className="text-sm text-muted-foreground">Loading Canvas...</p>
+    </div>
+  </div>
+);
+
+// Loading component for panels
+const PanelLoader = () => (
+  <div className="w-80 bg-background border-l border-border flex items-center justify-center">
+    <div className="flex flex-col items-center space-y-2">
+      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-primary"></div>
+      <p className="text-xs text-muted-foreground">Loading...</p>
+    </div>
+  </div>
+);
+
+// Removed scenarios array for cleaner UX - templates now handled by Quick Templates section
 
 // Removed getIconForLabel - now using from @/data/nodeIcons
 const WorkflowStudioContent = () => {
   const [prompt, setPrompt] = useState('');
-  const [showEdgeSettings, setShowEdgeSettings] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{
-    content: string;
-    type: 'agent' | 'user';
-    showTyping?: boolean;
-  }>>([]);
-  const chatRef = useRef<HTMLDivElement>(null);
   
   // New state for config and execution panels
   const [configNode, setConfigNode] = useState<Node | null>(null);
@@ -47,154 +97,195 @@ const WorkflowStudioContent = () => {
   const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
   
-  const {
-    nodes,
-    edges,
-    setNodes,
-    setEdges,
-    onNodesChange,
-    onEdgesChange,
-    onConnect,
-    addNode,
-    clearCanvas: clearWorkflowCanvas,
-    selectedNode,
-    setSelectedNode,
-    updateNodeMetrics,
-    updateEdgeStyle,
-    deleteEdge,
-    copySelection,
-    pasteSelection,
-    duplicateSelection,
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-    showValidation,
-    toggleValidation,
+  // LLaMA connection panel state
+  const [showLlamaPanel, setShowLlamaPanel] = useState(false);
+  
+  // Deploy agent modal state
+  const [showDeployModal, setShowDeployModal] = useState(false);
+  
+  // Selected template from @mention
+  const [selectedTemplate, setSelectedTemplate] = useState<WorkflowPreset | null>(null);
+  
+  // Use new state management
+  const nodes = useNodes();
+  const edges = useEdges();
+  const uiState = useUIState();
+  const actions = useWorkflowActions();
+  const { 
+    llamaConfig,
+    validationErrors,
   } = useWorkflowState();
+  
+  // Prompt Interpreter hook
+  const {
+    interpret,
+    applyToCanvas,
+    exportJSON,
+    closePreview,
+    isInterpreting,
+    showPreview,
+    previewData,
+    analysis,
+    selectedTemplate: interpreterTemplate,
+    setSelectedTemplate: setInterpreterTemplate
+  } = usePromptInterpreter();
+  
+  // Zustand generation store for assistant communication
+  const {
+    pushMessage: pushAssistantMessage,
+  } = useGenerationStore();
   const extractSteps = (text: string): string[] => {
     return text.split(/→|->|,/).map(s => s.trim()).filter(Boolean);
   };
 
-  const generateWorkflow = useCallback(() => {
-    const steps = extractSteps(prompt);
-    if (steps.length === 0) return;
+  // Detect local LLaMA on startup
+  useEffect(() => {
+    const detectLocalLlamaOnStartup = async () => {
+      if (llamaConfig.mode === 'local' && llamaConfig.llamaStatus === 'disconnected') {
+        actions.setLlamaConfig({ llamaStatus: 'checking' });
+        
+        try {
+          const isLocalAvailable = await detectLocalLlama(llamaConfig.endpoint);
+          
+          if (isLocalAvailable) {
+            actions.setLlamaConfig({ 
+              llamaStatus: 'connected',
+              connected: true 
+            });
+            toast.success('Local LLaMA detected and connected');
+          } else {
+            actions.setLlamaConfig({ 
+              llamaStatus: 'disconnected',
+              connected: false 
+            });
+            toast.info('Local LLaMA not available - switch to cloud mode or start Ollama');
+          }
+        } catch (error) {
+          actions.setLlamaConfig({ 
+            llamaStatus: 'disconnected',
+            connected: false 
+          });
+          console.warn('Failed to detect local LLaMA:', error);
+        }
+      }
+    };
 
-    const newNodes: Node[] = [];
-    const newEdges: Edge[] = [];
+    detectLocalLlamaOnStartup();
+  }, []); // Run once on mount
 
-    // Add start node
-    newNodes.push({
-      id: 'start',
-      type: 'start',
-      position: { x: 100, y: 200 },
-      data: { label: 'Mulai' },
-    });
+  // Auto-validate workflow when nodes or edges change (if validation panel is visible)
+  useEffect(() => {
+    if (uiState.showValidation) {
+      actions.validateWorkflow();
+    }
+  }, [Object.keys(nodes).length, Object.keys(edges).length]); // Only depend on counts to avoid excessive re-validation
 
-    // Add step nodes
-    steps.forEach((label, i) => {
-      const nodeId = `node_${i}`;
-      newNodes.push({
-        id: nodeId,
-        type: 'default',
-        position: { x: 300 + i * 250, y: 200 },
-        data: { 
-          label,
-          icon: 'database',
-        },
-      });
-
-      // Connect to previous node
-      if (i === 0) {
-        newEdges.push({
-          id: `e-start-${nodeId}`,
-          source: 'start',
-          target: nodeId,
-          type: 'smoothstep',
-          animated: true,
-          style: { stroke: 'hsl(var(--brand-primary))', strokeWidth: 2 },
-        });
-      } else {
-        newEdges.push({
-          id: `e-node_${i - 1}-${nodeId}`,
-          source: `node_${i - 1}`,
-          target: nodeId,
-          type: 'smoothstep',
-          animated: true,
-          style: { stroke: 'hsl(var(--brand-primary))', strokeWidth: 2 },
+  // Send validation summary to WorkflowAssistant when validation runs
+  useEffect(() => {
+    if (validationErrors && validationErrors.length > 0) {
+      const errorCount = validationErrors.filter(e => e.type === 'error').length;
+      const warningCount = validationErrors.filter(e => e.type === 'warning').length;
+      
+      if (uiState.showValidation && errorCount > 0) {
+        pushAssistantMessage({
+          role: 'assistant',
+          text: `🔍 Validation Results:\n\nFound ${errorCount} error${errorCount !== 1 ? 's' : ''} and ${warningCount} warning${warningCount !== 1 ? 's' : ''} in your workflow.\n\nClick "Validate" to see detailed breakdown.`
         });
       }
-    });
+    }
+  }, [validationErrors.length, uiState.showValidation]);
 
-    // Add end node
-    newNodes.push({
-      id: 'end',
-      type: 'end',
-      position: { x: 300 + steps.length * 250, y: 200 },
-      data: { label: 'Selesai' },
-    });
+  // Listen for node config requests from ValidationPanel
+  useEffect(() => {
+    const handleConfigRequest = (event: any) => {
+      if (event.type === 'node:config-request' && event.payload?.nodeId) {
+        const nodeId = event.payload.nodeId;
+        const node = nodes[nodeId];
+        if (node) {
+          setConfigNode(node);
+        }
+      }
+    };
 
-    // Connect last step to end
-    if (steps.length > 0) {
-      newEdges.push({
-        id: `e-node_${steps.length - 1}-end`,
-        source: `node_${steps.length - 1}`,
-        target: 'end',
-        type: 'smoothstep',
-        animated: true,
-        style: { stroke: 'hsl(var(--brand-primary))', strokeWidth: 2 },
+    const unsubscribe = globalCanvasEventBus.subscribe(handleConfigRequest);
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [nodes]);
+
+  // Count errors (not warnings) for badge display
+  const errorCount = validationErrors?.filter(e => e.type === 'error').length || 0;
+
+  const generateWorkflow = useCallback(async () => {
+    if (!prompt.trim()) {
+      toast.error('Masukkan deskripsi workflow');
+      return;
+    }
+    
+    // Push user message to assistant
+    pushAssistantMessage({
+      role: 'user',
+      text: prompt
+    });
+    
+    // Acknowledge generation
+    pushAssistantMessage({
+      role: 'assistant',
+      text: 'Got it! Let me interpret your workflow... 🧠'
+    });
+    
+    // Use prompt interpreter with template context
+    await interpret(prompt, selectedTemplate);
+    
+    // After interpretation, show result if successful
+    if (previewData) {
+      pushAssistantMessage({
+        role: 'assistant',
+        text: `✅ Workflow generated successfully! I've created ${previewData.nodes.length} nodes. Would you like to apply it to the canvas?`
       });
     }
-
-    setNodes(newNodes);
-    setEdges(newEdges);
-    simulateChat(steps);
-  }, [prompt, setNodes, setEdges]);
+  }, [prompt, selectedTemplate, interpret, pushAssistantMessage, previewData]);
+  
+  const handleApplyToCanvas = useCallback(() => {
+    if (previewData) {
+      // Debug: Print edge data
+      console.log('📊 Preview Data:', {
+        nodeCount: previewData.nodes.length,
+        edgeCount: previewData.edges.length,
+        edges: previewData.edges,
+        nodes: previewData.nodes
+      });
+      
+      // Convert workflow output to React Flow format
+      const nodesRecord = Object.fromEntries(
+        previewData.nodes.map(node => [node.id, node])
+      );
+      const edgesRecord = Object.fromEntries(
+        previewData.edges.map(edge => [edge.id, edge])
+      );
+      
+      console.log('📊 Records:', {
+        nodeKeys: Object.keys(nodesRecord),
+        edgeKeys: Object.keys(edgesRecord),
+        edgesRecord
+      });
+      
+      actions.batchUpdate({
+        nodes: nodesRecord,
+        edges: edgesRecord
+      });
+      
+      // Close modal
+      closePreview();
+      toast.success('Workflow diterapkan ke canvas!');
+    }
+  }, [previewData, actions, closePreview]);
 
   const clearCanvas = useCallback(() => {
-    clearWorkflowCanvas();
+    actions.clearCanvas();
     setPrompt('');
-    setChatMessages([]);
-  }, [clearWorkflowCanvas]);
-  const simulateChat = useCallback((steps: string[]) => {
-    const messages: Array<{
-      content: string;
-      type: 'agent' | 'user';
-      showTyping?: boolean;
-      delay: number;
-    }> = [];
-    let delay = 0;
-
-    messages.push({
-      content: 'Hi! I\'m your WhatsApp automation agent. Let\'s get started!',
-      type: 'agent',
-      delay
-    });
-    delay += 1000;
-
-    steps.forEach((label, i) => {
-      messages.push({
-        content: `Step ${i + 1}: ${label}`,
-        type: 'agent',
-        showTyping: true,
-        delay
-      });
-      delay += 1500;
-      messages.push({
-        content: `✓ ${label} completed.`,
-        type: 'user',
-        delay
-      });
-      delay += 1000;
-    });
-
-    setChatMessages([]);
-    messages.forEach(msg => {
-      setTimeout(() => {
-        setChatMessages(prev => [...prev, msg]);
-      }, msg.delay);
-    });
-  }, []);
+  }, [actions]);
   const handleCanvasDrop = useCallback((nodeData: any, position: { x: number; y: number }) => {
     const newNode: Node = {
       id: `node_${Date.now()}`,
@@ -206,25 +297,27 @@ const WorkflowStudioContent = () => {
       },
     };
     
-    addNode(newNode);
-  }, [addNode]);
+          actions.addNode(newNode);
+  }, [actions.addNode]);
 
   const handleExecuteNode = useCallback(async () => {
     if (!executionNode) return;
     
     setIsExecuting(true);
     const engine = new WorkflowEngine();
-    const results = await engine.executeWorkflow(nodes, edges, executionNode.id);
+    const results = await engine.executeWorkflow(
+      nodes, 
+      edges, 
+      executionNode.id, 
+      llamaConfig, 
+      actions.appendLlamaLog
+    );
     setExecutionResult(results.get(executionNode.id) || null);
     setIsExecuting(false);
-  }, [executionNode, nodes, edges]);
+  }, [executionNode, nodes, edges, llamaConfig, actions.appendLlamaLog]);
 
-  useEffect(() => {
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    }
-  }, [chatMessages]);
-  return <section className="py-20 px-4 bg-background-soft">
+  return (
+    <section className="py-20 px-4 bg-background-soft">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -240,35 +333,90 @@ const WorkflowStudioContent = () => {
         </div>
 
         {/* Describe Workflow - Full Width */}
-        <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5 mb-6">
-          <h3 className="font-semibold text-foreground flex items-center gap-2">
-            <Edit3 className="w-5 h-5 text-brand-secondary" />
-            1. Describe Workflow
-          </h3>
-          <p className="text-sm text-foreground-muted mt-1">
-            Use prompts or ready-made scenarios to quickly generate a workflow.
-          </p>
-          <Textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="mt-4" rows={4} placeholder="Example: Ask Input → WhatsApp Message → Process Data → Notification" />
-          <div className="mt-3 flex flex-wrap gap-2">
-            {scenarios.map((scenario, idx) => <button key={idx} onClick={() => setPrompt(scenario.prompt)} className="bg-brand-secondary/10 text-brand-secondary hover:bg-brand-secondary/20 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
-                {scenario.label}
-              </button>)}
-          </div>
-          <div className="mt-4 flex items-center gap-2">
-            <Button onClick={generateWorkflow} className="flex-1 bg-brand-secondary hover:bg-brand-secondary-light text-white">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Generate
-            </Button>
-            <Button onClick={clearCanvas} variant="outline" size="icon" title="Clear Canvas">
-              <Trash2 className="w-4 h-4" />
-            </Button>
+        <div className="mb-6">
+          {/* Left: Prompt Input */}
+          <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5 flex flex-col h-[420px]">
+            {/* Header - Fixed */}
+            <div className="flex-shrink-0">
+              <h3 className="font-semibold text-foreground flex items-center gap-2 mb-1">
+                <Edit3 className="w-5 h-5 text-brand-secondary" />
+                1. Describe Workflow
+              </h3>
+              <p className="text-sm text-foreground-muted mb-4">
+                Describe your workflow in natural language or use the Quick Templates on the right.
+              </p>
+            </div>
+
+            {/* Content Area - Non-scrollable */}
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Mention Input */}
+              <div className="flex-1 min-h-0">
+                <MentionInput
+                  value={prompt}
+                  onChange={(value) => {
+                    setPrompt(value);
+                    // Also update interpreter template
+                    const mentionMatch = value.match(/@(\w+)/);
+                    if (mentionMatch && mentionMatch[1]) {
+                      const template = workflowPresets.find(p => p.id === mentionMatch[1]);
+                      if (template) setSelectedTemplate(template);
+                    }
+                  }}
+                  onTemplateSelect={(template) => {
+                    setSelectedTemplate(template);
+                    setInterpreterTemplate(template);
+                  }}
+                  placeholder="Describe your workflow in natural language..."
+                />
+              </div>
+            
+            {/* Active Template Badge */}
+            {selectedTemplate && (
+              <div className="mt-2 p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-sm">
+                <span className="text-indigo-700">
+                  Template aktif: <strong>{selectedTemplate.label}</strong> — {selectedTemplate.description}
+                </span>
+              </div>
+            )}
+            
+            </div>
+            
+            {/* Generate Buttons - Fixed Footer */}
+            <div className="flex-shrink-0 pt-3 border-t border-border/40 flex items-center gap-2 mt-2">
+              <Button 
+                onClick={generateWorkflow} 
+                disabled={isInterpreting || !prompt.trim()}
+                className="flex-1 bg-brand-secondary hover:bg-brand-secondary-light text-white"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                {isInterpreting ? 'Generating...' : 'Generate'}
+              </Button>
+              <Suspense fallback={null}>
+                <GenerateWithLlamaButton 
+                  prompt={prompt}
+                  onUseWorkflow={(parsed) => {
+                    if (parsed && parsed.nodes && parsed.edges) {
+                      actions.batchUpdate({
+                        nodes: Object.fromEntries(parsed.nodes.map(node => [node.id, node])),
+                        edges: Object.fromEntries(parsed.edges.map(edge => [edge.id, edge])),
+                      });
+                      toast.success('LLaMA workflow applied to canvas');
+                    }
+                  }}
+                />
+              </Suspense>
+              <Button onClick={clearCanvas} variant="outline" size="icon" title="Clear Canvas">
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Canvas + Node Library Side by Side */}
         <div className="flex flex-col md:flex-row gap-6 mb-6">
-          {/* Node Library Sidebar */}
-          <div className="w-full md:w-80 flex-shrink-0">
+          {/* Left Column: Node Library + Configuration */}
+          <div className="w-full md:w-80 flex-shrink-0 flex flex-col gap-6">
+            {/* Node Library */}
             <div className="bg-card rounded-2xl border border-border-light shadow-soft h-[600px] flex flex-col">
               {/* Header - Fixed */}
               <div className="p-5 border-b border-border flex-shrink-0">
@@ -283,184 +431,214 @@ const WorkflowStudioContent = () => {
               
               {/* Scrollable Content */}
               <ScrollArea className="flex-1 p-5">
-                <NodeLibrary 
-                  onNodeDragStart={(e, label) => {
-                    e.dataTransfer.effectAllowed = 'copy';
-                    e.dataTransfer.setData('application/reactflow', JSON.stringify({ label }));
-                  }}
-                />
+                <Suspense fallback={<PanelLoader />}>
+                  <NodeLibrary 
+                    onNodeDragStart={(e, label) => {
+                      e.dataTransfer.effectAllowed = 'copy';
+                      e.dataTransfer.setData('application/reactflow', JSON.stringify({ label }));
+                    }}
+                  />
+                </Suspense>
               </ScrollArea>
             </div>
-          </div>
-
-          {/* Canvas with Edge Settings */}
-          <div className="flex-1">
-            <div className="bg-card rounded-2xl border border-border-light shadow-soft h-[600px] flex">
-          <div className="flex-1 flex flex-col">
-            <div className="border-b border-border px-4 py-3 font-semibold flex justify-between items-center text-foreground">
-              <span>Workflow Canvas</span>
-              <div className="flex items-center gap-2">
-                {/* Undo/Redo buttons */}
-                <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={undo}
-                    disabled={!canUndo()}
-                    title="Undo (Ctrl+Z)"
-                  >
-                    <Undo2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={redo}
-                    disabled={!canRedo()}
-                    title="Redo (Ctrl+Shift+Z)"
-                  >
-                    <Redo2 className="w-4 h-4" />
-                  </Button>
-                </div>
-                
-                <KeyboardShortcutsPanel />
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleValidation}
-                  className={showValidation ? 'bg-brand-primary/10' : ''}
-                >
-                  <Shield className="w-4 h-4 mr-1" />
-                  Validate
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowEdgeSettings(!showEdgeSettings)}
-                  className={showEdgeSettings ? 'bg-brand-primary/10' : ''}
-                >
-                  <Settings2 className="w-4 h-4 mr-1" />
-                  Edge Settings
-                </Button>
-                <span className="text-xs text-foreground-light font-normal">
-                  {nodes.length} node{nodes.length !== 1 ? 's' : ''} | {edges.length} edge{edges.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-            </div>
-            <div className="relative flex-1 rounded-bl-2xl overflow-hidden">
-              <WorkflowCanvas
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onNodeClick={(node) => setSelectedNode(node)}
-                onOpenConfig={(node) => setConfigNode(node)}
-                onDrop={handleCanvasDrop}
-                onDeleteEdge={deleteEdge}
-                onUpdateEdge={updateEdgeStyle}
-                onCopy={copySelection}
-                onPaste={pasteSelection}
-                onDuplicate={duplicateSelection}
-                onUndo={undo}
-                onRedo={redo}
-                canUndo={canUndo}
-                canRedo={canRedo}
+            
+            {/* Configuration Panel - Below Node Library */}
+            <Suspense fallback={<PanelLoader />}>
+              <ConfigurationPanel
+                nodes={Object.values(nodes)}
+                edges={Object.values(edges)}
+                onDeploy={(config) => {
+                  setShowDeployModal(true);
+                }}
               />
-              
-              {/* Validation Panel */}
-              <ValidationPanel />
-              
-              {/* Export/Import Panel */}
-              <ExportImportPanel />
-            </div>
+            </Suspense>
           </div>
-          
-              {/* Edge Settings Panel */}
-              {showEdgeSettings && (
-                <div className="w-80 flex-shrink-0">
-                  <EdgeSettingsPanel />
+
+          {/* Right Column: Canvas + Simulation */}
+          <div className="flex-1 flex flex-col gap-6">
+            {/* Canvas */}
+            <div className="flex-1">
+              <div className="bg-card rounded-2xl border border-border-light shadow-soft flex flex-col min-h-[500px] h-full">
+                <div className="flex-shrink-0 px-4 py-3 border-b border-border font-semibold flex justify-between items-center text-foreground">
+                  <span className="flex-shrink-0">Workflow Canvas</span>
+                  <div className="flex items-center gap-2 overflow-x-auto max-w-full">
+                    <Button
+                      variant={errorCount > 0 ? "destructive" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        actions.validateWorkflow();
+                        actions.toggleValidation();
+                      }}
+                      className={`relative flex-shrink-0 ${uiState.showValidation && errorCount === 0 ? 'bg-green-500/10 border-green-500' : ''} ${errorCount > 0 ? 'hover:bg-destructive/90' : ''}`}
+                      title={
+                        errorCount > 0 
+                          ? `Found ${errorCount} validation errors. Click to view details.`
+                          : 'Validate workflow and view validation results.'
+                      }
+                    >
+                      <Shield className={`w-4 h-4 mr-1 ${errorCount > 0 ? 'text-white' : ''}`} />
+                      Validate
+                      {errorCount > 0 && (
+                        <span className="ml-1.5 bg-white text-red-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border border-red-500">
+                          {errorCount}
+                        </span>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowLlamaPanel(true)}
+                      className={`flex-shrink-0 ${llamaConfig.connected ? 'bg-green-50 border-green-200 text-green-700' : ''}`}
+                    >
+                      <Zap className="w-4 h-4 mr-1" />
+                      Connect to LLaMA
+                    </Button>
+                    
+                    <span className="text-xs text-foreground-light font-normal flex-shrink-0 whitespace-nowrap">
+                      {nodes.length} node{nodes.length !== 1 ? 's' : ''} | {edges.length} edge{edges.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* WhatsApp Simulation */}
-        <div className="flex justify-center">
-          <div className="bg-card rounded-2xl border border-border-light p-5 shadow-soft w-full max-w-md">
-            <h3 className="font-semibold flex items-center gap-2 text-foreground mb-4">
-              <Smartphone className="w-5 h-5 text-foreground-muted" />
-              WhatsApp Simulation
-            </h3>
-            <div className="grid place-items-center">
-              <div className="w-[320px] h-[640px] rounded-[40px] border-[10px] border-foreground bg-[#0b141a] shadow-strong relative overflow-hidden">
-                {/* Phone notch */}
                 
-                
-                {/* WhatsApp header */}
-                <header className="absolute top-0 left-0 right-0 bg-[#1f2c34] text-[#e2e8f0] px-4 py-3 flex gap-3 items-center z-5">
-                  <div className="w-10 h-10 rounded-full bg-brand-secondary text-white grid place-items-center font-bold">
-                    R
-                  </div>
-                  <div>
-                    <div className="text-base font-semibold">WhatsApp Agent</div>
-                    <div className="text-xs text-gray-400">online</div>
-                  </div>
-                </header>
-
-                {/* Chat screen */}
-                <div ref={chatRef} className="absolute inset-x-0 top-[64px] bottom-0 overflow-y-auto px-3 py-4 flex flex-col gap-1" style={{
-                backgroundImage: 'url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAACWCAYAAABkW7XSAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAA6RJREFUeJzt2LGPE1EUxfFNlRgRToD2bdu2bfv2d9u2bVvoaBwV6UBCS83O7k2e382Z3dpfDkREREREREREREREREREREREREREREREREREREREREREPg+APfF5/P5YAPfK+YPXAY+l+60FEOu1b7r/n/V6s+YAj7V+eF0AFmptnwM8vV77p8EBFr1e+8uDAyz1en034Cg/P4/p6T0+N23+vD/A0vrzA1hY/4IDLLX+J/85/PweLPDz+v8A7H1/P4Ad9M/3z/oHHLC+/gEL65/s/gC/vz/Byvp/PgBH6f/n/gAL6n/xAxys/x+wxv89wNCq/+kDrKP/xwGGrv5nLHC+//cF2GH/8QFGX/5/b/z9AVZa/m8DPL/+PwPYcf7/9fD7A+x4/n8A43/7S6/XB2Dl9fsCjP/tX6/XB2Dj9fsDDL/7A2zq9fvf2O0BsKnX7w8w/O4PsKnX739jtwfApdfvD/Du7g+w6fX7A2y5fg/v7v4Ai16/P8Ds6/cHWHL9Ht7d/QEWvX5/gNnX7w+w1Pv3+a+t3V+sv/6AD/n/9Qd48Pb7Axy4/gAHbn+A/Q8+wP4HH2D/Aw+w//cHWPL+Rx/gyfvf/gCb3//MAxx5/zMPMPh+Ax9g8P0GPgCLH2Dg/Qc+wIL7Dxzg/gdfYMH9Bw5w/4Mv8PH8/x3g4dNvL+Dxd//nB3j49NsLePzd//kBHr799gLe/sN/f4CHb7+9gLd/+O8PsA548PbbC3j79//jB1hPPPD22wt4+/f/4wesc/T22wt4+/t//AC1vX77Axx7/fYDHHv99gMce/32Axy8/QEG334/wCD3H2Dw7fczgIPuP8Ag9x9g8O33M4CD7j/AIPvL/P8J3H4DA/dfYPD9ZX4A4fcfYPD9B/yAD7D/gA/Y/wAH7D/wARbcf8AD1t/3ADsfeMCdDxzgzocecOf9D7DQ/Qc+YPgDjL7/wAcsv/+BBxy9/3/8/gAbX3/gAbfef+ABN19/gA2vv/AAm15/gA2uP8CG1x/gwesPME79hz/AOPUf/gDj1H/4A/S//QE+ev0Bfuz6A/zY9Qf4sevvD/Dn6w/wwesP8NXrD/DV6w/w1esP8NHrD/DR6w/w0esPsP/rD7D/6w/274s/QERERERERERERERERERERERERERERERERERERERERERE/oF/AE5iZJ4ACpAAAAAASUVORK5CYII=)',
-                backgroundColor: '#0b141a',
-                backgroundSize: 'cover'
-              }}>
-                  {chatMessages.map((msg, idx) => <div key={idx} className={`px-3 py-2 rounded-xl max-w-[80%] text-sm opacity-0 animate-[fadeInUp_0.4s_ease_forwards] ${msg.type === 'agent' ? 'bg-[#e2e8f0] text-[#111827] self-start' : 'bg-[#dcf8c6] text-[#111827] self-end'}`} style={{
-                  animationDelay: `${idx * 0.1}s`
-                }}>
-                      {msg.content}
-                    </div>)}
+                {/* Canvas Content */}
+                <div className="relative flex-1 overflow-hidden">
+                  <Suspense fallback={<CanvasLoader />}>
+                    <WorkflowCanvas
+                      onNodeClick={(node) => actions.selectNode(node.id)}
+                      onOpenConfig={(node) => setConfigNode(node)}
+                      onDrop={handleCanvasDrop}
+                      onDeleteEdge={actions.removeEdge}
+                      onUpdateEdge={actions.updateEdge}
+                      onCopy={() => actions.copySelection([], [])}
+                      onPaste={() => actions.pasteSelection()}
+                      onDuplicate={() => actions.duplicateSelection([], [])}
+                      onOpenLlamaSettings={() => setShowLlamaPanel(true)}
+                    />
+                  </Suspense>
+                  
+                  {/* Export/Import Panel */}
+                  <Suspense fallback={null}>
+                    <ExportImportPanel />
+                  </Suspense>
                 </div>
               </div>
+
+              {/* Validation Panel - Render outside overflow container */}
+              <Suspense fallback={null}>
+                <ValidationPanel />
+              </Suspense>
             </div>
+            
+            {/* WhatsApp Simulation Panel - Below Canvas */}
+            <Suspense fallback={<PanelLoader />}>
+              <WhatsAppSimulationPanel
+                nodes={Object.values(nodes)}
+                edges={Object.values(edges)}
+              />
+            </Suspense>
           </div>
         </div>
-      </div>
 
-      <MetricsInputPanel
-        node={selectedNode}
-        onClose={() => setSelectedNode(null)}
-        onUpdateMetrics={updateNodeMetrics}
-      />
+      {/* Modals and Floating Components */}
+      <Suspense fallback={null}>
+        <MetricsInputPanel
+          node={uiState.selectedNodeId ? nodes[uiState.selectedNodeId] : null}
+          onClose={() => actions.selectNode(null)}
+          onUpdateMetrics={(nodeId, metrics) => {
+            actions.updateNode(nodeId, { data: { ...nodes[nodeId]?.data, ...metrics } });
+          }}
+        />
+      </Suspense>
 
       {/* Node Config Panel */}
       {configNode && (
-        <NodeConfigPanel
-          node={configNode}
-          onClose={() => setConfigNode(null)}
-          onSave={(nodeId, title, description) => {
-            updateNodeMetrics(nodeId, { title, description } as any);
-            setConfigNode(null);
-            toast.success('Node configuration saved');
-          }}
-        />
+        <Suspense fallback={<PanelLoader />}>
+          <NodeConfigPanel
+            node={configNode}
+            onClose={() => setConfigNode(null)}
+            onSave={(nodeId, title, description, metrics?) => {
+              // Get existing node data
+              const existingNode = nodes[nodeId];
+              const existingData = existingNode?.data || {};
+              
+              // Merge with new data (preserve existing fields)
+              const updatedData = {
+                ...existingData,
+                title,
+                description,
+              };
+              
+              // If metrics provided, add to node data
+              if (metrics && metrics.length > 0) {
+                updatedData.metrics = metrics;
+              }
+              
+              actions.updateNode(nodeId, { data: updatedData });
+              setConfigNode(null);
+              toast.success('Node configuration saved');
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Node Execution Panel */}
       {executionNode && (
-        <NodeExecutionPanel
-          node={executionNode}
-          result={executionResult}
-          isExecuting={isExecuting}
-          onClose={() => {
-            setExecutionNode(null);
-            setExecutionResult(null);
-          }}
-          onExecute={handleExecuteNode}
-        />
+        <Suspense fallback={<PanelLoader />}>
+          <NodeExecutionPanel
+            node={executionNode}
+            result={executionResult}
+            isExecuting={isExecuting}
+            onClose={() => {
+              setExecutionNode(null);
+              setExecutionResult(null);
+            }}
+            onExecute={() => {
+              handleExecuteNode();
+            }}
+          />
+        </Suspense>
       )}
-    </section>;
+
+      {/* LLaMA Connection Panel */}
+      <Suspense fallback={null}>
+        <LlamaConnectionPanel
+          open={showLlamaPanel}
+          onOpenChange={setShowLlamaPanel}
+        />
+      </Suspense>
+      
+      {/* Workflow Preview Modal */}
+      <Suspense fallback={null}>
+        <WorkflowPreviewModal
+          open={showPreview}
+          onClose={closePreview}
+          workflow={previewData}
+          validation={analysis?.validation}
+          onApply={handleApplyToCanvas}
+          onExport={exportJSON}
+        />
+      </Suspense>
+      
+      {/* Deploy Agent Modal */}
+      <Suspense fallback={null}>
+        <DeployAgentModal
+          open={showDeployModal}
+          onOpenChange={setShowDeployModal}
+          workflow={{
+            nodes: Object.values(nodes),
+            edges: Object.values(edges),
+          }}
+        />
+      </Suspense>
+
+      {/* Floating Chat Button */}
+      <Suspense fallback={null}>
+        <FloatingChatButton />
+      </Suspense>
+      </div>
+    </section>
+  );
 };
 
 export const WorkflowStudio = () => {

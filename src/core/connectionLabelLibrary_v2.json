@@ -1,0 +1,299 @@
+{
+  "version": "2.0.0",
+  "description": "Enhanced Connection Label Library for Naraflow Node Library v2.0",
+  "categories": {
+    "flowControl": {
+      "title": "Flow Control",
+      "color": "#6B7280",
+      "labels": [
+        {
+          "id": "flow.start",
+          "displayName": "Start",
+          "category": "flowControl",
+          "color": "#6B7280",
+          "description": "Entry point of the workflow"
+        },
+        {
+          "id": "flow.complete",
+          "displayName": "Complete",
+          "category": "flowControl",
+          "color": "#6B7280",
+          "description": "Marks successful completion of a path"
+        },
+        {
+          "id": "flow.end",
+          "displayName": "End",
+          "category": "flowControl",
+          "color": "#6B7280",
+          "description": "Terminates workflow"
+        },
+        {
+          "id": "flow.abort",
+          "displayName": "Abort",
+          "category": "flowControl",
+          "color": "#6B7280",
+          "description": "Stops workflow due to failure or user cancel"
+        }
+      ]
+    },
+    "userInteraction": {
+      "title": "User Interaction",
+      "color": "#3B82F6",
+      "labels": [
+        {
+          "id": "user.response",
+          "displayName": "User Response",
+          "category": "userInteraction",
+          "color": "#3B82F6",
+          "description": "User provided input or response"
+        },
+        {
+          "id": "user.declined",
+          "displayName": "User Declined",
+          "category": "userInteraction",
+          "color": "#3B82F6",
+          "description": "User opted out of next step"
+        },
+        {
+          "id": "user.ready",
+          "displayName": "User Ready",
+          "category": "userInteraction",
+          "color": "#3B82F6",
+          "description": "User has confirmed readiness to continue"
+        }
+      ]
+    },
+    "dataProcessing": {
+      "title": "Data Processing",
+      "color": "#8B5CF6",
+      "labels": [
+        {
+          "id": "data.received",
+          "displayName": "Data Received",
+          "category": "dataProcessing",
+          "color": "#8B5CF6",
+          "description": "Data successfully received from source"
+        },
+        {
+          "id": "data.processed",
+          "displayName": "Data Processed",
+          "category": "dataProcessing",
+          "color": "#8B5CF6",
+          "description": "Data successfully processed"
+        },
+        {
+          "id": "data.transformed",
+          "displayName": "Data Transformed",
+          "category": "dataProcessing",
+          "color": "#8B5CF6",
+          "description": "Data structure or format changed"
+        },
+        {
+          "id": "data.filtered",
+          "displayName": "Data Filtered",
+          "category": "dataProcessing",
+          "color": "#8B5CF6",
+          "description": "Data filtered based on conditions"
+        },
+        {
+          "id": "data.validated",
+          "displayName": "Data Validated",
+          "category": "dataProcessing",
+          "color": "#8B5CF6",
+          "description": "Data validation completed"
+        }
+      ]
+    },
+    "logicRouting": {
+      "title": "Logic & Routing",
+      "color": "#EAB308",
+      "labels": [
+        {
+          "id": "decision.yes",
+          "displayName": "Yes",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Condition evaluated to true"
+        },
+        {
+          "id": "decision.no",
+          "displayName": "No",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Condition evaluated to false"
+        },
+        {
+          "id": "decision.high_priority",
+          "displayName": "High Priority",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "High priority route"
+        },
+        {
+          "id": "decision.standard",
+          "displayName": "Standard",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Standard priority route"
+        },
+        {
+          "id": "approval.approved",
+          "displayName": "Approved",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Request approved by supervisor"
+        },
+        {
+          "id": "approval.rejected",
+          "displayName": "Rejected",
+          "category": "logicRouting",
+          "color": "#EAB308",
+          "description": "Request rejected by supervisor"
+        }
+      ]
+    },
+    "notifications": {
+      "title": "Notifications",
+      "color": "#10B981",
+      "labels": [
+        {
+          "id": "message.sent",
+          "displayName": "Message Sent",
+          "category": "notifications",
+          "color": "#10B981",
+          "description": "Message successfully sent"
+        },
+        {
+          "id": "message.failed",
+          "displayName": "Message Failed",
+          "category": "notifications",
+          "color": "#10B981",
+          "description": "Message sending failed"
+        },
+        {
+          "id": "alert.triggered",
+          "displayName": "Alert Triggered",
+          "category": "notifications",
+          "color": "#10B981",
+          "description": "Alert condition met"
+        },
+        {
+          "id": "notification.sent",
+          "displayName": "Notification Sent",
+          "category": "notifications",
+          "color": "#10B981",
+          "description": "Notification successfully delivered"
+        }
+      ]
+    },
+    "integration": {
+      "title": "Integration",
+      "color": "#F97316",
+      "labels": [
+        {
+          "id": "api.success",
+          "displayName": "API Success",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "External API call successful"
+        },
+        {
+          "id": "api.error",
+          "displayName": "API Error",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "External API call failed"
+        },
+        {
+          "id": "database.saved",
+          "displayName": "Database Saved",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "Data successfully saved to database"
+        },
+        {
+          "id": "database.error",
+          "displayName": "Database Error",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "Database operation failed"
+        },
+        {
+          "id": "file.saved",
+          "displayName": "File Saved",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "File successfully saved"
+        },
+        {
+          "id": "file.error",
+          "displayName": "File Error",
+          "category": "integration",
+          "color": "#F97316",
+          "description": "File operation failed"
+        }
+      ]
+    },
+    "errorHandling": {
+      "title": "Error Handling",
+      "color": "#EF4444",
+      "labels": [
+        {
+          "id": "error.retry",
+          "displayName": "Retry",
+          "category": "errorHandling",
+          "color": "#EF4444",
+          "description": "Retry operation after error"
+        },
+        {
+          "id": "error.alert",
+          "displayName": "Alert",
+          "category": "errorHandling",
+          "color": "#EF4444",
+          "description": "Send alert for error"
+        },
+        {
+          "id": "error.abort",
+          "displayName": "Abort",
+          "category": "errorHandling",
+          "color": "#EF4444",
+          "description": "Abort workflow due to error"
+        },
+        {
+          "id": "error.escalated",
+          "displayName": "Escalated",
+          "category": "errorHandling",
+          "color": "#EF4444",
+          "description": "Error escalated to supervisor"
+        }
+      ]
+    },
+    "timing": {
+      "title": "Timing",
+      "color": "#8B5CF6",
+      "labels": [
+        {
+          "id": "wait.complete",
+          "displayName": "Wait Complete",
+          "category": "timing",
+          "color": "#8B5CF6",
+          "description": "Wait period completed"
+        },
+        {
+          "id": "wait.timeout",
+          "displayName": "Wait Timeout",
+          "category": "timing",
+          "color": "#8B5CF6",
+          "description": "Wait period timed out"
+        },
+        {
+          "id": "schedule.ready",
+          "displayName": "Schedule Ready",
+          "category": "timing",
+          "color": "#8B5CF6",
+          "description": "Scheduled time reached"
+        }
+      ]
+    }
+  }
+}
