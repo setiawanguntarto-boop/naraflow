@@ -1174,5 +1174,249 @@ export const workflowTemplates: Record<string, WorkflowTemplate> = {
     ],
   },
 
+  // Broiler Farm Management End-to-End
+  broilerWorkflow: {
+    label: 'Budidaya Broiler - End-to-End',
+    description: 'Workflow lengkap manajemen siklus broiler: registrasi farm, daily check-in, monitoring performance, harvest & reporting',
+    icon: '🐔',
+    nodes: [
+      {
+        id: 'broiler-start',
+        type: 'start',
+        position: { x: 100, y: 200 },
+        data: { label: 'Start' },
+      },
+      {
+        id: 'broiler-farm-register',
+        type: 'default',
+        position: { x: 350, y: 150 },
+        data: {
+          label: 'Farm Registration',
+          description: 'Daftarkan farm baru dengan data peternak dan kapasitas kandang',
+          title: 'Registrasi Farm',
+          icon: '🏷️',
+          metadata: {
+            type: 'farm.register',
+            fields: [
+              { id: 'farm_name', label: 'Nama Farm', type: 'string', required: true },
+              { id: 'owner', label: 'Nama Peternak', type: 'string', required: true },
+              { id: 'location', label: 'Lokasi', type: 'string', required: true },
+              { id: 'capacity', label: 'Kapasitas Kandang', type: 'number', required: true },
+              { id: 'start_date', label: 'Tanggal Mulai', type: 'date', required: true }
+            ],
+            outputMemoryKey: 'farmId'
+          }
+        },
+      },
+      {
+        id: 'broiler-qr-assign',
+        type: 'default',
+        position: { x: 600, y: 150 },
+        data: {
+          label: 'QR Assignment',
+          description: 'Generate QR code untuk setiap kandang dan kirim ke peternak',
+          title: 'Generate QR Kandang',
+          icon: '📱',
+          metadata: {
+            type: 'qr.assign',
+            templateUrl: 'https://naraflow.example/qr/{{farmId}}/{{shedId}}',
+            sendWhatsApp: true
+          }
+        },
+      },
+      {
+        id: 'broiler-daily-checkin',
+        type: 'default',
+        position: { x: 850, y: 150 },
+        data: {
+          label: 'Daily Check-In',
+          description: 'Input data harian: mortalitas, pakan, berat, suhu',
+          title: 'Input Harian',
+          icon: '📊',
+          metadata: {
+            type: 'daily.checkin',
+            fields: [
+              { id: 'shedId', label: 'Kandang', type: 'string', required: true },
+              { id: 'mortality', label: 'Mortalitas (ekor)', type: 'number', required: true },
+              { id: 'feed', label: 'Pakan (kg)', type: 'number', required: true },
+              { id: 'avg_weight', label: 'Berat rata-rata (gr)', type: 'number', required: true },
+              { id: 'temp', label: 'Suhu (°C)', type: 'number' }
+            ],
+            validation: {
+              mortality_min: 0,
+              mortality_max_pct_alert: 2
+            },
+            sheet: {
+              sheetId: 'SHEET_BROILER_LOG',
+              sheetName: 'daily_log'
+            }
+          }
+        },
+      },
+      {
+        id: 'broiler-validation',
+        type: 'validation',
+        position: { x: 1100, y: 150 },
+        data: {
+          label: 'Data Validation',
+          description: 'Validasi data input sesuai rules',
+          title: 'Validasi Data',
+          metadata: {
+            type: 'validation.basic',
+            rules: [
+              { field: 'mortality', type: 'number', min: 0 },
+              { field: 'feed', type: 'number', min: 0 },
+              { field: 'avg_weight', type: 'number', min: 0 }
+            ]
+          }
+        },
+      },
+      {
+        id: 'broiler-decision',
+        type: 'decision',
+        position: { x: 1350, y: 150 },
+        data: {
+          label: 'Mortality Check',
+          description: 'Cek apakah mortalitas melewati threshold',
+          title: 'Mortality Alert Decision',
+          icon: 'git-branch',
+        },
+      },
+      {
+        id: 'broiler-alert',
+        type: 'default',
+        position: { x: 1600, y: 100 },
+        data: {
+          label: 'Send Alert',
+          description: 'Kirim notifikasi WA ke PPL dan admin',
+          title: 'Mortality Alert',
+          icon: 'alert-circle',
+          metadata: {
+            type: 'whatsapp.send',
+            template: 'ALERT_MORTALITY',
+            recipients: ['ppl_phone', 'admin_phone']
+          }
+        },
+      },
+      {
+        id: 'broiler-performance',
+        type: 'default',
+        position: { x: 1600, y: 200 },
+        data: {
+          label: 'Performance Calc',
+          description: 'Hitung FCR, ADG, mortality %',
+          title: 'Perhitungan Performance',
+          icon: 'calculator',
+          metadata: {
+            type: 'performance.calc',
+            inputKeys: ['feed', 'avg_weight', 'mortality', 'population_start'],
+            outputKeys: ['FCR', 'ADG', 'mortality_pct']
+          }
+        },
+      },
+      {
+        id: 'broiler-sheet-write',
+        type: 'default',
+        position: { x: 1850, y: 150 },
+        data: {
+          label: 'Write to Sheet',
+          description: 'Simpan data ke Google Sheet',
+          title: 'Save to Log',
+          icon: 'save',
+          metadata: {
+            type: 'googleSheet.write',
+            sheetId: 'SHEET_BROILER_LOG',
+            sheetName: 'daily_log'
+          }
+        },
+      },
+      {
+        id: 'broiler-harvest-trigger',
+        type: 'default',
+        position: { x: 350, y: 350 },
+        data: {
+          label: 'Harvest Trigger',
+          description: 'Trigger untuk proses panen',
+          title: 'Panen Trigger',
+          icon: 'scissors',
+          metadata: {
+            type: 'harvest.trigger',
+            matchers: ['panen', 'harvest']
+          }
+        },
+      },
+      {
+        id: 'broiler-harvest',
+        type: 'default',
+        position: { x: 600, y: 350 },
+        data: {
+          label: 'Harvest Process',
+          description: 'Proses data panen',
+          title: 'Proses Panen',
+          icon: 'scissors',
+          metadata: {
+            type: 'harvest.workflow',
+            fields: [
+              { id: 'qty', label: 'Jumlah ekor', type: 'number', required: true },
+              { id: 'total_weight', label: 'Berat total (kg)', type: 'number', required: true }
+            ]
+          }
+        },
+      },
+      {
+        id: 'broiler-report',
+        type: 'default',
+        position: { x: 850, y: 350 },
+        data: {
+          label: 'Report Generator',
+          description: 'Generate laporan panen dalam PDF',
+          title: 'Generate Report',
+          icon: 'file-text',
+          metadata: {
+            type: 'report.generator',
+            templateId: 'TEMPLATE_HARVEST_SUMMARY',
+            outputs: ['pdf', 'dashboard', 'whatsapp']
+          }
+        },
+      },
+      {
+        id: 'broiler-wa-report',
+        type: 'default',
+        position: { x: 1100, y: 350 },
+        data: {
+          label: 'Send Report',
+          description: 'Kirim laporan via WhatsApp',
+          title: 'Kirim Laporan',
+          icon: 'send',
+          metadata: {
+            type: 'whatsapp.send',
+            template: 'HARVEST_SUMMARY',
+            recipients: ['owner_phone', 'admin_phone']
+          }
+        },
+      },
+      {
+        id: 'broiler-end',
+        type: 'end',
+        position: { x: 1350, y: 350 },
+        data: { label: 'End' },
+      },
+    ],
+    edges: [
+      createLabeledEdge('broiler-e1', 'broiler-start', 'broiler-farm-register', 'flow.start'),
+      createLabeledEdge('broiler-e2', 'broiler-farm-register', 'broiler-qr-assign', 'farm.registered'),
+      createLabeledEdge('broiler-e3', 'broiler-qr-assign', 'broiler-daily-checkin', 'qr.assigned'),
+      createLabeledEdge('broiler-e4', 'broiler-daily-checkin', 'broiler-validation', 'data.collected'),
+      createLabeledEdge('broiler-e5', 'broiler-validation', 'broiler-decision', 'data.validated'),
+      createLabeledEdge('broiler-e6', 'broiler-decision', 'broiler-alert', 'mortality.high'),
+      createLabeledEdge('broiler-e7', 'broiler-decision', 'broiler-performance', 'mortality.normal'),
+      createLabeledEdge('broiler-e8', 'broiler-performance', 'broiler-sheet-write', 'perf.calculated'),
+      createLabeledEdge('broiler-e9', 'broiler-harvest-trigger', 'broiler-harvest', 'harvest.triggered'),
+      createLabeledEdge('broiler-e10', 'broiler-harvest', 'broiler-report', 'harvest.complete'),
+      createLabeledEdge('broiler-e11', 'broiler-report', 'broiler-wa-report', 'report.generated'),
+      createLabeledEdge('broiler-e12', 'broiler-wa-report', 'broiler-end', 'flow.complete'),
+    ],
+  },
+
   // Preset Templates with Semantic Connection Labels
 };

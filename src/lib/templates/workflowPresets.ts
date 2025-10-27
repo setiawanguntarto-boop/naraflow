@@ -9,6 +9,14 @@ export interface WorkflowPreset {
 
 export const workflowPresets: WorkflowPreset[] = [
   {
+    id: "broilerEnd2End",
+    label: "Budidaya Broiler - End-to-End",
+    description: "Workflow lengkap manajemen siklus broiler: registrasi farm, daily check-in, monitoring performance, harvest & reporting",
+    prompt: "Buat workflow budidaya broiler: registrasi farm dengan data peternak dan kapasitas kandang, QR code generation per kandang, input harian (mortalitas, pakan, berat, suhu), QR validation, mortality alert jika >2%, hitung FCR/ADG/mortality%, simpan ke sheet, proses panen, generate laporan PDF, kirim via WhatsApp",
+    icon: "🐔",
+    category: "Business Process",
+  },
+  {
     id: "supportWorkflow",
     label: "Customer Support Workflow",
     description: "Workflow dukungan pelanggan dengan AI dan Human routing",
