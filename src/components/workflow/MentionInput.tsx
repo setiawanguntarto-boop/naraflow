@@ -9,13 +9,13 @@ interface MentionInputProps {
   className?: string;
 }
 
-// Color palette for each category
+// Color palette for each category - High contrast for readability
 const categoryColors: Record<string, string> = {
-  'Customer Service': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-300 dark:border-blue-700',
-  'Business Process': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-300 dark:border-green-700',
-  'Data Processing': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 border-purple-300 dark:border-purple-700',
-  'E-commerce': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-300 dark:border-orange-700',
-  'Content Management': 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300 border-pink-300 dark:border-pink-700',
+  'Customer Service': 'bg-blue-500 text-white dark:bg-blue-600 dark:text-white border-blue-600 dark:border-blue-400',
+  'Business Process': 'bg-emerald-600 text-white dark:bg-emerald-700 dark:text-white border-emerald-700 dark:border-emerald-500',
+  'Data Processing': 'bg-violet-600 text-white dark:bg-violet-700 dark:text-white border-violet-700 dark:border-violet-500',
+  'E-commerce': 'bg-amber-600 text-white dark:bg-amber-700 dark:text-white border-amber-700 dark:border-amber-500',
+  'Content Management': 'bg-rose-600 text-white dark:bg-rose-700 dark:text-white border-rose-700 dark:border-rose-500',
 };
 
 export function MentionInput({
@@ -89,8 +89,8 @@ export function MentionInput({
       parts.forEach(part => {
         if (part.type === 'mention' && part.template) {
           const span = document.createElement('span');
-          const colorClass = categoryColors[part.template.category] || categoryColors['Business Process'];
-          span.className = `inline-flex items-center px-2 py-0.5 rounded border ${colorClass}`;
+          const colorClass = categoryColors[part.template.category] || 'bg-gray-600 text-white border-gray-700 dark:bg-gray-700 dark:text-white dark:border-gray-500';
+          span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
           span.textContent = part.content;
           span.setAttribute('contenteditable', 'false');
           contentEditableRef.current?.appendChild(span);
@@ -200,8 +200,8 @@ export function MentionInput({
       parts.forEach(part => {
         if (part.type === 'mention' && part.template) {
           const span = document.createElement('span');
-          const colorClass = categoryColors[part.template.category] || categoryColors['Business Process'];
-          span.className = `inline-flex items-center px-2 py-0.5 rounded border ${colorClass}`;
+          const colorClass = categoryColors[part.template.category] || 'bg-gray-600 text-white border-gray-700 dark:bg-gray-700 dark:text-white dark:border-gray-500';
+          span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
           span.textContent = part.content;
           span.setAttribute('contenteditable', 'false');
           div.appendChild(span);
