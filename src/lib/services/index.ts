@@ -7,4 +7,5 @@ export * from './llmService';
 export * from './storageService';
 export * from './httpService';
 export * from './loggerService';
+export * from './googleSheetsService';
 
