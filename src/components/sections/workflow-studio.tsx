@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { usePromptInterpreter } from '@/hooks/usePromptInterpreter';
 import { useGenerationStore } from '@/store/generationStore';
 import { MentionInput } from '@/components/workflow/MentionInput';
+import { PresetPanel, type WorkflowPreset as PresetType } from '@/components/workflow/PresetPanel';
 import { globalCanvasEventBus } from '@/hooks/useCanvasEventBus';
 import '@xyflow/react/dist/style.css';
 
@@ -105,6 +106,9 @@ const WorkflowStudioContent = () => {
   
   // Selected template from @mention
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowPreset | null>(null);
+  
+  // Selected preset from Quick Templates
+  const [selectedPreset, setSelectedPreset] = useState<PresetType | null>(null);
   
   // Use new state management
   const nodes = useNodes();
@@ -214,6 +218,14 @@ const WorkflowStudioContent = () => {
     };
   }, [nodes]);
 
+  // Auto-fill prompt when preset is selected
+  useEffect(() => {
+    if (selectedPreset) {
+      setPrompt(selectedPreset.prompt);
+      toast.success(`Template "${selectedPreset.title}" loaded`);
+    }
+  }, [selectedPreset]);
+
   // Count errors (not warnings) for badge display
   const errorCount = validationErrors?.filter(e => e.type === 'error').length || 0;
 
@@ -285,6 +297,8 @@ const WorkflowStudioContent = () => {
   const clearCanvas = useCallback(() => {
     actions.clearCanvas();
     setPrompt('');
+    setSelectedPreset(null);
+    setSelectedTemplate(null);
   }, [actions]);
   const handleCanvasDrop = useCallback((nodeData: any, position: { x: number; y: number }) => {
     const newNode: Node = {
@@ -332,82 +346,105 @@ const WorkflowStudioContent = () => {
           </p>
         </div>
 
-        {/* Describe Workflow - Full Width */}
+        {/* Describe Workflow - Grid Layout with Preset Panel */}
         <div className="mb-6">
-          {/* Left: Prompt Input */}
-          <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5 flex flex-col h-[420px]">
-            {/* Header - Fixed */}
-            <div className="flex-shrink-0">
-              <h3 className="font-semibold text-foreground flex items-center gap-2 mb-1">
-                <Edit3 className="w-5 h-5 text-brand-secondary" />
-                1. Describe Workflow
-              </h3>
-              <p className="text-sm text-foreground-muted mb-4">
-                Describe your workflow in natural language or use the Quick Templates on the right.
-              </p>
-            </div>
+          <div className="grid grid-cols-[240px_1fr] gap-4">
+            {/* Left: Preset Panel */}
+            <Suspense fallback={null}>
+              <PresetPanel 
+                onSelect={(preset) => setSelectedPreset(preset)}
+                selectedPresetId={selectedPreset?.id}
+              />
+            </Suspense>
 
-            {/* Content Area - Non-scrollable */}
-            <div className="flex-1 flex flex-col min-h-0">
-              {/* Mention Input */}
-              <div className="flex-1 min-h-0">
-                <MentionInput
-                  value={prompt}
-                  onChange={(value) => {
-                    setPrompt(value);
-                    // Also update interpreter template
-                    const mentionMatch = value.match(/@(\w+)/);
-                    if (mentionMatch && mentionMatch[1]) {
-                      const template = workflowPresets.find(p => p.id === mentionMatch[1]);
-                      if (template) setSelectedTemplate(template);
-                    }
-                  }}
-                  onTemplateSelect={(template) => {
-                    setSelectedTemplate(template);
-                    setInterpreterTemplate(template);
-                  }}
-                  placeholder="Describe your workflow in natural language..."
-                />
+            {/* Right: Workflow Input */}
+            <div className="bg-card rounded-2xl border border-border-light shadow-soft p-5 flex flex-col h-[420px]">
+              {/* Header - Fixed */}
+              <div className="flex-shrink-0">
+                <h3 className="font-semibold text-foreground flex items-center gap-2 mb-1">
+                  <Edit3 className="w-5 h-5 text-brand-secondary" />
+                  1. Describe Workflow
+                </h3>
+                <p className="text-sm text-foreground-muted mb-4">
+                  Describe your workflow in natural language or select a Quick Template.
+                </p>
               </div>
+
+              {/* Content Area */}
+              <div className="flex-1 flex flex-col min-h-0">
+                {/* Mention Input */}
+                <div className="flex-1 min-h-0">
+                  <MentionInput
+                    value={prompt}
+                    onChange={(value) => {
+                      setPrompt(value);
+                      // Also update interpreter template
+                      const mentionMatch = value.match(/@(\w+)/);
+                      if (mentionMatch && mentionMatch[1]) {
+                        const template = workflowPresets.find(p => p.id === mentionMatch[1]);
+                        if (template) setSelectedTemplate(template);
+                      }
+                    }}
+                    onTemplateSelect={(template) => {
+                      setSelectedTemplate(template);
+                      setInterpreterTemplate(template);
+                    }}
+                    placeholder="Describe your workflow in natural language..."
+                  />
+                </div>
             
-            {/* Active Template Badge */}
-            {selectedTemplate && (
-              <div className="mt-2 p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-sm">
-                <span className="text-indigo-700">
-                  Template aktif: <strong>{selectedTemplate.label}</strong> — {selectedTemplate.description}
-                </span>
+                {/* Active Template Badge */}
+                {selectedTemplate && (
+                  <div className="mt-2 p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-sm">
+                    <span className="text-indigo-700">
+                      Template: <strong>{selectedTemplate.label}</strong>
+                    </span>
+                  </div>
+                )}
+                
+                {/* Selected Preset Badge */}
+                {selectedPreset && (
+                  <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-sm">
+                    <span className="text-emerald-700">
+                      Preset: <strong>{selectedPreset.title}</strong>
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-            
-            </div>
-            
-            {/* Generate Buttons - Fixed Footer */}
-            <div className="flex-shrink-0 pt-3 border-t border-border/40 flex items-center gap-2 mt-2">
-              <Button 
-                onClick={generateWorkflow} 
-                disabled={isInterpreting || !prompt.trim()}
-                className="flex-1 bg-brand-secondary hover:bg-brand-secondary-light text-white"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                {isInterpreting ? 'Generating...' : 'Generate'}
-              </Button>
-              <Suspense fallback={null}>
-                <GenerateWithLlamaButton 
-                  prompt={prompt}
-                  onUseWorkflow={(parsed) => {
-                    if (parsed && parsed.nodes && parsed.edges) {
-                      actions.batchUpdate({
-                        nodes: Object.fromEntries(parsed.nodes.map(node => [node.id, node])),
-                        edges: Object.fromEntries(parsed.edges.map(edge => [edge.id, edge])),
-                      });
-                      toast.success('LLaMA workflow applied to canvas');
-                    }
-                  }}
-                />
-              </Suspense>
-              <Button onClick={clearCanvas} variant="outline" size="icon" title="Clear Canvas">
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              
+              {/* Generate Buttons */}
+              <div className="flex-shrink-0 pt-3 border-t border-border/40 flex items-center gap-2 mt-2">
+                <Button 
+                  onClick={generateWorkflow} 
+                  disabled={isInterpreting || !prompt.trim()}
+                  className="flex-1 bg-brand-secondary hover:bg-brand-secondary-light text-white"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {isInterpreting ? 'Generating...' : 'Generate'}
+                </Button>
+                <Suspense fallback={null}>
+                  <GenerateWithLlamaButton 
+                    prompt={prompt}
+                    onUseWorkflow={(parsed) => {
+                      if (parsed && parsed.nodes && parsed.edges) {
+                        actions.batchUpdate({
+                          nodes: Object.fromEntries(parsed.nodes.map(node => [node.id, node])),
+                          edges: Object.fromEntries(parsed.edges.map(edge => [edge.id, edge])),
+                        });
+                        toast.success('LLaMA workflow applied to canvas');
+                      }
+                    }}
+                  />
+                </Suspense>
+                <Button 
+                  onClick={clearCanvas} 
+                  variant="outline" 
+                  size="icon" 
+                  title="Clear All"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
