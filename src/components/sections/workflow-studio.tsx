@@ -348,7 +348,7 @@ const WorkflowStudioContent = () => {
 
         {/* Describe Workflow - Grid Layout with Preset Panel */}
         <div className="mb-6">
-          <div className="grid grid-cols-[240px_1fr] gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-4">
             {/* Left: Preset Panel */}
             <Suspense fallback={null}>
               <PresetPanel 

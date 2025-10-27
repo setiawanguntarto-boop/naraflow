@@ -63,7 +63,7 @@ interface PresetPanelProps {
 
 export function PresetPanel({ onSelect, selectedPresetId }: PresetPanelProps) {
   return (
-    <div className="w-[240px] flex-shrink-0">
+    <div className="w-full md:w-80 flex-shrink-0">
       <div className="bg-card rounded-2xl border border-border-light shadow-soft p-4 h-[420px] flex flex-col">
         {/* Header */}
         <div className="flex-shrink-0 mb-3">
