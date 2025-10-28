@@ -3,13 +3,6 @@ import { Settings, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
@@ -22,7 +15,6 @@ interface ConfigurationPanelProps {
 
 export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPanelProps) {
   const [agentName, setAgentName] = useState("");
-  const [environment, setEnvironment] = useState("staging");
   const [phoneNumberId, setPhoneNumberId] = useState("");
   const [accessToken, setAccessToken] = useState("");
   const [wabaId, setWabaId] = useState("");
@@ -55,7 +47,6 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
 
     const deployConfig = {
       agentName: agentName.trim(),
-      environment: environment,
       phoneNumberId: phoneNumberId.trim(),
       accessToken: accessToken.trim(),
       wabaId: wabaId.trim() || undefined,
@@ -80,9 +71,7 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
           <Settings className="w-5 h-5 text-brand-primary" />
           <h3 className="font-semibold text-foreground">3. Agent Configuration</h3>
         </div>
-        <Badge variant={environment === "production" ? "default" : "secondary"}>
-          {environment === "production" ? "🚀 Production" : "🔧 Staging"}
-        </Badge>
+        <Badge variant="secondary">Setup</Badge>
       </div>
 
       {/* Content */}
@@ -147,38 +136,7 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="environment">Environment</Label>
-            <Select value={environment} onValueChange={setEnvironment}>
-              <SelectTrigger
-                id="environment"
-                className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-800">
-                <SelectItem
-                  value="staging"
-                  className="text-gray-900 dark:text-gray-100 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-900 dark:text-gray-100">🔧 Staging</span>
-                  </div>
-                </SelectItem>
-                <SelectItem
-                  value="production"
-                  className="text-gray-900 dark:text-gray-100 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-900 dark:text-gray-100">🚀 Production</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Staging is recommended for initial testing
-            </p>
-          </div>
+          {/* Environment selection removed */}
 
           <div className="space-y-2">
             <Label htmlFor="webhookUrl">Webhook URL (Optional)</Label>

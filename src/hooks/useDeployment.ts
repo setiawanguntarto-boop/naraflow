@@ -33,7 +33,6 @@ export const useDeployment = (): UseDeploymentReturn => {
 
         setIsDeploying(false);
         toast.success('Agent deployed successfully!', {
-          description: `Deployed to ${config.environment}`,
           duration: 5000,
         });
         
