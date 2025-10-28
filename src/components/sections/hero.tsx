@@ -207,12 +207,12 @@ export const Hero = () => {
               </span>
               <br />
               <span className="font-extrabold" style={{ color: brandColors.text.dark }}>
-                Semua Beres.
+                Semua Data Tercatat.
               </span>
             </h1>
             
-            <p className="text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed" style={{ color: brandColors.text.muted }}>
-              Dua kategori, satu platform. Dari farm hingga operasional lapangan — semua tercatat di WhatsApp.
+            <p className="text-lg md:text-xl font-light max-w-3xl mx-auto leading-relaxed" style={{ color: brandColors.text.muted }}>
+              Naraflow menghadirkan infrastruktur pencatatan data berbasis WhatsApp, 70% lebih hemat biaya dan 3× lebih cepat dibanding pengembangan aplikasi konvensional.
             </p>
 
             {/* Category Filter */}
