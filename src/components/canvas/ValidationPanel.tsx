@@ -11,14 +11,20 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useWorkflowState } from "@/hooks/useWorkflowState";
-import { ValidationError } from "@/utils/workflowValidation";
+import { ValidationError, WorkflowValidator } from "@/utils/workflowValidation";
 import { useReactFlow } from "@xyflow/react";
 import { globalCanvasEventBus } from "@/hooks/useCanvasEventBus";
 
 export const ValidationPanel = () => {
-  const { validationErrors, showValidation, toggleValidation, validateWorkflow, actions } =
-    useWorkflowState();
-  const { fitView, selectNodes } = useReactFlow();
+  const store = useWorkflowState() as any;
+  const validationErrors: ValidationError[] = store.validationErrors || [];
+  const showValidation: boolean = store.showValidation ?? true;
+  const toggleValidation = store.toggleValidation?.bind(store) || (() => {});
+  const validateWorkflow = store.validateWorkflow?.bind(store) || (() => {});
+  const rf = useReactFlow() as any;
+  const fitView = rf.fitView?.bind(rf) || (() => {});
+  const selectNodes = rf.selectNodes?.bind(rf) || (() => {});
+  const actions = store.actions;
 
   if (!showValidation) return null;
 
@@ -120,6 +126,24 @@ export const ValidationPanel = () => {
         <div className="flex gap-2 mb-4">
           <Button onClick={validateWorkflow} variant="outline" size="sm" className="flex-1">
             Revalidate Workflow
+          </Button>
+          <Button
+            onClick={() => {
+              const state = useWorkflowState.getState();
+              const nodes = Object.values(state.nodes);
+              const edges = Object.values(state.edges);
+              const { nodes: fixedNodes, edges: fixedEdges } = WorkflowValidator.autoFixWorkflow(nodes as any[], edges as any[]);
+              const patchNodes: Record<string, any> = {};
+              fixedNodes.forEach(n => (patchNodes[n.id] = n as any));
+              const patchEdges: Record<string, any> = {};
+              fixedEdges.forEach(e => (patchEdges[e.id as any] = e as any));
+              state.actions.batchUpdate({ nodes: patchNodes, edges: patchEdges });
+            }}
+            variant="default"
+            size="sm"
+            className="flex-1"
+          >
+            Auto-Fix
           </Button>
           <Button onClick={toggleValidation} variant="ghost" size="sm" className="flex-1">
             Close

@@ -11,6 +11,90 @@ export interface ValidationError {
 
 export class WorkflowValidator {
   /**
+   * Attempt to auto-fix common issues by mutating shallow copies of the graph.
+   * - Adds missing Start/End nodes
+   * - Fills empty labels with placeholders
+   * - Connects nodes without outgoing edges to the nearest End (or creates one)
+   */
+  static autoFixWorkflow(nodes: Node[], edges: Edge[]): {
+    nodes: Node[];
+    edges: Edge[];
+    changes: Array<{ kind: string; nodeId?: string; edgeId?: string; description: string }>;
+  } {
+    const nMap = new Map(nodes.map(n => [n.id, { ...n, data: { ...(n.data || {}) } }] as const));
+    const outEdges = new Map<string, Edge[]>();
+    const inEdges = new Map<string, Edge[]>();
+    const eList: Edge[] = edges.map(e => ({ ...e }));
+    const changes: Array<{ kind: string; nodeId?: string; edgeId?: string; description: string }> = [];
+
+    const addEdge = (source: string, target: string) => {
+      const id = `auto-${source}-${target}-${Math.random().toString(36).slice(2, 8)}`;
+      const edge: Edge = { id, source, target } as any;
+      eList.push(edge);
+      changes.push({ kind: "edge-added", edgeId: id, description: `Linked ${source} -> ${target}` });
+      return edge;
+    };
+
+    // Ensure a Start node exists
+    const starts = nodes.filter(n => n.type === "start");
+    let startId = starts[0]?.id;
+    if (!startId) {
+      startId = `start-auto`;
+      const start: Node = {
+        id: startId,
+        type: "start",
+        position: { x: 0, y: 0 } as any,
+        data: { label: "Start" } as any,
+      };
+      nMap.set(start.id, start);
+      changes.push({ kind: "node-added", nodeId: start.id, description: "Added Start node" });
+    }
+
+    // Ensure an End node exists
+    const ends = nodes.filter(n => n.type === "end");
+    let endId = ends[0]?.id;
+    if (!endId) {
+      endId = `end-auto`;
+      const end: Node = {
+        id: endId,
+        type: "end",
+        position: { x: 400, y: 0 } as any,
+        data: { label: "End" } as any,
+      };
+      nMap.set(end.id, end);
+      changes.push({ kind: "node-added", nodeId: end.id, description: "Added End node" });
+    }
+
+    // Build edge maps
+    eList.forEach(e => {
+      if (!outEdges.has(e.source)) outEdges.set(e.source, []);
+      if (!inEdges.has(e.target)) inEdges.set(e.target, []);
+      outEdges.get(e.source)!.push(e);
+      inEdges.get(e.target)!.push(e);
+    });
+
+    // Fill missing labels
+    Array.from(nMap.values()).forEach(n => {
+      const label = (n.data as any)?.label;
+      if (!label || String(label).trim() === "") {
+        (n.data as any).label = `${n.type || "Node"} ${n.id}`;
+        changes.push({ kind: "label-filled", nodeId: n.id, description: `Filled empty label for ${n.id}` });
+      }
+    });
+
+    // Connect nodes without outgoing edges (that are not End) to the End
+    Array.from(nMap.values()).forEach(n => {
+      if (n.type === "end" || n.type === "group") return;
+      const outs = outEdges.get(n.id) || [];
+      if (outs.length === 0) {
+        addEdge(n.id, endId!);
+      }
+    });
+
+    return { nodes: Array.from(nMap.values()), edges: eList, changes };
+  }
+
+  /**
    * Validate entire workflow
    */
   static validateWorkflow(nodes: Node[], edges: Edge[]): ValidationError[] {

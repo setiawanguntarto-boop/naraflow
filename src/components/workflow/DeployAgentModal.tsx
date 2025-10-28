@@ -35,6 +35,7 @@ import { deploymentClient, DeploymentStep, DeploymentData, DeploymentConfig } fr
 import { WorkflowValidator, ValidationError } from "@/utils/workflowValidation";
 import { useDeployment } from "@/hooks/useDeployment";
 import { DeploymentErrorDisplay } from "./DeploymentErrorDisplay";
+import { useWorkflowState } from "@/hooks/useWorkflowState";
 // Cloud and simulation steps removed – simplified to Configure and Deploy only
 
 interface DeployAgentModalProps {
@@ -66,6 +67,7 @@ interface SimulationLog {
 export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }: DeployAgentModalProps) {
   // Use deployment hook
   const { isDeploying, error, deployWithRetry, clearError } = useDeployment();
+  const workflowStore = useWorkflowState();
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Step management
@@ -112,6 +114,30 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
       console.error("Validation error:", e);
     }
   }, [workflow.nodes, workflow.edges]);
+
+  const handleAutoFix = () => {
+    try {
+      const { nodes: fixedNodes, edges: fixedEdges, changes } = WorkflowValidator.autoFixWorkflow(
+        workflow.nodes as any[],
+        workflow.edges as any[]
+      );
+      // Apply to canvas state
+      const patchNodes: Record<string, any> = {};
+      fixedNodes.forEach(n => { patchNodes[n.id] = n as any; });
+      const patchEdges: Record<string, any> = {};
+      fixedEdges.forEach(e => { patchEdges[e.id as any] = e as any; });
+      workflowStore.actions.batchUpdate({ nodes: patchNodes, edges: patchEdges });
+
+      // Revalidate after applying
+      const errs = WorkflowValidator.validateWorkflow(fixedNodes as any[], fixedEdges as any[]);
+      setValidationErrors(errs);
+      const preview = changes.slice(0, 3).map(c => `• ${c.description}`).join("\n");
+      const more = changes.length > 3 ? `\n…and ${changes.length - 3} more` : "";
+      toast.success("Applied quick fixes", { description: `${changes.length} change(s) applied)\n${preview}${more}` });
+    } catch (e: any) {
+      toast.error("Auto-fix failed", { description: e?.message });
+    }
+  };
 
   // Load initial config from ConfigurationPanel when modal opens
   useEffect(() => {
@@ -483,6 +509,11 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                 {validationErrors.length > 5 && (
                   <p className="text-[10px] text-black/70">and {validationErrors.length - 5} more…</p>
                 )}
+                <div className="mt-2">
+                  <Button size="sm" variant="secondary" onClick={handleAutoFix}>
+                    Try Auto-Fix
+                  </Button>
+                </div>
               </div>
             </div>
           )}
