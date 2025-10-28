@@ -3,22 +3,17 @@
  * Provides robust error handling and validation for workflow deployment
  */
 
-import type { CloudConfig } from './cloudInfrastructureDetector';
-
 export interface DeploymentConfig {
   agentName: string;
-  environment: "staging" | "production";
   phoneNumberId: string;
   accessToken: string;
   wabaId?: string;
   webhookUrl?: string;
   apiKey?: string;
-  cloudConfig?: CloudConfig;
 }
 
 export interface DeploymentData {
   agentName: string;
-  environment: string;
   phoneNumberId: string;
   accessToken: string;
   wabaId?: string;
@@ -28,7 +23,6 @@ export interface DeploymentData {
     nodes: any[];
     edges: any[];
   };
-  cloudConfig?: CloudConfig;
 }
 
 export interface DeploymentResponse {
@@ -71,7 +65,6 @@ export class DeploymentClient {
 
       console.log("Starting deployment request...", {
         agentName: config.agentName,
-        environment: config.environment,
       });
 
       const response = await fetch(`${this.baseURL}/deploy`, {
@@ -82,7 +75,6 @@ export class DeploymentClient {
         },
         body: JSON.stringify({
           agentName: config.agentName,
-          environment: config.environment,
           phoneNumberId: config.phoneNumberId,
           accessToken: config.accessToken,
           wabaId: config.wabaId,
@@ -197,9 +189,9 @@ export class DeploymentClient {
     await this.delay(800);
     steps[0] = { name: "Validation Check", status: "success", duration: 800 };
 
-    steps.push({ name: "Environment Setup", status: "running", message: "Setting up environment..." });
+    steps.push({ name: "Token & WABA Discovery", status: "running", message: "Checking token scopes and discovering WABA/phone number..." });
     await this.delay(1000);
-    steps[1] = { name: "Environment Setup", status: "success", duration: 1000 };
+    steps[1] = { name: "Token & WABA Discovery", status: "success", duration: 1000 };
 
     steps.push({ name: "Resource Allocation", status: "running", message: "Allocating resources..." });
     await this.delay(1200);

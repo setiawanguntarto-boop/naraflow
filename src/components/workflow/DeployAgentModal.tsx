@@ -173,7 +173,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
       // Initialize deployment steps
       const initialSteps: DeploymentStep[] = [
         { name: "Validation Check", status: "running" },
-        { name: "Environment Setup", status: "pending" },
+        { name: "Configuration", status: "pending" },
         { name: "Resource Allocation", status: "pending" },
         { name: "Workflow Compilation", status: "pending" },
         { name: "Agent Deployment", status: "pending" },
@@ -207,7 +207,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
       const endpoint = `https://api.naraflow.ai/agents/${agentName}`;
 
       toast.success(`Agent ${agentName} deployed successfully!`, {
-        description: `Deployed to ${environment}. Endpoint: ${endpoint}`,
+        description: `Endpoint: ${endpoint}`,
         duration: 7000,
       });
 
@@ -275,7 +275,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
             Deploy Agent
           </DialogTitle>
           <DialogDescription className="text-black/80">
-            Configure deployment environment and publish your workflow as an operational automation
+            Configure and publish your workflow as an operational automation
             agent.
           </DialogDescription>
         </DialogHeader>
@@ -339,11 +339,11 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                   id="agentName"
                   value={agentName}
                   onChange={e => setAgentName(e.target.value)}
-                  placeholder="e.g., CustomerSupportBot"
+                  placeholder="e.g., NaraflowOpsBot"
                   className="text-black placeholder:text-gray-400"
                 />
                 <p className="text-xs text-black">
-                  Choose a unique name for your deployed agent
+                  Nama unik untuk endpoint dan identitas agent Anda.
                 </p>
               </div>
 
@@ -357,7 +357,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                   className="text-black placeholder:text-gray-400"
                 />
                 <p className="text-xs text-black">
-                  Your WhatsApp Business Phone Number ID from Meta
+                  ID nomor WhatsApp dari WABA (Meta Business). <a className="underline" href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started/" target="_blank" rel="noreferrer">Pelajari cara mendapatkannya</a>.
                 </p>
               </div>
 
@@ -372,7 +372,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                   className="text-black placeholder:text-gray-400"
                 />
                 <p className="text-xs text-black">
-                  System User Access Token from your Meta App
+                  System User Access Token dari Meta App Anda. <a className="underline" href="https://developers.facebook.com/docs/whatsapp/business-management-api/get-started#generate-system-user-access-tokens" target="_blank" rel="noreferrer">Panduan token</a>.
                 </p>
               </div>
 
@@ -386,7 +386,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                   className="text-black placeholder:text-gray-400"
                 />
                 <p className="text-xs text-black">
-                  Your WhatsApp Business Account ID for reference
+                  WhatsApp Business Account ID (opsional) untuk validasi/diagnostik. <a className="underline" href="https://developers.facebook.com/docs/whatsapp/cloud-api/reference/phone-numbers/" target="_blank" rel="noreferrer">Lihat referensi</a>.
                 </p>
               </div>
 
@@ -402,7 +402,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                   className="text-black placeholder:text-gray-400"
                 />
                 <p className="text-xs text-black">
-                  Optional external webhook integration
+                  Endpoint untuk menerima event (messages/status). <a className="underline" href="https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/components#callback" target="_blank" rel="noreferrer">Tentang webhook</a>.
                 </p>
               </div>
 
@@ -412,12 +412,12 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                   id="apiKey"
                   value={apiKey}
                   onChange={e => setApiKey(e.target.value)}
-                  placeholder="sk-..."
+                  placeholder="sk_live_... (opsional)"
                   type="password"
                   className="text-black placeholder:text-gray-400"
                 />
                 <p className="text-xs text-black">
-                  Optional API key for external service integration
+                  Kunci untuk layanan eksternal (opsional), mis. AI/DB/Integrasi lain.
                 </p>
               </div>
             </div>
@@ -425,13 +425,13 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
 
           {currentStep === 2 && (
             <div className="space-y-4">
-              <div>
+                <div>
                 <h3 className="font-semibold text-black mb-4">Deployment Summary</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
                     <span className="text-sm font-medium">Agent Name</span>
                     <Badge>{agentName}</Badge>
-                  </div>
+                </div>
                   {/* Environment row removed */}
                   <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
                     <span className="text-sm font-medium">Phone Number ID</span>
@@ -466,12 +466,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                     <span className="text-sm font-medium">Agent Name</span>
                     <Badge>{agentName}</Badge>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
-                    <span className="text-sm font-medium">Environment</span>
-                    <Badge variant={environment === "production" ? "default" : "secondary"}>
-                      {environment === "production" ? "🚀 Production" : "🔧 Staging"}
-                    </Badge>
-                  </div>
+                  
                   <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
                     <span className="text-sm font-medium">Phone Number ID</span>
                     <div className="flex items-center gap-2">
@@ -560,7 +555,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                         Deployment Successful!
                       </h4>
                       <p className="text-sm text-black mb-2">
-                        Your agent has been deployed successfully to {environment}.
+                        Your agent has been deployed successfully.
                       </p>
                       <div className="flex items-center gap-2 text-sm">
                         <Network className="w-4 h-4" />
@@ -581,7 +576,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                     <div className="text-sm text-black">
                       <p className="font-medium mb-1">What happens next:</p>
                       <ul className="list-disc list-inside space-y-1 text-xs">
-                        <li>Your agent will be deployed to {environment}</li>
+                        <li>Your agent will be deployed</li>
                         <li>Workflow execution will be activated</li>
                         <li>You&apos;ll receive a confirmation notification</li>
                         <li>Monitor agent status from the dashboard</li>
