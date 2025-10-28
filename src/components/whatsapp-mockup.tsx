@@ -61,7 +61,6 @@ export const WhatsAppMockup = ({
       hasCheck: true,
     },
   ];
-  const filteredChats = chats.filter((c) => c.name !== agentName);
   return (
     <div
       className="w-full max-w-[340px] mx-auto h-[680px] bg-white rounded-[3rem] flex flex-col overflow-hidden border-[12px] border-gray-900 relative"
@@ -103,10 +102,6 @@ export const WhatsAppMockup = ({
             <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-lg">
               <span className="select-none">{agentIcon}</span>
             </div>
-            <div className="leading-tight">
-              <div className="font-semibold">{agentName}</div>
-              <div className="text-[10px] opacity-90">{agentSubtitle}</div>
-            </div>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -128,7 +123,7 @@ export const WhatsAppMockup = ({
 
       {/* Chat List */}
       <div className="flex-1 bg-white overflow-y-auto">
-        {filteredChats.map((chat, index) => (
+        {chats.map((chat, index) => (
           <div
             key={index}
             className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
