@@ -11,6 +11,8 @@ import {
   Wifi,
   WifiOff,
   Loader2,
+  Book,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +21,7 @@ import { Node, Edge, ReactFlowProvider } from "@xyflow/react";
 import {
   useWorkflowState,
   useNodes,
+  useNodesRecord,
   useEdges,
   useWorkflowActions,
   useUIState,
@@ -34,7 +37,12 @@ import { usePromptInterpreter } from "@/hooks/usePromptInterpreter";
 import { useGenerationStore } from "@/store/generationStore";
 import { MentionInput } from "@/components/workflow/MentionInput";
 import { PresetPanel, type WorkflowPreset as PresetType } from "@/components/workflow/PresetPanel";
+import { WorkflowSizeIndicator } from "@/components/workflow/WorkflowSizeIndicator";
+import { EnhancedWorkflowAssistant } from "@/components/workflow/EnhancedWorkflowAssistant";
+import { useContextAwareHelp } from "@/hooks/useContextAwareHelp";
 import { globalCanvasEventBus } from "@/hooks/useCanvasEventBus";
+import { QuickTemplatesPanel, BROILER_TEMPLATES, type QuickTemplate } from "@/components/workflow/QuickTemplatesPanel";
+import { useBroilerWorkflowGenerator } from "@/hooks/useBroilerWorkflowGenerator";
 import "@xyflow/react/dist/style.css";
 
 // Lazy load heavy components
@@ -143,6 +151,7 @@ const WorkflowStudioContent = () => {
 
   // Deploy agent modal state
   const [showDeployModal, setShowDeployModal] = useState(false);
+  const [deploymentConfig, setDeploymentConfig] = useState<any>(null);
 
   // Selected template from @mention
   const [selectedTemplate, setSelectedTemplate] = useState<WorkflowPreset | null>(null);
@@ -150,12 +159,26 @@ const WorkflowStudioContent = () => {
   // Selected preset from Quick Templates
   const [selectedPreset, setSelectedPreset] = useState<PresetType | null>(null);
 
+  // Broiler workflow quick templates
+  const [showBroilerTemplates, setShowBroilerTemplates] = useState(false);
+  const [selectedBroilerTemplate, setSelectedBroilerTemplate] = useState<QuickTemplate | null>(null);
+
+  // Enhanced Workflow Assistant state
+  const [showEnhancedAssistant, setShowEnhancedAssistant] = useState(false);
+
   // Use new state management
   const nodes = useNodes();
+  const nodesRecord = useNodesRecord();
   const edges = useEdges();
   const uiState = useUIState();
   const actions = useWorkflowActions();
   const { llamaConfig, validationErrors } = useWorkflowState();
+
+  // Context-aware help
+  const { getContextualHelp, getSuggestedFeatures } = useContextAwareHelp();
+
+  // Broiler workflow generator
+  const { generateBroilerWorkflow } = useBroilerWorkflowGenerator();
 
   // Prompt Interpreter hook
   const {
@@ -170,6 +193,33 @@ const WorkflowStudioContent = () => {
     selectedTemplate: interpreterTemplate,
     setSelectedTemplate: setInterpreterTemplate,
   } = usePromptInterpreter();
+
+  // Handler for broiler template selection
+  const handleBroilerTemplateSelect = useCallback((template: QuickTemplate) => {
+    setSelectedBroilerTemplate(template);
+    setPrompt(template.prompt);
+    toast.success(`Template "${template.name}" loaded`);
+  }, []);
+
+  // Handler for broiler workflow generation
+  const handleBroilerWorkflowGenerate = useCallback((generatedPrompt: string, templateId: string) => {
+    // Generate nodes and edges
+    const { nodes: broilerNodes, edges: broilerEdges } = generateBroilerWorkflow(templateId);
+    
+    // Convert to format expected by batchUpdate
+    const nodesRecord = Object.fromEntries(broilerNodes.map(node => [node.id, node]));
+    const edgesRecord = Object.fromEntries(broilerEdges.map(edge => [edge.id, edge]));
+    
+    // Apply to canvas
+    actions.batchUpdate({
+      nodes: nodesRecord,
+      edges: edgesRecord,
+    });
+    
+    setPrompt(generatedPrompt);
+    setShowBroilerTemplates(false);
+    toast.success(`Workflow "${BROILER_TEMPLATES.find(t => t.id === templateId)?.name}" generated successfully!`);
+  }, [generateBroilerWorkflow, actions]);
 
   // Zustand generation store for assistant communication
   const { pushMessage: pushAssistantMessage } = useGenerationStore();
@@ -391,7 +441,14 @@ const WorkflowStudioContent = () => {
             {/* Left: Preset Panel */}
             <Suspense fallback={null}>
               <PresetPanel
-                onSelect={preset => setSelectedPreset(preset)}
+                onSelect={preset => {
+                  // Open broiler templates modal when Budidaya Broiler is selected
+                  if (preset.id === "broiler") {
+                    setShowBroilerTemplates(true);
+                  } else {
+                    setSelectedPreset(preset);
+                  }
+                }}
                 selectedPresetId={selectedPreset?.id}
               />
             </Suspense>
@@ -410,15 +467,16 @@ const WorkflowStudioContent = () => {
                       Describe your workflow in natural language or select a Quick Template.
                     </p>
                   </div>
+                  <div className="flex items-center gap-2">
                   <Button
                     onClick={() => setShowResponsibleAIPanel(true)}
-                    variant="primary"
                     size="sm"
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <Shield className="w-4 h-4 mr-2" />
                     AI Ethics
                   </Button>
+                  </div>
                 </div>
                 <div className="mb-4"></div>
               </div>
@@ -505,6 +563,7 @@ const WorkflowStudioContent = () => {
                       e.dataTransfer.effectAllowed = "copy";
                       e.dataTransfer.setData("application/reactflow", JSON.stringify({ label }));
                     }}
+                    showTitle={false}
                   />
                 </Suspense>
               </ScrollArea>
@@ -516,6 +575,7 @@ const WorkflowStudioContent = () => {
                 nodes={Object.values(nodes)}
                 edges={Object.values(edges)}
                 onDeploy={config => {
+                  setDeploymentConfig(config);
                   setShowDeployModal(true);
                 }}
               />
@@ -563,8 +623,13 @@ const WorkflowStudioContent = () => {
                       Connect to LLaMA
                     </Button>
 
+                    {/* Workflow Size Indicator */}
+                    <div className="hidden md:block border-l border-border pl-4 ml-2">
+                      <WorkflowSizeIndicator nodes={nodesRecord} />
+                    </div>
+
                     <span className="text-xs text-foreground-light font-normal flex-shrink-0 whitespace-nowrap">
-                      {nodes.length} node{nodes.length !== 1 ? "s" : ""} | {edges.length} edge
+                      {Object.keys(nodesRecord).length} node{Object.keys(nodesRecord).length !== 1 ? "s" : ""} | {edges.length} edge
                       {edges.length !== 1 ? "s" : ""}
                     </span>
                   </div>
@@ -700,6 +765,7 @@ const WorkflowStudioContent = () => {
               nodes: Object.values(nodes),
               edges: Object.values(edges),
             }}
+            initialConfig={deploymentConfig}
           />
         </Suspense>
 
@@ -707,6 +773,50 @@ const WorkflowStudioContent = () => {
         <Suspense fallback={null}>
           <FloatingChatButton />
         </Suspense>
+
+        {/* Enhanced Workflow Assistant Button - Floating */}
+        <Button
+          onClick={() => setShowEnhancedAssistant(true)}
+          variant="secondary"
+          size="lg"
+          className="fixed bottom-24 right-6 rounded-full shadow-lg z-50 h-14 w-14 p-0 flex items-center justify-center"
+          title="Learn all features"
+        >
+          <Book className="w-6 h-6" />
+        </Button>
+
+        {/* Enhanced Workflow Assistant Modal */}
+        {showEnhancedAssistant && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+            <div className="relative w-full max-w-5xl">
+              <EnhancedWorkflowAssistant onClose={() => setShowEnhancedAssistant(false)} />
+            </div>
+          </div>
+        )}
+
+        {/* Broiler Quick Templates Panel */}
+        {showBroilerTemplates && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+            <div className="relative w-full max-w-4xl h-[90vh] bg-card rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b border-border">
+                <h2 className="text-2xl font-bold">Broiler Quick Templates</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowBroilerTemplates(false)}
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <QuickTemplatesPanel
+                  onTemplateSelect={handleBroilerTemplateSelect}
+                  onGenerate={handleBroilerWorkflowGenerate}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
