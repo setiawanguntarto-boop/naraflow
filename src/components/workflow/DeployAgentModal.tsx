@@ -26,13 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Removed environment selector – deployment targets are handled by server config
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
@@ -81,7 +75,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
 
   // Step 1: Configuration - Use initialConfig if provided
   const [agentName, setAgentName] = useState(initialConfig?.agentName || "");
-  const [environment, setEnvironment] = useState(initialConfig?.environment || "staging");
+  // Environment removed from UI; backend will decide target environment
   const [phoneNumberId, setPhoneNumberId] = useState(initialConfig?.phoneNumberId || "");
   const [accessToken, setAccessToken] = useState(initialConfig?.accessToken || "");
   const [wabaId, setWabaId] = useState(initialConfig?.wabaId || "");
@@ -94,7 +88,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
   useEffect(() => {
     if (open && initialConfig) {
       if (initialConfig.agentName) setAgentName(initialConfig.agentName);
-      if (initialConfig.environment) setEnvironment(initialConfig.environment);
+      // environment removed
       if (initialConfig.phoneNumberId) setPhoneNumberId(initialConfig.phoneNumberId);
       if (initialConfig.accessToken) setAccessToken(initialConfig.accessToken);
       if (initialConfig.wabaId) setWabaId(initialConfig.wabaId);
@@ -118,8 +112,6 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
   useEffect(() => {
     if (!open) {
       setCurrentStep(1);
-      setSimulationLogs([]);
-      setSimulationComplete(false);
       setDeploymentSteps([]);
       setDeploymentError(null);
       setDeploymentProgress(0);
@@ -165,7 +157,6 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
       const validation = deploymentClient.validateConfig(
         {
           agentName,
-          environment: environment as "staging" | "production",
           phoneNumberId,
           accessToken,
           wabaId,
@@ -193,7 +184,6 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
       // Run deployment with progress tracking
       const deployData: DeploymentData = {
         agentName,
-        environment: environment as "staging" | "production",
         phoneNumberId,
         accessToken,
         wabaId,
@@ -400,44 +390,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="environment" className="text-black">Environment</Label>
-                <Select value={environment} onValueChange={setEnvironment}>
-                  <SelectTrigger
-                    id="environment"
-                    className="text-black bg-white"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem
-                      value="staging"
-                      className="text-black cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-black">🔧 Staging</span>
-                        <span className="text-xs text-black ml-2">
-                          For testing
-                        </span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem
-                      value="production"
-                      className="text-black cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-black">🚀 Production</span>
-                        <span className="text-xs text-black ml-2">
-                          Live deployment
-                        </span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-black">
-                  Staging is recommended for initial testing
-                </p>
-              </div>
+              {/* Environment selection removed – deployment target configured server-side */}
 
               <div className="space-y-2">
                 <Label htmlFor="webhookUrl" className="text-black">Webhook URL (Optional)</Label>
@@ -479,12 +432,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                     <span className="text-sm font-medium">Agent Name</span>
                     <Badge>{agentName}</Badge>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
-                    <span className="text-sm font-medium">Environment</span>
-                    <Badge variant={environment === "production" ? "default" : "secondary"}>
-                      {environment === "production" ? "🚀 Production" : "🔧 Staging"}
-                    </Badge>
-                  </div>
+                  {/* Environment row removed */}
                   <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
                     <span className="text-sm font-medium">Phone Number ID</span>
                     <div className="flex items-center gap-2">
