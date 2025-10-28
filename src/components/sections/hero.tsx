@@ -16,11 +16,12 @@ import {
   Store,
   Hotel,
   Recycle,
-    Bird,
+    Egg,
     Fish
 } from "lucide-react";
 import { WhatsAppMockup } from "@/components/whatsapp-mockup";
 import { WaveBackground } from "@/components/ui/wave-background";
+  import Chicken from "@/components/icons/Chicken";
 
 export const Hero = () => {
   const { t } = useLanguage();
@@ -51,7 +52,7 @@ export const Hero = () => {
   const allProducts = [
     {
       name: "Rahayu",
-      icon: Bird,
+      icon: Chicken,
       description: "Platform manajemen peternakan ayam melalui WhatsApp. Pantau kesehatan, produksi, dan penjualan dengan mudah.",
       features: ["Monitoring Kesehatan", "Tracking Produksi", "Manajemen Pakan", "Laporan Otomatis"],
       status: "available",
@@ -353,7 +354,7 @@ export const Hero = () => {
                   ))}
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
                   <a
                     href={currentProduct ? currentProduct.link : "https://tamara.naraflow.id/"}
                     target="_blank"
@@ -388,11 +389,35 @@ export const Hero = () => {
                       {farmProducts.map(product => {
                         const IconComponent = product.icon;
                         return (
-                          <div key={product.name} className="flex items-center gap-3 p-2 rounded-lg bg-white">
-                            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${product.color} flex items-center justify-center`}>
-                              <IconComponent className={`w-4 h-4 ${product.iconColor}`} />
+                          <div
+                            key={product.name}
+                            className="flex items-center justify-between gap-3 p-2 rounded-lg"
+                            style={{
+                              background: '#F3EDFF', // pastel purple to differentiate from card box
+                              border: '1px solid rgba(109, 42, 154, 0.08)'
+                            }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${product.color} flex items-center justify-center`}>
+                                <IconComponent className={`w-4 h-4 ${product.iconColor}`} />
+                              </div>
+                              <span className="text-sm font-semibold" style={{ color: brandColors.text.dark }}>{product.name}</span>
                             </div>
-                            <span className="text-sm font-semibold" style={{ color: brandColors.text.dark }}>{product.name}</span>
+                            {(product.name === 'Rahayu' || product.name === 'Tambakflow') ? (
+                              <a
+                                href={product.name === 'Rahayu'
+                                  ? 'https://api.whatsapp.com/send/?phone=6285123366169&text&type=phone_number&app_absent=0'
+                                  : 'https://api.whatsapp.com/send/?phone=62881024280794&text&type=phone_number&app_absent=0'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-semibold py-1.5 px-3 rounded-md text-white slow-float"
+                                style={{ background: '#6D2A9A' }}
+                              >
+                                Coba Sekarang
+                              </a>
+                            ) : (
+                              <span className="text-xs font-medium text-gray-500">On Progress</span>
+                            )}
                           </div>
                         );
                       })}
@@ -407,7 +432,18 @@ export const Hero = () => {
                       {fieldProducts.map(product => {
                         const IconComponent = product.icon;
                         return (
-                          <div key={product.name} className="flex items-center gap-3 p-2 rounded-lg bg-white">
+                          <div
+                            key={product.name}
+                            className="flex items-center gap-3 p-2 rounded-lg"
+                            style={{
+                              background:
+                                product.name === 'Rodaya' ? '#E8FFF6' : // mint
+                                product.name === 'Tamara' ? '#FDECF5' : // rose
+                                product.name === 'Sortify' ? '#F1FCEB' : // lime
+                                '#FFFFFF',
+                              border: '1px solid rgba(109, 42, 154, 0.08)'
+                            }}
+                          >
                             <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${product.color} flex items-center justify-center`}>
                               <IconComponent className={`w-4 h-4 ${product.iconColor}`} />
                             </div>

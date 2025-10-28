@@ -3,6 +3,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Slow vertical float animation for subtle CTA movement */
+@keyframes slow-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.slow-float {
+  animation: slow-float 3s ease-in-out infinite;
+}
+
 /* Layout Animation Styles */
 .layout-glow {
   animation: layout-glow 0.8s ease-out;
