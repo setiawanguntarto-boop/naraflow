@@ -11,12 +11,13 @@ import {
   MessageCircle,
   Sparkles,
   CheckCircle2,
-  Building,
+    Building,
+    Truck,
   Store,
   Hotel,
   Recycle,
-  Egg,
-  Fish
+    Bird,
+    Shrimp
 } from "lucide-react";
 import { WhatsAppMockup } from "@/components/whatsapp-mockup";
 import { WaveBackground } from "@/components/ui/wave-background";
@@ -32,34 +33,25 @@ export const Hero = () => {
     setIsVisible(true);
   }, []);
 
-  // Brand colors - Naraflow logo-based palette
-  // Logo gradient: hsl(270, 60%, 35%) to hsl(270, 60%, 45%)
-  // Saturated purple #5A1F7D to #6D2A9A
+  // Neutral brand colors for a clean, white layout with Naraflow purple accents
   const brandColors = {
     primary: {
-      light: '#F3EDFF',  // Very light purple tint
-      medium: '#6D2A9A',  // Main logo purple (hsl 270 60% 45%)
-      dark: '#4A1A6B'     // Dark logo purple (hsl 270 60% 35%)
+      light: '#F3F4F6',
+      medium: '#111827',
+      dark: '#0B1220'
     },
-    // Removed mint green secondary - tidak matching dengan logo
-    accent: {
-      light: '#FFF7E6',  // Off-white cream like logo "N"
-      medium: '#F5E6D3',  // Warm cream
-      dark: '#8B7355'    // Warm brown for contrast
-    },
-    surface: '#FAF9F6',  // Off-white like logo background
+    surface: '#FFFFFF',
     text: {
-      dark: '#2D1B3D',  // Dark purple-tinted (matching logo)
-      muted: '#6B5B73'   // Purple-gray (harmonious dengan logo)
+      dark: '#111827',
+      muted: '#6B7280'
     },
-    // Gradient matching logo: purple to lighter purple
-    gradient: 'linear-gradient(135deg, #4A1A6B 0%, #6D2A9A 100%)'  // Logo gradient
+    gradient: 'linear-gradient(135deg, #111827 0%, #374151 100%)'
   };
 
   const allProducts = [
     {
       name: "Rahayu",
-      icon: Egg,
+      icon: Bird,
       description: "Platform manajemen peternakan ayam melalui WhatsApp. Pantau kesehatan, produksi, dan penjualan dengan mudah.",
       features: ["Monitoring Kesehatan", "Tracking Produksi", "Manajemen Pakan", "Laporan Otomatis"],
       status: "available",
@@ -85,7 +77,7 @@ export const Hero = () => {
     },
     {
       name: "Tambakflow",
-      icon: Fish,
+      icon: Shrimp,
       description: "Monitoring dan manajemen tambak udang real-time via WhatsApp.",
       features: ["Kualitas Air", "Monitoring Pakan", "Health Tracking", "Panen Otomatis"],
       status: "available",
@@ -98,7 +90,7 @@ export const Hero = () => {
     },
     {
       name: "Kasaflow",
-      icon: Building,
+      icon: Truck,
       description: "Manajemen toko dan distribusi dengan integrasi WhatsApp Business.",
       features: ["Inventory Management", "Order Processing", "Customer Service", "Analytics"],
       status: "available",
@@ -185,15 +177,8 @@ export const Hero = () => {
   const currentProduct = products[currentIndex];
 
   return (
-    <WaveBackground className="min-h-screen flex items-center justify-center py-20 lg:py-32 bg-white dark:bg-[#151022]">
+    <WaveBackground className="min-h-screen flex items-center justify-center py-20 lg:py-32 bg-white">
       <div className="container mx-auto px-6 relative z-10">
-        {/* 70:30 color proportion overlays (keep white dominant) */}
-        <div className="absolute inset-0 -z-10 pointer-events-none">
-          {/* Top 20% subtle brand tint */}
-          <div className="h-[20%] w-full bg-[linear-gradient(to_bottom,#F3EDFF,rgba(243,237,255,0))] dark:bg-[linear-gradient(to_bottom,#221432,rgba(34,20,50,0))]" />
-          {/* Bottom 10% warm accent */}
-          <div className="absolute bottom-0 left-0 right-0 h-[10%] bg-[linear-gradient(to_top,#FFF7E6,rgba(255,247,230,0))] dark:bg-[linear-gradient(to_top,#2b1842,rgba(43,24,66,0))]" />
-        </div>
         <div className={`transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
@@ -201,10 +186,10 @@ export const Hero = () => {
           {/* Header */}
           <div className="text-center space-y-6 max-w-4xl mx-auto mb-16">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full mb-4 shadow-lg"
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full mb-4 shadow-sm"
               style={{
-                background: brandColors.gradient,
-                boxShadow: '0 0 30px rgba(116, 70, 184, 0.25)'
+                background: '#6D2A9A',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
               }}>
               <Sparkles className="w-4 h-4 text-white" />
               <span className="text-sm font-semibold text-white">
@@ -220,12 +205,7 @@ export const Hero = () => {
                 .
               </span>
               <br />
-              <span 
-                className="text-transparent bg-clip-text bg-gradient-to-r font-extrabold"
-                style={{
-                  backgroundImage: brandColors.gradient
-                }}
-              >
+              <span className="font-extrabold" style={{ color: brandColors.text.dark }}>
                 Semua Beres.
               </span>
             </h1>
@@ -236,17 +216,17 @@ export const Hero = () => {
 
             {/* Category Filter */}
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3 mt-12">
-              <div className="inline-flex backdrop-blur-md rounded-2xl p-1.5 border shadow-xl bg-white/90"
+              <div className="inline-flex rounded-2xl p-1.5 border shadow-sm bg-white"
                 style={{ 
-                  borderColor: 'rgba(109, 42, 154, 0.12)'
+                  borderColor: 'rgba(17, 24, 39, 0.08)'
                 }}>
             <button
                   onClick={() => setActiveCategory("all")}
                   className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                    activeCategory === "all" ? "text-white" : 'text-purple-700'
+                    activeCategory === "all" ? "text-white" : 'text-gray-700'
                   }`}
                   style={{
-                    background: activeCategory === "all" ? brandColors.gradient : 'transparent',
+                    background: activeCategory === "all" ? '#6D2A9A' : 'transparent',
                     color: activeCategory === "all" ? 'white' : brandColors.text.dark
                   }}
             >
@@ -255,10 +235,10 @@ export const Hero = () => {
             <button
                   onClick={() => setActiveCategory("farm")}
                   className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
-                    activeCategory === "farm" ? "text-white" : 'text-purple-700'
+                    activeCategory === "farm" ? "text-white" : 'text-gray-700'
                   }`}
                   style={{
-                    background: activeCategory === "farm" ? brandColors.gradient : 'transparent',
+                    background: activeCategory === "farm" ? '#6D2A9A' : 'transparent',
                     color: activeCategory === "farm" ? 'white' : brandColors.text.dark
                   }}
                 >
@@ -268,10 +248,10 @@ export const Hero = () => {
             <button
                   onClick={() => setActiveCategory("field")}
                   className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
-                    activeCategory === "field" ? "text-white" : 'text-purple-700'
+                    activeCategory === "field" ? "text-white" : 'text-gray-700'
                   }`}
                   style={{
-                    background: activeCategory === "field" ? brandColors.gradient : 'transparent',
+                    background: activeCategory === "field" ? '#6D2A9A' : 'transparent',
                     color: activeCategory === "field" ? 'white' : brandColors.text.dark
                   }}
                 >
@@ -297,12 +277,11 @@ export const Hero = () => {
             <div className="space-y-6">
               
               {/* Current Product Focus */}
-              <div className="rounded-3xl p-8 border shadow-xl transition-transform hover:scale-[1.01]"
+              <div className="rounded-3xl p-8 border shadow-sm transition-transform hover:scale-[1.01]"
                 style={{ 
-                  background: 'rgba(255, 255, 255, 0.7)',
-                      backdropFilter: 'blur(12px)',
-                  borderColor: 'rgba(109, 42, 154, 0.12)',
-                  boxShadow: '0 8px 32px rgba(109, 42, 154, 0.08)'
+                  background: '#FFFFFF',
+                  borderColor: 'rgba(17, 24, 39, 0.08)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.05)'
                 }}>
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-4">
@@ -348,13 +327,13 @@ export const Hero = () => {
                       <button
                         onClick={prevProduct}
                         className="p-2 rounded-full border transition-colors hover:shadow-sm"
-                        style={{ borderColor: `${brandColors.primary.medium}20` }}>
+                        style={{ borderColor: 'rgba(17, 24, 39, 0.12)' }}>
                         <ChevronLeft className="w-4 h-4 text-gray-600" />
                       </button>
                       <button
                         onClick={nextProduct}
                         className="p-2 rounded-full border transition-colors hover:shadow-sm"
-                        style={{ borderColor: `${brandColors.primary.medium}20` }}>
+                        style={{ borderColor: 'rgba(17, 24, 39, 0.12)' }}>
                         <ChevronRight className="w-4 h-4 text-gray-600" />
                     </button>
                     </div>
@@ -368,7 +347,7 @@ export const Hero = () => {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   {(currentProduct ? currentProduct.features : allProducts.find(p => p.name === "Tamara")?.features || []).map((feature, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm font-medium" style={{ color: brandColors.text.muted }}>
-                        <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: brandColors.primary.medium }} />
+                        <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: '#10B981' }} />
                       <span className="line-clamp-1">{feature}</span>
                     </div>
                   ))}
@@ -379,11 +358,11 @@ export const Hero = () => {
                     href={currentProduct ? currentProduct.link : "https://tamara.naraflow.id/"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-3 px-6 rounded-xl font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+                    className="flex-1 py-3 px-6 rounded-xl font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                     style={{
-                      background: brandColors.gradient,
+                      background: '#6D2A9A',
                       color: 'white',
-                      boxShadow: '0 8px 32px rgba(116, 70, 184, 0.35)'
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.08)'
                     }}
                   >
                     Kunjungi Website
@@ -393,24 +372,23 @@ export const Hero = () => {
               </div>
 
               {/* Product Line Summary */}
-              <div className="rounded-3xl p-6 border shadow-xl"
+              <div className="rounded-3xl p-6 border shadow-sm"
                 style={{
-                  background: `linear-gradient(135deg, ${brandColors.primary.light}20, ${brandColors.accent.light}10)`,
-                  backdropFilter: 'blur(8px)',
-                  borderColor: 'rgba(109, 42, 154, 0.12)'
+                  background: '#FFFFFF',
+                  borderColor: 'rgba(17, 24, 39, 0.08)'
                 }}>
                 <h3 className="text-lg font-bold mb-4" style={{ color: brandColors.text.dark }}>Lini Produk Naraflow</h3>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <p className="font-semibold mb-3 flex items-center gap-2 text-sm" style={{ color: brandColors.text.dark }}>
-                      <Tractor className="w-4 h-4" style={{ color: brandColors.primary.medium }} />
+                      <Tractor className="w-4 h-4" style={{ color: '#111827' }} />
                       Farm as a Service
                     </p>
                     <div className="space-y-2">
                       {farmProducts.map(product => {
                         const IconComponent = product.icon;
                         return (
-                          <div key={product.name} className="flex items-center gap-3 p-2 rounded-lg bg-white/50">
+                          <div key={product.name} className="flex items-center gap-3 p-2 rounded-lg bg-white">
                             <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${product.color} flex items-center justify-center`}>
                               <IconComponent className={`w-4 h-4 ${product.iconColor}`} />
                             </div>
@@ -422,14 +400,14 @@ export const Hero = () => {
                   </div>
                   <div>
                     <p className="font-semibold mb-3 flex items-center gap-2 text-sm" style={{ color: brandColors.text.dark }}>
-                      <ClipboardList className="w-4 h-4" style={{ color: brandColors.primary.medium }} />
+                      <ClipboardList className="w-4 h-4" style={{ color: '#111827' }} />
                       Field Workflow
                     </p>
                     <div className="space-y-2">
                       {fieldProducts.map(product => {
                         const IconComponent = product.icon;
                         return (
-                          <div key={product.name} className="flex items-center gap-3 p-2 rounded-lg bg-white/50">
+                          <div key={product.name} className="flex items-center gap-3 p-2 rounded-lg bg-white">
                             <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${product.color} flex items-center justify-center`}>
                               <IconComponent className={`w-4 h-4 ${product.iconColor}`} />
                             </div>
