@@ -64,9 +64,7 @@ const NodeExecutionPanel = lazy(() =>
 const MetricsInputPanel = lazy(() =>
   import("@/components/canvas/MetricsInputPanel").then(mod => ({ default: mod.MetricsInputPanel }))
 );
-const ValidationPanel = lazy(() =>
-  import("@/components/canvas/ValidationPanel").then(mod => ({ default: mod.ValidationPanel }))
-);
+// Validation panel removed: validation is now available via the Workflow Assistant chat
 const WorkflowAssistant = lazy(() =>
   import("@/components/workflow/WorkflowAssistant").then(mod => ({
     default: mod.WorkflowAssistant,
@@ -756,10 +754,7 @@ const WorkflowStudioContent = () => {
                 </div>
               </div>
 
-              {/* Validation Panel - Render outside overflow container */}
-              <Suspense fallback={null}>
-                <ValidationPanel />
-              </Suspense>
+              {/* ValidationPanel removed: use chat-based validation in WorkflowAssistant */}
             </div>
 
             {/* Simulation panel removed */}
