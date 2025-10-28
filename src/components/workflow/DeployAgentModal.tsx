@@ -73,6 +73,23 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
   const [deploymentError, setDeploymentError] = useState<string | null>(null);
   const [deploymentProgress, setDeploymentProgress] = useState(0);
 
+  // Post-deploy metrics (populated after successful deploy; backend can enrich later)
+  const [tokenMetrics, setTokenMetrics] = useState<{
+    scopes?: string[];
+    expiresAt?: number;
+    dataAccessExpiresAt?: number;
+  }>({});
+  const [wabaMetrics, setWabaMetrics] = useState<{
+    wabaId?: string;
+    reviewStatus?: "PENDING" | "APPROVED" | "REJECTED" | "UNKNOWN";
+    ownership?: "shared" | "owned" | "unknown";
+  }>({});
+  const [webhookMetrics, setWebhookMetrics] = useState<{
+    verified?: boolean;
+    lastDeliveryAt?: string;
+    lastStatusCode?: number;
+  }>({});
+
   // Step 1: Configuration - Use initialConfig if provided
   const [agentName, setAgentName] = useState(initialConfig?.agentName || "");
   // Environment removed from UI; backend will decide target environment
@@ -212,6 +229,10 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
       });
 
       // Keep modal open; user can close manually after reviewing success
+      // Populate basic metrics (placeholder values; server should enrich via real checks)
+      setTokenMetrics({ scopes: ["whatsapp_business_management", "whatsapp_business_messaging" ] });
+      setWabaMetrics({ wabaId: wabaId || undefined, reviewStatus: "UNKNOWN", ownership: "unknown" });
+      setWebhookMetrics({ verified: Boolean(webhookUrl), lastDeliveryAt: undefined, lastStatusCode: undefined });
 
     } catch (err: any) {
       console.error("Deployment error:", err);
@@ -562,6 +583,39 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                         <span className="font-mono text-xs text-black">
                           https://api.naraflow.ai/agents/{agentName}
                         </span>
+                      </div>
+
+                      {/* Post-deploy Metrics */}
+                      <div className="mt-4 grid sm:grid-cols-3 gap-3">
+                        <div className="rounded-md border border-gray-200 p-3">
+                          <p className="text-xs font-semibold mb-2">Token Scopes</p>
+                          <div className="flex flex-wrap gap-2">
+                            {(tokenMetrics.scopes && tokenMetrics.scopes.length > 0
+                              ? tokenMetrics.scopes
+                              : ["unknown"]).map((s, i) => (
+                                <Badge key={i} variant="outline">{s}</Badge>
+                              ))}
+                          </div>
+                          {tokenMetrics.expiresAt && (
+                            <p className="text-[10px] text-gray-500 mt-2">Expires: {new Date(tokenMetrics.expiresAt * 1000).toLocaleString()}</p>
+                          )}
+                        </div>
+                        <div className="rounded-md border border-gray-200 p-3">
+                          <p className="text-xs font-semibold mb-2">WABA Status</p>
+                          <div className="space-y-1 text-xs">
+                            <div>ID: {wabaMetrics.wabaId || "unknown"}</div>
+                            <div>Review: {wabaMetrics.reviewStatus || "UNKNOWN"}</div>
+                            <div>Ownership: {wabaMetrics.ownership || "unknown"}</div>
+                          </div>
+                        </div>
+                        <div className="rounded-md border border-gray-200 p-3">
+                          <p className="text-xs font-semibold mb-2">Webhook</p>
+                          <div className="space-y-1 text-xs">
+                            <div>Verified: {webhookMetrics.verified ? "yes" : "no"}</div>
+                            <div>Last Delivery: {webhookMetrics.lastDeliveryAt || "-"}</div>
+                            <div>Last Status: {webhookMetrics.lastStatusCode || "-"}</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

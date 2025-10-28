@@ -101,11 +101,6 @@ const ConfigurationPanel = lazy(() =>
     default: mod.ConfigurationPanel,
   }))
 );
-const WhatsAppSimulationPanel = lazy(() =>
-  import("@/components/workflow/WhatsAppSimulationPanel").then(mod => ({
-    default: mod.WhatsAppSimulationPanel,
-  }))
-);
 const FloatingChatButton = lazy(() =>
   import("@/components/workflow/FloatingChatButton").then(mod => ({
     default: mod.FloatingChatButton,
@@ -767,10 +762,7 @@ const WorkflowStudioContent = () => {
               </Suspense>
             </div>
 
-            {/* WhatsApp Simulation Panel - Below Canvas */}
-            <Suspense fallback={<PanelLoader />}>
-              <WhatsAppSimulationPanel nodes={Object.values(nodes)} edges={Object.values(edges)} />
-            </Suspense>
+            {/* Simulation panel removed */}
           </div>
         </div>
 
