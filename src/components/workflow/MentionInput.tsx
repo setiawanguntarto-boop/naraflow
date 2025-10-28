@@ -120,7 +120,7 @@ export function MentionInput({
       // Find all @ mentions first
       const mentionMatches: Array<{ type: "mention"; index: number; length: number; data: any }> =
         [];
-      let match;
+      let match: RegExpExecArray | null;
       while ((match = mentionRegex.exec(text)) !== null) {
         const mentionId = match[1];
         const template = workflowPresets.find(p => p.id === mentionId);
@@ -186,9 +186,10 @@ export function MentionInput({
       return parts.length > 0 ? parts : [{ type: "text", content: "" }];
     }
 
-    // No preset selected - normal mention parsing
-    const matches: Array<{ type: "mention"; index: number; length: number; data: any }> = [];
-    while ((match = mentionRegex.exec(text)) !== null) {
+  // No preset selected - normal mention parsing
+  const matches: Array<{ type: "mention"; index: number; length: number; data: any }> = [];
+  let match: RegExpExecArray | null;
+  while ((match = mentionRegex.exec(text)) !== null) {
       const mentionId = match[1];
       const template = workflowPresets.find(p => p.id === mentionId);
       matches.push({

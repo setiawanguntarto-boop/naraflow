@@ -12,19 +12,19 @@ export const About = () => {
         <SectionHeader title={t("about.title")} subtitle={t("about.subtitle")} />
 
         {/* Why Naraflow - Business Thesis */}
-        <div className="mb-20">
-          <div className="text-center max-w-3xl mx-auto mb-12">
+        <div className="mb-16">
+          <div className="text-center max-w-4xl mx-auto mb-10">
             <h3 className="text-3xl font-bold text-foreground mb-4">Kenapa Naraflow?</h3>
             <p className="text-foreground-muted text-lg">
               Data akurat dari lapangan adalah kunci, namun seringkali terhambat oleh proses manual
               dan aplikasi yang rumit. Di sinilah letak masalah yang kami selesaikan.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Pain Point 1 */}
-            <Card className="border-border-light hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+            <Card className="border-[#6D2A9A14] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-1 hover:ring-[#6D2A9A1F] rounded-xl focus-visible:ring-2 focus-visible:ring-[#8B5FBF]">
               <CardContent className="p-8 text-center">
-                <div className="bg-destructive/10 text-destructive w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 bg-[#F3EDFF] text-[#6D2A9A]">
                   <FileX className="w-8 h-8" />
                 </div>
                 <h4 className="text-xl font-semibold text-foreground mb-3">Data Terfragmentasi</h4>
@@ -36,7 +36,7 @@ export const About = () => {
             </Card>
 
             {/* Pain Point 2 */}
-            <Card className="border-border-light hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+            <Card className="border-[#6D2A9A14] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-1 hover:ring-[#6D2A9A1F] rounded-xl focus-visible:ring-2 focus-visible:ring-[#8B5FBF]">
               <CardContent className="p-8 text-center">
                 <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5">
                   <Smartphone className="w-8 h-8" />
@@ -52,9 +52,9 @@ export const About = () => {
             </Card>
 
             {/* Pain Point 3 */}
-            <Card className="border-border-light hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+            <Card className="border-[#6D2A9A14] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-1 hover:ring-[#6D2A9A1F] rounded-xl focus-visible:ring-2 focus-visible:ring-[#8B5FBF]">
               <CardContent className="p-8 text-center">
-                <div className="bg-brand-primary/10 text-brand-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 bg-[#F3EDFF] text-[#6D2A9A]">
                   <MessageSquare className="w-8 h-8" />
                 </div>
                 <h4 className="text-xl font-semibold text-foreground mb-3">
@@ -70,10 +70,10 @@ export const About = () => {
         </div>
 
         {/* Vision & Mission */}
-        <div className="grid gap-8 md:grid-cols-2 mb-20">
-          <Card className="border-border-light hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+        <div className="grid gap-8 md:grid-cols-2 items-stretch mb-16">
+          <Card className="border-[#6D2A9A14] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-1 hover:ring-[#6D2A9A1F] rounded-xl focus-visible:ring-2 focus-visible:ring-[#8B5FBF]">
             <CardContent className="p-8 text-center">
-              <div className="bg-brand-primary/10 text-brand-primary w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5 bg-[#F3EDFF] text-[#6D2A9A]">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <h3 className="text-2xl font-bold text-foreground mb-4">{t("about.vision.title")}</h3>
@@ -83,14 +83,15 @@ export const About = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+          <Card className="border-[#6D2A9A14] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-1 hover:ring-[#6D2A9A1F] rounded-xl focus-visible:ring-2 focus-visible:ring-[#8B5FBF]">
             <CardContent className="p-8">
-              <div className="bg-brand-primary/10 text-brand-primary w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5 bg-[#F3EDFF] text-[#6D2A9A]">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <h3 className="text-2xl font-bold text-foreground mb-4 text-center">
                 {t("about.mission.title")}
               </h3>
+              <div className="h-px bg-[#6D2A9A10] my-4" />
               <ul className="space-y-3 text-foreground-muted max-w-sm mx-auto">
                 <li className="flex items-start">
                   <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
@@ -121,7 +122,7 @@ export const About = () => {
 
         {/* Segments Section */}
         <div>
-          <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="text-center max-w-4xl mx-auto mb-12">
             <h3 className="text-3xl font-bold text-foreground mb-4">
               Satu Platform untuk Setiap Kebutuhan Lapangan
             </h3>
