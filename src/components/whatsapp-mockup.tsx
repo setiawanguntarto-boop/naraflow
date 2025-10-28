@@ -94,16 +94,8 @@ export const WhatsAppMockup = ({
 
       {/* WhatsApp Chat Header (Agent) */}
       <div className="bg-[#075E54] text-white px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M15.5 6.5l-6 6 6 6" />
-          </svg>
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-lg">
-              <span className="select-none">{agentIcon}</span>
-            </div>
-          </div>
-        </div>
+        {/* Left area intentionally empty to mimic minimal header without avatar/arrow/status */}
+        <div className="h-6" />
         <div className="flex items-center gap-4">
           {/* Video */}
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">

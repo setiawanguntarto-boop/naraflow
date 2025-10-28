@@ -178,7 +178,7 @@ export const Hero = () => {
   const currentProduct = products[currentIndex];
 
   return (
-    <WaveBackground className="min-h-screen flex items-center justify-center py-20 lg:py-32 bg-white">
+    <WaveBackground mirrorTop palette={{ dark: '#6D2A9A', mid: '#8B5FBF', light: '#F3EDFF' }} className="min-h-screen flex items-center justify-center py-20 lg:py-32 bg-white">
       <div className="container mx-auto px-6 relative z-10">
         <div className={`transition-all duration-1000 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
