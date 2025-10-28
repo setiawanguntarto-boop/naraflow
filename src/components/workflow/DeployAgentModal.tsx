@@ -54,6 +54,7 @@ interface DeployAgentModalProps {
     webhookUrl?: string;
     apiKey?: string;
   };
+  onWorkflowUpdate?: (workflow: { nodes: any[]; edges: any[] }) => void;
 }
 
 interface SimulationLog {
@@ -64,11 +65,15 @@ interface SimulationLog {
   status: "success" | "info" | "warning" | "error";
 }
 
-export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }: DeployAgentModalProps) {
+export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig, onWorkflowUpdate }: DeployAgentModalProps) {
   // Use deployment hook
   const { isDeploying, error, deployWithRetry, clearError } = useDeployment();
   const workflowStore = useWorkflowState();
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Track current workflow state in modal (updated by auto-fix)
+  const [currentWorkflow, setCurrentWorkflow] = useState(workflow);
+  const [autoFixApplied, setAutoFixApplied] = useState(false);
   
   // Step management
   const [currentStep, setCurrentStep] = useState(1);
@@ -104,37 +109,80 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
 
   // Simplified: Only two steps now – 1) Configure, 2) Deploy
 
+  // Update current workflow when prop changes
+  useEffect(() => {
+    setCurrentWorkflow(workflow);
+  }, [workflow.nodes, workflow.edges]);
+
   // Validation state
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [validationKey, setValidationKey] = useState(0);
+  
   useEffect(() => {
     try {
-      const errs = WorkflowValidator.validateWorkflow(workflow.nodes as any[], workflow.edges as any[]);
+      const errs = WorkflowValidator.validateWorkflow(currentWorkflow.nodes as any[], currentWorkflow.edges as any[]);
+      console.log("[DeployAgentModal] Validation updated:", errs.length, "errors");
       setValidationErrors(errs);
     } catch (e) {
       console.error("Validation error:", e);
     }
-  }, [workflow.nodes, workflow.edges]);
+  }, [currentWorkflow, validationKey]);
 
   const handleAutoFix = () => {
     try {
       const { nodes: fixedNodes, edges: fixedEdges, changes } = WorkflowValidator.autoFixWorkflow(
-        workflow.nodes as any[],
-        workflow.edges as any[]
+        currentWorkflow.nodes as any[],
+        currentWorkflow.edges as any[]
       );
+      
+      console.log("[DeployAgentModal] Auto-fix applied:", {
+        nodeCount: fixedNodes.length,
+        edgeCount: fixedEdges.length,
+        changesCount: changes.length,
+        changes
+      });
+      
+      // Ensure all edges have IDs for proper mapping
+      const edgesWithIds = fixedEdges.map(e => ({
+        ...e,
+        id: e.id || `edge-${e.source}-${e.target}-${Date.now()}`
+      }));
+      
       // Apply to canvas state
       const patchNodes: Record<string, any> = {};
       fixedNodes.forEach(n => { patchNodes[n.id] = n as any; });
       const patchEdges: Record<string, any> = {};
-      fixedEdges.forEach(e => { patchEdges[e.id as any] = e as any; });
+      edgesWithIds.forEach(e => { patchEdges[e.id] = e as any; });
+      
+      console.log("[DeployAgentModal] Batch updating canvas with:", {
+        nodeCount: Object.keys(patchNodes).length,
+        edgeCount: Object.keys(patchEdges).length,
+        edgeIds: Object.keys(patchEdges)
+      });
+      
       workflowStore.actions.batchUpdate({ nodes: patchNodes, edges: patchEdges });
 
-      // Revalidate after applying
-      const errs = WorkflowValidator.validateWorkflow(fixedNodes as any[], fixedEdges as any[]);
-      setValidationErrors(errs);
+      // Update modal's current workflow state
+      const fixedWorkflow = { nodes: fixedNodes as any[], edges: edgesWithIds as any[] };
+      setCurrentWorkflow(fixedWorkflow);
+      setAutoFixApplied(true);
+      
+      // Trigger validation re-run after a short delay to ensure state propagation
+      setTimeout(() => {
+        setValidationKey(prev => prev + 1);
+      }, 100);
+
+      // Notify parent to update the workflow prop
+      if (onWorkflowUpdate) {
+        onWorkflowUpdate(fixedWorkflow);
+      }
+      
+      // Show success message
       const preview = changes.slice(0, 3).map(c => `• ${c.description}`).join("\n");
       const more = changes.length > 3 ? `\n…and ${changes.length - 3} more` : "";
       toast.success("Applied quick fixes", { description: `${changes.length} change(s) applied)\n${preview}${more}` });
     } catch (e: any) {
+      console.error("[DeployAgentModal] Auto-fix error:", e);
       toast.error("Auto-fix failed", { description: e?.message });
     }
   };
@@ -332,7 +380,20 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
   const canProceedToNext = (step: number) => {
     if (step === 1) {
       const hasBlocking = validationErrors.some(e => e.type === "error");
-      return Boolean(agentName.trim() && phoneNumberId.trim() && accessToken.trim() && !hasBlocking);
+      const requiredFieldsValid = Boolean(agentName.trim() && phoneNumberId.trim() && accessToken.trim());
+      
+      console.log("[DeployAgentModal] canProceedToNext check:", {
+        step,
+        hasBlocking,
+        validationErrors: validationErrors.length,
+        blockingErrors: validationErrors.filter(e => e.type === "error").length,
+        requiredFieldsValid,
+        agentName: agentName.trim(),
+        phoneNumberId: phoneNumberId.trim(),
+        accessToken: accessToken.trim(),
+      });
+      
+      return requiredFieldsValid && !hasBlocking;
     }
     return true;
   };

@@ -91,6 +91,15 @@ export class WorkflowValidator {
       }
     });
 
+    // Connect nodes without incoming edges (that are not Start) to the Start
+    Array.from(nMap.values()).forEach(n => {
+      if (n.type === "start" || n.type === "group") return;
+      const ins = inEdges.get(n.id) || [];
+      if (ins.length === 0) {
+        addEdge(startId!, n.id);
+      }
+    });
+
     return { nodes: Array.from(nMap.values()), edges: eList, changes };
   }
 
@@ -226,7 +235,8 @@ export class WorkflowValidator {
     const errors: ValidationError[] = [];
 
     // Check if node has required fields
-    if (!node.data.label || String(node.data.label).trim() === "") {
+    const nodeLabel = (node.data as any)?.label;
+    if (!nodeLabel || String(nodeLabel).trim() === "") {
       errors.push({
         id: `empty-label-${node.id}`,
         nodeId: node.id,
@@ -292,7 +302,7 @@ export class WorkflowValidator {
 
     // Check for duplicate labels (warning)
     const duplicateLabels = allNodes.filter(
-      n => n.id !== node.id && n.data.label === node.data.label
+      n => n.id !== node.id && (n.data as any)?.label === nodeLabel
     );
     if (duplicateLabels.length > 0) {
       errors.push({
@@ -300,7 +310,7 @@ export class WorkflowValidator {
         nodeId: node.id,
         type: "warning",
         severity: "low",
-        message: `Duplicate label: "${node.data.label}"`,
+        message: `Duplicate label: "${nodeLabel}"`,
       });
     }
 
