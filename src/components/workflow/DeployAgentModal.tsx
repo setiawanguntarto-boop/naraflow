@@ -444,39 +444,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
             </div>
           )}
 
-          {currentStep === 2 && (
-            <div className="space-y-4">
-                <div>
-                <h3 className="font-semibold text-black mb-4">Deployment Summary</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
-                    <span className="text-sm font-medium">Agent Name</span>
-                    <Badge>{agentName}</Badge>
-                </div>
-                  {/* Environment row removed */}
-                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
-                    <span className="text-sm font-medium">Phone Number ID</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{phoneNumberId}</span>
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
-                    <span className="text-sm font-medium">Workflow</span>
-                    <Badge variant="outline">
-                      {workflow.nodes?.length || 0} nodes, {workflow.edges?.length || 0} connections
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
-                    <span className="text-sm font-medium">Expected Endpoint</span>
-                    <span className="text-xs font-mono text-black truncate max-w-[200px]">
-                      https://api.naraflow.ai/agents/{agentName}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {false && currentStep === 2 && <div />} 
 
           {currentStep === 2 && (
             <div className="space-y-4">
