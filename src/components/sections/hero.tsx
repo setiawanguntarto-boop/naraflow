@@ -194,7 +194,7 @@ export const Hero = () => {
               }}>
               <Sparkles className="w-4 h-4 text-white" />
               <span className="text-sm font-semibold text-white">
-                Satu Platform, Semua Kebutuhan
+                Cepat. Hemat. Tanpa Aplikasi.
               </span>
             </div>
             
