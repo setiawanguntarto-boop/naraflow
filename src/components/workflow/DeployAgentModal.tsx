@@ -32,6 +32,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { deploymentClient, DeploymentStep, DeploymentData, DeploymentConfig } from "@/lib/deploymentClient";
+import { WorkflowValidator, ValidationError } from "@/utils/workflowValidation";
 import { useDeployment } from "@/hooks/useDeployment";
 import { DeploymentErrorDisplay } from "./DeploymentErrorDisplay";
 // Cloud and simulation steps removed – simplified to Configure and Deploy only
@@ -101,6 +102,17 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
 
   // Simplified: Only two steps now – 1) Configure, 2) Deploy
 
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  useEffect(() => {
+    try {
+      const errs = WorkflowValidator.validateWorkflow(workflow.nodes as any[], workflow.edges as any[]);
+      setValidationErrors(errs);
+    } catch (e) {
+      console.error("Validation error:", e);
+    }
+  }, [workflow.nodes, workflow.edges]);
+
   // Load initial config from ConfigurationPanel when modal opens
   useEffect(() => {
     if (open && initialConfig) {
@@ -163,6 +175,15 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
     // Validate workflow (basic)
     if (!workflow.nodes || workflow.nodes.length === 0) {
       toast.error("Workflow is empty");
+      return;
+    }
+
+    // Block deploy on structural errors
+    const blocking = validationErrors.filter(e => e.type === "error");
+    if (blocking.length > 0) {
+      toast.error("Fix workflow errors before deploying", { description: blocking[0]?.message });
+      setCurrentStep(1);
+      setIsProcessing(false);
       return;
     }
 
@@ -283,7 +304,10 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
   const totalSteps = 2;
 
   const canProceedToNext = (step: number) => {
-    if (step === 1) return Boolean(agentName.trim() && phoneNumberId.trim() && accessToken.trim());
+    if (step === 1) {
+      const hasBlocking = validationErrors.some(e => e.type === "error");
+      return Boolean(agentName.trim() && phoneNumberId.trim() && accessToken.trim() && !hasBlocking);
+    }
     return true;
   };
 
@@ -440,6 +464,25 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
                 <p className="text-xs text-black">
                   Kunci untuk layanan eksternal (opsional), mis. AI/DB/Integrasi lain.
                 </p>
+              </div>
+
+              {/* Validation Summary */}
+              <div className={`rounded-md border p-3 ${validationErrors.some(e => e.type === 'error') ? 'border-red-300 bg-red-50' : 'border-green-300 bg-green-50'}`}>
+                <p className="text-sm font-semibold mb-2 text-black">Validation</p>
+                <p className="text-xs text-black mb-2">
+                  {validationErrors.some(e => e.type === 'error')
+                    ? 'Please fix the errors below before continuing:'
+                    : 'No blocking errors detected. Warnings may still apply.'}
+                </p>
+                {validationErrors.slice(0, 5).map((e, idx) => (
+                  <div key={idx} className="text-xs text-black flex items-start gap-2 mb-1">
+                    <span>{e.type === 'error' ? '❌' : '⚠️'}</span>
+                    <span>{e.message}</span>
+                  </div>
+                ))}
+                {validationErrors.length > 5 && (
+                  <p className="text-[10px] text-black/70">and {validationErrors.length - 5} more…</p>
+                )}
               </div>
             </div>
           )}

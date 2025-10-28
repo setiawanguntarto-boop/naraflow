@@ -16,6 +16,8 @@ export class WorkflowValidator {
   static validateWorkflow(nodes: Node[], edges: Edge[]): ValidationError[] {
     const errors: ValidationError[] = [];
 
+    const nodeIdSet = new Set(nodes.map(n => n.id));
+
     // Check for Start node
     const startNodes = nodes.filter(n => n.type === "start");
     if (startNodes.length === 0) {
@@ -51,6 +53,37 @@ export class WorkflowValidator {
       errors.push(...nodeErrors);
     });
 
+    // Validate edges: existence and self-loops
+    edges.forEach(e => {
+      if (!nodeIdSet.has(e.source)) {
+        errors.push({
+          id: `edge-missing-source-${e.id || `${e.source}->${e.target}`}`,
+          edgeId: e.id,
+          type: "error",
+          severity: "critical",
+          message: `Edge references missing source node: ${e.source}`,
+        });
+      }
+      if (!nodeIdSet.has(e.target)) {
+        errors.push({
+          id: `edge-missing-target-${e.id || `${e.source}->${e.target}`}`,
+          edgeId: e.id,
+          type: "error",
+          severity: "critical",
+          message: `Edge references missing target node: ${e.target}`,
+        });
+      }
+      if (e.source === e.target) {
+        errors.push({
+          id: `self-loop-${e.id || e.source}`,
+          edgeId: e.id,
+          type: "warning",
+          severity: "low",
+          message: "Self-loop detected. Ensure this is intentional to avoid infinite loops",
+        });
+      }
+    });
+
     // Check for orphaned nodes
     const orphanedNodes = this.findOrphanedNodes(nodes, edges);
     orphanedNodes.forEach(nodeId => {
@@ -72,6 +105,30 @@ export class WorkflowValidator {
         type: "warning",
         severity: "medium",
         message: "This path does not lead to an End node",
+      });
+    });
+
+    // Check for nodes unreachable from any Start node
+    const unreachableFromStart = this.findUnreachableFromStart(nodes, edges);
+    unreachableFromStart.forEach(nodeId => {
+      errors.push({
+        id: `unreachable-from-start-${nodeId}`,
+        nodeId,
+        type: "warning",
+        severity: "high",
+        message: "Node cannot be reached from any Start node",
+      });
+    });
+
+    // Detect directed cycles (may cause infinite loops)
+    const cycleNodes = this.findCycleNodes(nodes, edges);
+    cycleNodes.forEach(nodeId => {
+      errors.push({
+        id: `cycle-${nodeId}`,
+        nodeId,
+        type: "warning",
+        severity: "medium",
+        message: "Node is part of a cycle. Ensure there is a terminating path",
       });
     });
 
@@ -200,6 +257,61 @@ export class WorkflowValidator {
     });
 
     return unreachable;
+  }
+
+  /**
+   * Find nodes that cannot be reached from any Start node
+   */
+  static findUnreachableFromStart(nodes: Node[], edges: Edge[]): string[] {
+    const startIds = nodes.filter(n => n.type === "start").map(n => n.id);
+    if (startIds.length === 0) return [];
+
+    const visited = new Set<string>();
+    const queue: string[] = [...startIds];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+      const outs = edges.filter(e => e.source === current).map(e => e.target);
+      outs.forEach(t => { if (!visited.has(t)) queue.push(t); });
+    }
+
+    return nodes
+      .filter(n => n.type !== "group" && !visited.has(n.id))
+      .map(n => n.id);
+  }
+
+  /**
+   * Find nodes participating in any directed cycle using DFS
+   */
+  static findCycleNodes(nodes: Node[], edges: Edge[]): string[] {
+    const idToIndex = new Map<string, number>();
+    nodes.forEach((n, i) => idToIndex.set(n.id, i));
+    const adj = new Map<string, string[]>();
+    nodes.forEach(n => adj.set(n.id, []));
+    edges.forEach(e => {
+      if (adj.has(e.source)) adj.get(e.source)!.push(e.target);
+    });
+
+    const visiting = new Set<string>();
+    const visited = new Set<string>();
+    const inCycle = new Set<string>();
+
+    const dfs = (u: string) => {
+      if (visiting.has(u)) { inCycle.add(u); return; }
+      if (visited.has(u)) return;
+      visiting.add(u);
+      for (const v of adj.get(u) || []) {
+        if (!visited.has(v)) dfs(v);
+        if (visiting.has(v) || inCycle.has(v)) inCycle.add(u);
+      }
+      visiting.delete(u);
+      visited.add(u);
+    };
+
+    nodes.forEach(n => dfs(n.id));
+    return Array.from(inCycle);
   }
 
   /**
