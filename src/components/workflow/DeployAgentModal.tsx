@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Play,
-  RotateCcw,
   Settings,
   Zap,
   Globe,
@@ -41,8 +40,7 @@ import { toast } from "sonner";
 import { deploymentClient, DeploymentStep, DeploymentData, DeploymentConfig } from "@/lib/deploymentClient";
 import { useDeployment } from "@/hooks/useDeployment";
 import { DeploymentErrorDisplay } from "./DeploymentErrorDisplay";
-import { detectCloudNeeds, CloudConfig, defaultCloudConfig } from "@/lib/cloudInfrastructureDetector";
-import { CloudInfrastructureStep } from "./CloudInfrastructureStep";
+// Cloud and simulation steps removed – simplified to Configure and Deploy only
 
 interface DeployAgentModalProps {
   open: boolean;
@@ -90,15 +88,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
   const [webhookUrl, setWebhookUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
 
-  // Step 2: Cloud Infrastructure (conditional)
-  const [cloudConfig, setCloudConfig] = useState<CloudConfig>(defaultCloudConfig);
-  const cloudNeeds = detectCloudNeeds(workflow.nodes);
-  const showCloudStep = cloudNeeds.requiresCloud;
-
-  // Step 3: Simulation
-  const [simulationLogs, setSimulationLogs] = useState<SimulationLog[]>([]);
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [simulationComplete, setSimulationComplete] = useState(false);
+  // Simplified: Only two steps now – 1) Configure, 2) Deploy
 
   // Load initial config from ConfigurationPanel when modal opens
   useEffect(() => {
@@ -139,83 +129,6 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
 
   // Step navigation is now handled inline with setCurrentStep directly
 
-
-  const handleRunSimulation = async () => {
-    setIsSimulating(true);
-    setSimulationLogs([]);
-    setSimulationComplete(false);
-
-    const logs: SimulationLog[] = [];
-    const startTime = Date.now();
-
-    const nodes = (workflow.nodes || []) as any[];
-    const edges = (workflow.edges || []) as any[];
-
-    if (nodes.length === 0) {
-      setIsSimulating(false);
-      toast.error("No nodes to simulate");
-      return;
-    }
-
-    const idToNode = new Map<string, any>();
-    for (const n of nodes) idToNode.set(n.id, n);
-
-    // pick explicit start node; fallback to first node
-    const start = nodes.find(n => n.type === "start") || nodes[0];
-
-    const queue: string[] = [start.id];
-    const visitCounts = new Map<string, number>();
-    const MAX_STEPS = Math.min(100, nodes.length * 4);
-    let steps = 0;
-
-    // helper to push log
-    const pushLog = (node: any, message: string, status: SimulationLog["status"]) => {
-      logs.push({
-        timestamp: Date.now() - startTime,
-        nodeId: node.id,
-        nodeLabel: node.data?.label || node.type || "Node",
-        message,
-        status,
-      });
-      setSimulationLogs([...logs]);
-    };
-
-    pushLog(start, "Start Node Executed", "success");
-
-    while (queue.length > 0 && steps < MAX_STEPS) {
-      const currentId = queue.shift()!;
-      const current = idToNode.get(currentId);
-      if (!current) continue;
-
-      // prevent infinite loops: limit each node to 2 visits
-      const v = (visitCounts.get(currentId) || 0) + 1;
-      visitCounts.set(currentId, v);
-
-      // traverse outgoing edges
-      const outgoing = edges.filter(e => e.source === currentId);
-      for (const e of outgoing) {
-        const target = idToNode.get(e.target);
-        if (!target) continue;
-        await new Promise(r => setTimeout(r, 250));
-        pushLog(target, `Executing ${target.data?.label || target.type}...`, "info");
-        if ((visitCounts.get(e.target) || 0) < 2) queue.push(e.target);
-      }
-
-      steps++;
-    }
-
-    // if there is an end node, finish with it
-    const end = nodes.find(n => n.type === "end");
-    if (end) {
-      await new Promise(r => setTimeout(r, 250));
-      pushLog(end, "Workflow completed successfully!", "success");
-    }
-
-    setSimulationComplete(true);
-    setIsSimulating(false);
-    toast.success("Simulation completed successfully!");
-  };
-
   const handleDeploy = async () => {
     setIsProcessing(true);
     if (!agentName.trim()) {
@@ -238,7 +151,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
       return;
     }
 
-    // Validate workflow
+    // Validate workflow (basic)
     if (!workflow.nodes || workflow.nodes.length === 0) {
       toast.error("Workflow is empty");
       return;
@@ -280,7 +193,7 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
       // Run deployment with progress tracking
       const deployData: DeploymentData = {
         agentName,
-        environment,
+        environment: environment as "staging" | "production",
         phoneNumberId,
         accessToken,
         wabaId,
@@ -290,18 +203,6 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
           nodes: workflow.nodes,
           edges: workflow.edges,
         },
-        ...(showCloudStep && { cloudConfig }),
-      };
-
-      const config: DeploymentConfig = {
-        agentName,
-        environment: environment as "staging" | "production",
-        phoneNumberId,
-        accessToken,
-        wabaId,
-        webhookUrl,
-        apiKey,
-        ...(showCloudStep && { cloudConfig }),
       };
 
       // Simulate deployment steps (for demo)
@@ -367,27 +268,12 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
     }
   };
 
-  // Define steps dynamically based on cloud infrastructure needs
-  const totalSteps = showCloudStep ? 4 : 3;
-  const getStepNumber = (stepName: 'config' | 'cloud' | 'simulation' | 'deployment') => {
-    if (stepName === 'config') return 1;
-    if (stepName === 'cloud') return 2;
-    if (stepName === 'simulation') return showCloudStep ? 3 : 2;
-    if (stepName === 'deployment') return showCloudStep ? 4 : 3;
-    return 1;
-  };
+  // Two-step flow: 1) Configure 2) Deploy
+  const totalSteps = 2;
 
   const canProceedToNext = (step: number) => {
-    if (step === 1) {
-      return agentName.trim() && phoneNumberId.trim() && accessToken.trim();
-    }
-    if (step === 2 && showCloudStep) {
-      return true; // Cloud infrastructure step - no validation needed
-    }
-    if ((step === 2 && !showCloudStep) || (step === 3 && showCloudStep)) {
-      return simulationComplete; // Simulation step
-    }
-    return true; // Deployment step
+    if (step === 1) return Boolean(agentName.trim() && phoneNumberId.trim() && accessToken.trim());
+    return true;
   };
 
   return (
@@ -410,8 +296,6 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map(step => {
               let stepLabel = "";
               if (step === 1) stepLabel = "Configuration";
-              else if (step === 2 && showCloudStep) stepLabel = "Cloud Setup";
-              else if ((step === 2 && !showCloudStep) || (step === 3 && showCloudStep)) stepLabel = "Simulation";
               else stepLabel = "Deployment";
 
               return (
@@ -586,101 +470,46 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig }
             </div>
           )}
 
-          {currentStep === 2 && showCloudStep && (
-            <CloudInfrastructureStep
-              agentName={agentName}
-              environment={environment}
-              needs={cloudNeeds}
-              config={cloudConfig}
-              onChange={setCloudConfig}
-            />
-          )}
-
-          {((currentStep === 2 && !showCloudStep) || (currentStep === 3 && showCloudStep)) && (
+          {currentStep === 2 && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg text-black">
-                    Workflow Simulation
-                  </h3>
-                  <p className="text-sm text-black">
-                    Preview how your workflow will execute
-                  </p>
+              <div>
+                <h3 className="font-semibold text-black mb-4">Deployment Summary</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
+                    <span className="text-sm font-medium">Agent Name</span>
+                    <Badge>{agentName}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
+                    <span className="text-sm font-medium">Environment</span>
+                    <Badge variant={environment === "production" ? "default" : "secondary"}>
+                      {environment === "production" ? "🚀 Production" : "🔧 Staging"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
+                    <span className="text-sm font-medium">Phone Number ID</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{phoneNumberId}</span>
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
+                    <span className="text-sm font-medium">Workflow</span>
+                    <Badge variant="outline">
+                      {workflow.nodes?.length || 0} nodes, {workflow.edges?.length || 0} connections
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white border border-gray-200 rounded-md text-black">
+                    <span className="text-sm font-medium">Expected Endpoint</span>
+                    <span className="text-xs font-mono text-black truncate max-w-[200px]">
+                      https://api.naraflow.ai/agents/{agentName}
+                    </span>
+                  </div>
                 </div>
-                <Button
-                  onClick={handleRunSimulation}
-                  disabled={isSimulating}
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  {isSimulating ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      Running...
-                    </>
-                  ) : simulationComplete ? (
-                    <>
-                      <RotateCcw className="w-4 h-4" />
-                      Rerun
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4" />
-                      Run Simulation
-                    </>
-                  )}
-                </Button>
               </div>
-
-              <ScrollArea className="h-80 border rounded-md bg-white p-4 font-mono text-xs">
-                {simulationLogs.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
-                    <div className="text-center">
-                      <Zap className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                      <p className="text-black">
-                        Click &quot;Run Simulation&quot; to preview workflow execution
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {simulationLogs.map((log, index) => (
-                      <div
-                        key={index}
-                        className="p-3 rounded-lg border bg-white border-gray-200 text-black"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold">
-                            [{Math.floor(log.timestamp / 1000)}s]
-                          </span>
-                          <span className="font-semibold">→ {log.nodeLabel}</span>
-                        </div>
-                        <p className="ml-6 text-xs opacity-90">{log.message}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-
-              {simulationComplete && (
-                <div className="rounded-lg bg-white border border-gray-200 p-4">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-semibold text-black">
-                        Simulation completed successfully!
-                      </p>
-                      <p className="text-xs text-black mt-0.5">
-                        Your workflow is ready to deploy.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {((currentStep === 3 && !showCloudStep) || (currentStep === 4 && showCloudStep)) && (
+          {currentStep === 2 && (
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-black mb-4">Deployment Summary</h3>

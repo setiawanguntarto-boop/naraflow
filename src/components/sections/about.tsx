@@ -137,8 +137,8 @@ export const About = () => {
             <Card className="border-border-light hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-8">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 w-12 h-12 rounded-lg flex items-center justify-center">
-                    <Sprout className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ background: '#E8FFF6', color: '#047857' }}>
+                    <Sprout className="w-6 h-6" aria-hidden="true" />
                   </div>
                   <h4 className="text-2xl font-bold text-foreground">Agrikultur & Akuakultur</h4>
                 </div>
@@ -148,7 +148,7 @@ export const About = () => {
                 </p>
                 <div className="space-y-3">
                   <div className="bg-background-soft p-3 rounded-lg flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-200 dark:bg-green-800 flex items-center justify-center text-green-700 dark:text-green-300 font-bold">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ background: '#E8FFF6', color: '#047857' }}>
                       R
                     </div>
                     <div>
@@ -159,8 +159,8 @@ export const About = () => {
                     </div>
                   </div>
                   <div className="bg-background-soft p-3 rounded-lg flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-cyan-200 dark:bg-cyan-800 flex items-center justify-center text-cyan-700 dark:text-cyan-300 font-bold">
-                      <Waves className="w-5 h-5" />
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ background: '#E0F2FE', color: '#0369A1' }}>
+                      <Waves className="w-5 h-5" aria-hidden="true" />
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">Tambakflow</p>
@@ -170,7 +170,7 @@ export const About = () => {
                     </div>
                   </div>
                   <div className="bg-background-soft p-3 rounded-lg flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-indigo-200 dark:bg-indigo-800 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ background: '#EFE9FF', color: '#6D2A9A' }}>
                       K
                     </div>
                     <div>
@@ -188,8 +188,8 @@ export const About = () => {
             <Card className="border-border-light hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-8">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 w-12 h-12 rounded-lg flex items-center justify-center">
-                    <CheckCircle2 className="w-6 h-6" />
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ background: '#F3EDFF', color: '#6D2A9A' }}>
+                    <CheckCircle2 className="w-6 h-6" aria-hidden="true" />
                   </div>
                   <h4 className="text-2xl font-bold text-foreground">Operasional Lapangan</h4>
                 </div>
@@ -200,7 +200,7 @@ export const About = () => {
                 </p>
                 <div className="space-y-3">
                   <div className="bg-background-soft p-3 rounded-lg flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-red-200 dark:bg-red-800 flex items-center justify-center text-red-700 dark:text-red-300 font-bold">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ background: '#FDECF5', color: '#BE185D' }}>
                       T
                     </div>
                     <div>
@@ -209,7 +209,7 @@ export const About = () => {
                     </div>
                   </div>
                   <div className="bg-background-soft p-3 rounded-lg flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-amber-200 dark:bg-amber-800 flex items-center justify-center text-amber-700 dark:text-amber-300 font-bold">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ background: '#E8FFF6', color: '#047857' }}>
                       R
                     </div>
                     <div>
@@ -218,7 +218,7 @@ export const About = () => {
                     </div>
                   </div>
                   <div className="bg-background-soft p-3 rounded-lg flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-fuchsia-200 dark:bg-fuchsia-800 flex items-center justify-center text-fuchsia-700 dark:text-fuchsia-300 font-bold">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ background: '#F1FCEB', color: '#3F6212' }}>
                       S
                     </div>
                     <div>
@@ -227,7 +227,7 @@ export const About = () => {
                     </div>
                   </div>
                   <div className="bg-background-soft p-3 rounded-lg flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-300 font-bold">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold" style={{ background: '#F3F4F6', color: '#111827' }}>
                       A
                     </div>
                     <div>
