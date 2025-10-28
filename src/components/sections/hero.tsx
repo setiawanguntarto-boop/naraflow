@@ -17,7 +17,7 @@ import {
   Hotel,
   Recycle,
     Bird,
-    Shrimp
+    Fish
 } from "lucide-react";
 import { WhatsAppMockup } from "@/components/whatsapp-mockup";
 import { WaveBackground } from "@/components/ui/wave-background";
@@ -77,7 +77,7 @@ export const Hero = () => {
     },
     {
       name: "Tambakflow",
-      icon: Shrimp,
+      icon: Fish,
       description: "Monitoring dan manajemen tambak udang real-time via WhatsApp.",
       features: ["Kualitas Air", "Monitoring Pakan", "Health Tracking", "Panen Otomatis"],
       status: "available",
