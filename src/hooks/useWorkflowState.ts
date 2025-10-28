@@ -83,6 +83,7 @@ interface UIState {
   zoom: number;
   pan: { x: number; y: number };
   showValidation: boolean;
+  autoValidate: boolean;
   showMinimap: boolean;
   showControls: boolean;
   isDragging: boolean;
@@ -212,6 +213,7 @@ interface WorkflowState {
     setZoom: (zoom: number) => void;
     setPan: (pan: { x: number; y: number }) => void;
     toggleValidation: () => void;
+    toggleAutoValidate: () => void;
 
     // Batch Operations
     batchUpdate: (updates: BatchUpdate) => void;
@@ -308,6 +310,7 @@ export const useWorkflowState = create<WorkflowState>()(
       zoom: 1,
       pan: { x: 0, y: 0 },
       showValidation: false,
+    autoValidate: true,
       showMinimap: true,
       showControls: true,
       isDragging: false,
@@ -887,6 +890,18 @@ export const useWorkflowState = create<WorkflowState>()(
             ui: {
               ...state.ui,
               showValidation: !state.ui.showValidation,
+            },
+          }),
+          false
+        );
+      },
+
+      toggleAutoValidate: () => {
+        set(
+          state => ({
+            ui: {
+              ...state.ui,
+              autoValidate: !state.ui.autoValidate,
             },
           }),
           false
