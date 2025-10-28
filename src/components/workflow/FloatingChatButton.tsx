@@ -1,13 +1,7 @@
 import { useState } from "react";
 import { MessageSquare, X, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Suspense, lazy } from "react";
-
-const WorkflowAssistant = lazy(() =>
-  import("@/components/workflow/WorkflowAssistant").then(mod => ({
-    default: mod.WorkflowAssistant,
-  }))
-);
+import { WorkflowAssistant } from "@/components/workflow/WorkflowAssistant";
 
 export function FloatingChatButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -66,11 +60,7 @@ export function FloatingChatButton() {
 
             {/* Chat Content */}
             {!isMinimized && (
-              <Suspense
-                fallback={<div className="flex items-center justify-center h-full">Loading...</div>}
-              >
-                <WorkflowAssistant />
-              </Suspense>
+              <WorkflowAssistant />
             )}
           </div>
         </div>

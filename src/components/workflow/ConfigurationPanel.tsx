@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Check, Play } from "lucide-react";
+import { Settings, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,9 +23,9 @@ interface ConfigurationPanelProps {
 export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPanelProps) {
   const [agentName, setAgentName] = useState("");
   const [environment, setEnvironment] = useState("staging");
-  const [whatsappNumber, setWhatsappNumber] = useState("");
-  const [whatsappVerified, setWhatsappVerified] = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  const [phoneNumberId, setPhoneNumberId] = useState("");
+  const [accessToken, setAccessToken] = useState("");
+  const [wabaId, setWabaId] = useState("");
   const [webhookUrl, setWebhookUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
 
@@ -40,45 +40,36 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
     }
   }, [nodes, agentName]);
 
-  const handleVerifyWhatsApp = async () => {
-    if (!whatsappNumber.trim()) {
-      toast.error("Please enter a WhatsApp number");
-      return;
-    }
-
-    setVerifying(true);
-
-    // Simulate API verification
-    setTimeout(() => {
-      setWhatsappVerified(true);
-      toast.success("WhatsApp number verified! ✅");
-      setVerifying(false);
-    }, 1500);
-  };
+  // Check if all required fields are filled (mockup validation)
+  const canDeploy = 
+    agentName.trim().length >= 3 &&  // Minimum 3 characters
+    phoneNumberId.trim().length > 0 && 
+    accessToken.trim().length > 0 && 
+    nodes.length > 0;
 
   const handleDeploy = () => {
-    if (!agentName.trim()) {
-      toast.error("Agent name is required");
+    if (!canDeploy) {
+      toast.error("Please complete all requirements before deploying");
       return;
     }
 
-    if (!whatsappVerified) {
-      toast.error("Please verify your WhatsApp number first");
-      return;
-    }
+    const deployConfig = {
+      agentName: agentName.trim(),
+      environment: environment,
+      phoneNumberId: phoneNumberId.trim(),
+      accessToken: accessToken.trim(),
+      wabaId: wabaId.trim() || undefined,
+      webhookUrl: webhookUrl.trim() || undefined,
+      apiKey: apiKey.trim() || undefined,
+      nodes: nodes.length,
+      edges: edges.length
+    };
 
-    if (!nodes.length) {
-      toast.error("Workflow is empty");
-      return;
-    }
-
-    onDeploy?.({
-      agentName,
-      environment,
-      whatsappNumber,
-      webhookUrl,
-      apiKey,
-    });
+    console.log("📤 Sending config to DeployAgentModal:", deployConfig);
+    toast.success("Opening deployment wizard...");
+    
+    // Call the callback if provided - this will pass data to DeployAgentModal
+    onDeploy?.(deployConfig);
   };
 
   return (
@@ -98,7 +89,9 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
       <ScrollArea className="flex-1 p-4 max-h-[400px]">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="agentName">Agent Name</Label>
+            <Label htmlFor="agentName">
+              Agent Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="agentName"
               value={agentName}
@@ -106,33 +99,51 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
               placeholder="e.g., CustomerSupportBot"
             />
             <p className="text-xs text-muted-foreground">
-              Choose a unique name for your deployed agent
+              Minimum 3 characters required
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
-            <div className="flex gap-2">
-              <Input
-                id="whatsappNumber"
-                value={whatsappNumber}
-                onChange={e => setWhatsappNumber(e.target.value)}
-                placeholder="+62 812-3456-7890"
-                disabled={whatsappVerified}
-                className={whatsappVerified ? "bg-green-50 border-green-500" : ""}
-              />
-              <Button
-                onClick={handleVerifyWhatsApp}
-                disabled={verifying || whatsappVerified || !whatsappNumber.trim()}
-                variant={whatsappVerified ? "default" : "outline"}
-                size="sm"
-                className={whatsappVerified ? "bg-green-600 hover:bg-green-700" : ""}
-              >
-                {verifying ? "..." : whatsappVerified ? "✓" : "Verify"}
-              </Button>
-            </div>
+            <Label htmlFor="phoneNumberId">
+              Phone Number ID <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="phoneNumberId"
+              value={phoneNumberId}
+              onChange={e => setPhoneNumberId(e.target.value)}
+              placeholder="e.g., 123456789012345"
+            />
             <p className="text-xs text-muted-foreground">
-              This number will be used as the agent&apos;s WhatsApp identity
+              Your WhatsApp Business Phone Number ID
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="accessToken">
+              Access Token <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="accessToken"
+              value={accessToken}
+              onChange={e => setAccessToken(e.target.value)}
+              placeholder="EAAL..."
+              type="password"
+            />
+            <p className="text-xs text-muted-foreground">
+              System User Access Token from Meta
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="wabaId">WABA ID (Optional)</Label>
+            <Input
+              id="wabaId"
+              value={wabaId}
+              onChange={e => setWabaId(e.target.value)}
+              placeholder="e.g., 102290129340398"
+            />
+            <p className="text-xs text-muted-foreground">
+              Your WhatsApp Business Account ID
             </p>
           </div>
 
@@ -177,7 +188,9 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
               onChange={e => setWebhookUrl(e.target.value)}
               placeholder="https://your-domain.com/webhook"
             />
-            <p className="text-xs text-muted-foreground">Optional external webhook integration</p>
+            <p className="text-xs text-muted-foreground">
+              For receiving WhatsApp messages and status updates
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -190,23 +203,33 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
               type="password"
             />
             <p className="text-xs text-muted-foreground">
-              Optional API key for external service integration
+              For external service integration
             </p>
           </div>
 
-          {/* Workflow Summary */}
-          <div className="rounded-lg bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 p-3">
+          {/* Requirements Summary */}
+          <div className="rounded-lg bg-muted/50 p-3 border">
             <div className="flex items-start gap-2">
-              <div className="text-indigo-600 dark:text-indigo-400 mt-0.5">ℹ️</div>
-              <div className="text-sm text-gray-900 dark:text-gray-100">
-                <p className="font-semibold mb-1 text-gray-900 dark:text-gray-100">
-                  Workflow Summary:
-                </p>
-                <ul className="list-disc list-inside space-y-1 text-xs text-gray-700 dark:text-gray-300">
-                  <li>{nodes.length} nodes</li>
-                  <li>{edges.length} connections</li>
-                  <li>Runtime configuration</li>
-                  <li>Agent endpoint & API keys</li>
+              <div className="text-blue-600 mt-0.5">📋</div>
+              <div className="text-sm">
+                <p className="font-semibold mb-2">Deployment Requirements:</p>
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  <li className={`flex items-center gap-2 ${agentName.length >= 3 ? 'text-green-600' : ''}`}>
+                    <span>{agentName.length >= 3 ? '✅' : '◯'}</span>
+                    Agent Name (min. 3 characters)
+                  </li>
+                  <li className={`flex items-center gap-2 ${phoneNumberId ? 'text-green-600' : ''}`}>
+                    <span>{phoneNumberId ? '✅' : '◯'}</span>
+                    Phone Number ID
+                  </li>
+                  <li className={`flex items-center gap-2 ${accessToken ? 'text-green-600' : ''}`}>
+                    <span>{accessToken ? '✅' : '◯'}</span>
+                    Access Token
+                  </li>
+                  <li className={`flex items-center gap-2 ${nodes.length > 0 ? 'text-green-600' : ''}`}>
+                    <span>{nodes.length > 0 ? '✅' : '◯'}</span>
+                    Workflow Nodes (min. 1 node)
+                  </li>
                 </ul>
               </div>
             </div>
@@ -218,13 +241,20 @@ export function ConfigurationPanel({ nodes, edges, onDeploy }: ConfigurationPane
       <div className="p-4 border-t border-border">
         <Button
           onClick={handleDeploy}
-          disabled={!agentName.trim() || !whatsappVerified || !nodes.length}
-          className="w-full bg-gradient-to-r from-indigo-600 to-green-500 hover:from-indigo-700 hover:to-green-600 text-white"
+          disabled={!canDeploy}
+          className="w-full bg-gradient-to-r from-indigo-600 to-green-500 hover:from-indigo-700 hover:to-green-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Play className="w-4 h-4 mr-2" />
           Deploy Agent
         </Button>
+        
+        {!canDeploy && (
+          <p className="text-xs text-muted-foreground mt-2 text-center">
+            Complete all requirements above to deploy
+          </p>
+        )}
       </div>
     </div>
   );
 }
+

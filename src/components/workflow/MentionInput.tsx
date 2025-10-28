@@ -60,11 +60,18 @@ export function MentionInput({
   // Helper functions to save and restore cursor position
   const saveCursorPosition = () => {
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return null;
+    const root = contentEditableRef.current;
+    if (!selection || selection.rangeCount === 0 || !root) return null;
 
     const range = selection.getRangeAt(0);
+
+    // If the selection is outside our contentEditable, ignore and keep caret at end
+    if (!root.contains(range.startContainer)) {
+      return root.textContent?.length ?? 0;
+    }
+
     const preCaretRange = range.cloneRange();
-    preCaretRange.selectNodeContents(contentEditableRef.current!);
+    preCaretRange.selectNodeContents(root);
     preCaretRange.setEnd(range.startContainer, range.startOffset);
 
     return preCaretRange.toString().length;
@@ -266,129 +273,154 @@ export function MentionInput({
     if (!contentEditableRef.current || isInternalUpdate.current) return;
 
     const updateStyledContent = () => {
-      const text = getEditableText();
+      try {
+        if (!contentEditableRef.current) return;
+        // Prevent recursive effects while we mutate DOM
+        isInternalUpdate.current = true;
+        
+        const text = getEditableText();
 
-      // Save cursor position before updating innerHTML
-      const cursorPosition = saveCursorPosition();
+        // Save cursor position before updating innerHTML
+        const cursorPosition = saveCursorPosition();
 
-      // Parse and update styled content
-      const parts = parseTextWithMentions(text, selectedPreset);
+        // Parse and update styled content
+        const parts = parseTextWithMentions(text, selectedPreset);
 
-      // Update the content
-      contentEditableRef.current!.innerHTML = "";
+        // Update the content
+        contentEditableRef.current.innerHTML = "";
 
-      parts.forEach(part => {
-        if (part.type === "mention" && part.template) {
-          // Render @mention badge
-          const span = document.createElement("span");
-          const colorClass =
-            categoryColors[part.template.category] ||
-            "bg-gray-600 text-white border-gray-700 dark:bg-gray-700 dark:text-white dark:border-gray-500";
-          span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
-          span.textContent = part.content;
-          span.setAttribute("contenteditable", "false");
-          contentEditableRef.current?.appendChild(span);
-        } else if (part.type === "preset" && part.preset) {
-          // Render Quick Template badge with different color palette
-          const span = document.createElement("span");
-          const colorClass =
-            presetColors[part.preset.id] ||
-            "bg-slate-700 text-white dark:bg-slate-800 dark:text-white border-slate-800 dark:border-slate-600";
-          span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
-          span.textContent = `${part.preset.emoji} ${part.preset.title}`;
-          span.setAttribute("contenteditable", "false");
-          contentEditableRef.current?.appendChild(span);
-        } else {
-          const textNode = document.createTextNode(part.content);
-          contentEditableRef.current?.appendChild(textNode);
+        parts.forEach(part => {
+          if (part.type === "mention" && part.template) {
+            // Render @mention badge
+            const span = document.createElement("span");
+            const colorClass =
+              categoryColors[part.template.category] ||
+              "bg-gray-600 text-white border-gray-700 dark:bg-gray-700 dark:text-white dark:border-gray-500";
+            span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
+            span.textContent = part.content;
+            span.setAttribute("contenteditable", "false");
+            contentEditableRef.current?.appendChild(span);
+          } else if (part.type === "preset" && part.preset) {
+            // Render Quick Template badge with different color palette
+            const span = document.createElement("span");
+            const colorClass =
+              presetColors[part.preset.id] ||
+              "bg-slate-700 text-white dark:bg-slate-800 dark:text-white border-slate-800 dark:border-slate-600";
+            span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
+            span.textContent = `${part.preset.emoji} ${part.preset.title}`;
+            span.setAttribute("contenteditable", "false");
+            contentEditableRef.current?.appendChild(span);
+          } else {
+            const textNode = document.createTextNode(part.content);
+            contentEditableRef.current?.appendChild(textNode);
+          }
+        });
+
+        // Restore cursor position after updating innerHTML
+        if (cursorPosition !== null) {
+          setTimeout(() => restoreCursorPosition(cursorPosition), 0);
         }
-      });
-
-      // Restore cursor position after updating innerHTML
-      if (cursorPosition !== null) {
-        setTimeout(() => restoreCursorPosition(cursorPosition), 0);
+      } catch (error) {
+        console.error("Error in updateStyledContent:", error);
+      } finally {
+        // Re-enable external updates
+        isInternalUpdate.current = false;
       }
     };
 
     const handleInput = () => {
-      const text = getEditableText();
-      console.log("🔍 Input text:", text);
-      onChange(text);
+      try {
+        const text = getEditableText();
+        console.log("🔍 Input text:", text);
+        onChange(text);
 
-      // Clear existing timeout
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
+        // Clear existing timeout
+        if (updateTimeoutRef.current) {
+          clearTimeout(updateTimeoutRef.current);
+        }
 
-      // Don't update styled content while user is actively typing
-      // We'll update on blur instead to avoid cursor jumping
-      // updateTimeoutRef.current = setTimeout(() => {
-      //   updateStyledContent(true);
-      // }, 1000);
+        // Don't update styled content while user is actively typing
+        // We'll update on blur instead to avoid cursor jumping
+        // updateTimeoutRef.current = setTimeout(() => {
+        //   updateStyledContent(true);
+        // }, 1000);
 
-      // Check for @ mentions
-      const lastAtPos = text.lastIndexOf("@");
-      console.log("📍 Last @ position:", lastAtPos);
+        // Check for @ mentions
+        const lastAtPos = text.lastIndexOf("@");
+        console.log("📍 Last @ position:", lastAtPos);
 
-      if (lastAtPos === -1) {
-        console.log("❌ No @ found");
-        setShowSuggestions(false);
-        setSuggestions([]);
-        return;
-      }
+        if (lastAtPos === -1) {
+          console.log("❌ No @ found");
+          setShowSuggestions(false);
+          setSuggestions([]);
+          return;
+        }
 
-      const textAfterAt = text.substring(lastAtPos + 1);
-      const nextSpacePos = textAfterAt.indexOf(" ");
-      const nextNewlinePos = textAfterAt.indexOf("\n");
+        const textAfterAt = text.substring(lastAtPos + 1);
+        const nextSpacePos = textAfterAt.indexOf(" ");
+        const nextNewlinePos = textAfterAt.indexOf("\n");
 
-      let mentionText = "";
-      if (nextSpacePos !== -1 && nextNewlinePos !== -1) {
-        mentionText = textAfterAt.substring(0, Math.min(nextSpacePos, nextNewlinePos));
-      } else if (nextSpacePos !== -1) {
-        mentionText = textAfterAt.substring(0, nextSpacePos);
-      } else if (nextNewlinePos !== -1) {
-        mentionText = textAfterAt.substring(0, nextNewlinePos);
-      } else {
-        mentionText = textAfterAt;
-      }
+        let mentionText = "";
+        if (nextSpacePos !== -1 && nextNewlinePos !== -1) {
+          mentionText = textAfterAt.substring(0, Math.min(nextSpacePos, nextNewlinePos));
+        } else if (nextSpacePos !== -1) {
+          mentionText = textAfterAt.substring(0, nextSpacePos);
+        } else if (nextNewlinePos !== -1) {
+          mentionText = textAfterAt.substring(0, nextNewlinePos);
+        } else {
+          mentionText = textAfterAt;
+        }
 
-      console.log("🎯 Mention text after @:", mentionText);
+        console.log("🎯 Mention text after @:", mentionText);
 
-      if (mentionText.length > 0) {
-        const query = mentionText.toLowerCase();
-        const filtered = workflowPresets.filter(
-          template =>
-            template.label.toLowerCase().includes(query) ||
-            template.description.toLowerCase().includes(query) ||
-            template.category.toLowerCase().includes(query) ||
-            template.id.toLowerCase().includes(query)
-        );
+        if (mentionText.length > 0) {
+          const query = mentionText.toLowerCase();
+          const filtered = workflowPresets.filter(
+            template =>
+              template.label.toLowerCase().includes(query) ||
+              template.description.toLowerCase().includes(query) ||
+              template.category.toLowerCase().includes(query) ||
+              template.id.toLowerCase().includes(query)
+          );
 
-        console.log("📋 Filtered suggestions:", filtered.length);
-        setSuggestions(filtered.slice(0, 6));
-        setShowSuggestions(filtered.length > 0);
-        setMentionStart(lastAtPos);
-        setCursor(0);
-      } else {
-        // Show ALL suggestions when just @ is typed (no filter)
-        console.log("✨ Showing all suggestions for empty mention");
-        setSuggestions(workflowPresets.slice(0, 6));
-        setShowSuggestions(workflowPresets.length > 0);
-        setMentionStart(lastAtPos);
-        setCursor(0);
+          console.log("📋 Filtered suggestions:", filtered.length);
+          setSuggestions(filtered.slice(0, 6));
+          setShowSuggestions(filtered.length > 0);
+          setMentionStart(lastAtPos);
+          setCursor(0);
+        } else {
+          // Show ALL suggestions when just @ is typed (no filter)
+          console.log("✨ Showing all suggestions for empty mention");
+          setSuggestions(workflowPresets.slice(0, 6));
+          setShowSuggestions(workflowPresets.length > 0);
+          setMentionStart(lastAtPos);
+          setCursor(0);
+        }
+      } catch (error) {
+        console.error("Error in handleInput:", error);
       }
     };
 
     const handleBlur = () => {
-      // Update styled content when user clicks away
-      const text = getEditableText();
-      // Update if there are mentions or preset selected
-      if (text.includes("@") || selectedPreset) {
-        updateStyledContent();
+      try {
+        // Update styled content when user clicks away
+        const text = getEditableText();
+        // Update if there are mentions or preset selected
+        if (text.includes("@") || selectedPreset) {
+          updateStyledContent();
+        }
+      } catch (error) {
+        console.error("Error in handleBlur:", error);
       }
     };
 
     const div = contentEditableRef.current;
+    
+    // Safety check: Don't proceed if ref is not ready
+    if (!div) {
+      console.warn("⚠️ contentEditableRef not ready");
+      return;
+    }
 
     // Always attach event listeners
     div.addEventListener("input", handleInput);
@@ -400,6 +432,11 @@ export function MentionInput({
       }
     });
     div.addEventListener("blur", handleBlur);
+    // Ensure caret is placed at end on focus to avoid jump-to-start
+    div.addEventListener("focus", () => {
+      const len = div.textContent?.length ?? 0;
+      setTimeout(() => restoreCursorPosition(len), 0);
+    });
 
     console.log("🔧 Event listeners attached to contentEditable");
 
@@ -447,19 +484,25 @@ export function MentionInput({
       div.textContent = value || "";
     }
 
-    // Trigger initial input check
-    const initialText = getEditableText();
-    console.log("📝 Initial text:", initialText);
-    if (initialText) {
-      setTimeout(() => {
-        handleInput();
-      }, 0);
-    }
+    // Trigger initial input check (only if div exists)
+      if (div) {
+        const initialText = getEditableText();
+        console.log("📝 Initial text:", initialText);
+        // Do not trigger handleInput on mount to avoid caret jump when empty
+        if (initialText) {
+          setTimeout(() => {
+            handleInput();
+          }, 0);
+        }
+      }
 
     return () => {
-      div.removeEventListener("input", handleInput);
-      div.removeEventListener("keyup", handleInput);
-      div.removeEventListener("blur", handleBlur);
+      // Only cleanup if div exists
+      if (div) {
+        div.removeEventListener("input", handleInput);
+        div.removeEventListener("keyup", handleInput);
+        div.removeEventListener("blur", handleBlur);
+      }
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current);
       }

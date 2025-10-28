@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import {
   ReactFlow,
   Background,
@@ -16,15 +16,11 @@ import {
   EdgeChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { DefaultNode } from "./nodes/DefaultNode";
-import { DecisionNode } from "./nodes/DecisionNode";
-import { StartNode } from "./nodes/StartNode";
-import { EndNode } from "./nodes/EndNode";
-import { GroupNode } from "./nodes/GroupNode";
-import { LlamaNode } from "./nodes/LlamaNode";
-import { AgentNode } from "./nodes/AgentNode";
+import { NodeRegistry } from "@/lib/nodeRegistry";
 import { EdgeContextMenu } from "./EdgeContextMenu";
 import { CustomEdge } from "./edges/CustomEdge";
+import { Suspense } from "react";
+import { LoadingSpinner } from "./LoadingSpinner";
 import { EdgeValidator } from "@/utils/edgeValidation";
 import { toast } from "sonner";
 import {
@@ -41,6 +37,7 @@ import { useCanvasEventBus, globalCanvasEventBus } from "@/hooks/useCanvasEventB
 import { AutoLayoutToolbar } from "./AutoLayoutToolbar";
 import { useLayout, LayoutPresets } from "@/core/layout/useLayout";
 import { LayoutFeedback, LayoutAnimationController } from "./LayoutFeedback";
+import { useViewportOptimization } from "@/hooks/useViewportOptimization";
 import {
   Copy,
   Trash2,
@@ -60,18 +57,7 @@ import {
   FileJson,
 } from "lucide-react";
 
-// We'll create wrapped node types to inject context menu handlers
-const createNodeTypes = (handleNodeContextMenu: (e: React.MouseEvent, node: Node) => void) => ({
-  default: (props: any) => <DefaultNode {...props} onContextMenu={handleNodeContextMenu} />,
-  decision: DecisionNode,
-  start: StartNode,
-  end: EndNode,
-  group: GroupNode,
-  "llama-decision": LlamaNode,
-  agent: AgentNode,
-  "agent.conversational": AgentNode,
-});
-
+// Edge types are statically loaded for better performance
 const edgeTypes = {
   smoothstep: CustomEdge,
   straight: CustomEdge,
@@ -110,10 +96,11 @@ export const WorkflowCanvas = ({
   onOpenConfig,
   onOpenLlamaSettings,
 }: WorkflowCanvasProps) => {
-  const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow();
+  const { screenToFlowPosition, fitView, zoomIn, zoomOut, getViewport } = useReactFlow();
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [contextMenuEdge, setContextMenuEdge] = useState<Edge | null>(null);
   const [selectedCount, setSelectedCount] = useState(0);
+  const [nodeTypesReady, setNodeTypesReady] = useState(false);
 
   // Use new state management
   const nodes = useNodes();
@@ -125,6 +112,81 @@ export const WorkflowCanvas = ({
   // Event bus integration
   const { emit, EVENT_TYPES } = useCanvasEventBus();
   const { contextMenu, showContextMenu, closeContextMenu } = useContextMenu();
+
+  // Initialize node types with lazy loading
+  useEffect(() => {
+    const initializeNodeTypes = async () => {
+      // Preload common nodes for better initial performance
+      await NodeRegistry.preloadCommonNodes();
+      
+      setNodeTypesReady(true);
+    };
+    
+    initializeNodeTypes();
+  }, []);
+
+  // Preload nodes used in the current workflow when nodes change
+  useEffect(() => {
+    if (nodeTypesReady && Object.keys(nodes).length > 0) {
+      NodeRegistry.preloadWorkflowNodes(Object.values(nodes));
+    }
+  }, [nodes, nodeTypesReady]);
+
+  // Ensure Start and End nodes exist for generated workflows
+  const ensuredRef = useRef<{ start: boolean; end: boolean }>({ start: false, end: false });
+  useEffect(() => {
+    const nodeArray = Object.values(nodes);
+
+    // Reset flags when canvas is cleared
+    if (nodeArray.length === 0) {
+      ensuredRef.current = { start: false, end: false };
+      return;
+    }
+
+    const hasStart = nodeArray.some(n => n.type === "start");
+    const hasEnd = nodeArray.some(n => n.type === "end");
+
+    // Compute simple placement based on current nodes
+    const xs = nodeArray.map(n => n.position?.x ?? 0);
+    const ys = nodeArray.map(n => n.position?.y ?? 0);
+    const minX = Math.min(...xs);
+    const minY = Math.min(...ys);
+    const maxX = Math.max(...xs);
+    const avgY = ys.reduce((a, b) => a + b, 0) / ys.length;
+
+    if (!hasStart && !ensuredRef.current.start) {
+      const startNode: Node = {
+        id: `start_${Date.now()}`,
+        type: "start",
+        position: { x: isFinite(minX) ? minX - 200 : 50, y: isFinite(minY) ? minY : 50 },
+        data: { label: "Start" },
+      } as any;
+      actions.addNode(startNode);
+      ensuredRef.current.start = true;
+    }
+
+    if (!hasEnd && !ensuredRef.current.end) {
+      const endNode: Node = {
+        id: `end_${Date.now()}`,
+        type: "end",
+        position: { x: isFinite(maxX) ? maxX + 300 : 600, y: isFinite(avgY) ? avgY : 200 },
+        data: { label: "End" },
+      } as any;
+      actions.addNode(endNode);
+      ensuredRef.current.end = true;
+    }
+  }, [nodes, actions]);
+
+  // Viewport optimization for large workflows
+  const { optimizedNodes, optimizedEdges, isOptimized, visibleCount, totalCount } = useViewportOptimization(
+    Object.values(nodes),
+    Object.values(edges),
+    {
+      enabled: Object.keys(nodes).length > 50, // Enable optimization for workflows with 50+ nodes
+      viewportPadding: 300,
+      debounceMs: 150,
+    }
+  );
 
   // Auto-layout integration
   const { autoLayout, restoreLayout, canRestore, isLayouting, layoutResult, layoutError } =
@@ -337,8 +399,33 @@ export const WorkflowCanvas = ({
     [onNodeClick, onDuplicate, actions, showContextMenu]
   );
 
-  // Create node types with context menu handler (memoized to prevent recreation)
-  const nodeTypes = useMemo(() => createNodeTypes(handleNodeContextMenu), [handleNodeContextMenu]);
+  // Create node types with context menu handler and lazy loading
+  const nodeTypes = useMemo(() => {
+    const lazyComponents = NodeRegistry.getLazyNodeComponents();
+    
+    // Create wrapper for default node with context menu
+    const DefaultNodeWithContext = (props: any) => {
+      const LazyNode = lazyComponents.default;
+      return <LazyNode {...props} onContextMenu={handleNodeContextMenu} />;
+    };
+    
+    return {
+      default: DefaultNodeWithContext,
+      // Alias common generator types to default so they render
+      // and still get our right-click context menu
+      input: DefaultNodeWithContext,
+      process: DefaultNodeWithContext,
+      output: DefaultNodeWithContext,
+      condition: DefaultNodeWithContext,
+      decision: lazyComponents.decision,
+      start: lazyComponents.start,
+      end: lazyComponents.end,
+      group: lazyComponents.group,
+      "llama-decision": lazyComponents["llama-decision"],
+      agent: lazyComponents.agent,
+      "agent.conversational": lazyComponents.agent,
+    };
+  }, [handleNodeContextMenu]);
 
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
@@ -837,6 +924,13 @@ export const WorkflowCanvas = ({
     >
       {/* Selection counter badge */}
       {selectedCount > 1 && <div className="selection-count">{selectedCount} items selected</div>}
+      
+      {/* Viewport optimization indicator */}
+      {isOptimized && (
+        <div className="absolute top-4 left-4 z-20 bg-blue-500/10 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-full text-xs font-medium border border-blue-200 dark:border-blue-800">
+          🚀 Viewport optimized: {visibleCount}/{totalCount} visible nodes
+        </div>
+      )}
 
       {contextMenuEdge && onUpdateEdge && onDeleteEdge && (
         <EdgeContextMenu
@@ -871,8 +965,8 @@ export const WorkflowCanvas = ({
       <LayoutFeedback isLayouting={isLayouting} layoutResult={layoutResult} error={layoutError} />
 
       <ReactFlow
-        nodes={nodes}
-        edges={styledEdges}
+        nodes={isOptimized ? optimizedNodes : Object.values(nodes)}
+        edges={isOptimized ? optimizedEdges : styledEdges}
         onNodesChange={actions.processNodeChanges}
         onEdgesChange={actions.processEdgeChanges}
         onConnect={handleConnect}
@@ -890,6 +984,7 @@ export const WorkflowCanvas = ({
         multiSelectionKeyCode="Shift"
         panOnDrag={[1, 2]}
         selectionOnDrag
+        onlyRenderVisibleElements={isOptimized}
       >
         <Background
           variant={BackgroundVariant.Dots}

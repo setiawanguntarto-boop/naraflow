@@ -146,27 +146,66 @@ Setelah workflow ter-load, Anda bisa:
 - Adjust edges
 - Configure executors
 
-### 3. Running Workflow
+### 3. Running Workflow (Interactive FSM Chat)
 
-1. Fill in the data di node Farm Registration:
+1. Pastikan node input/output/condition diisi dengan field berikut agar simulasi chat berjalan mulus:
+   - Input node: `data.prompt` (pertanyaan ke user), opsional `data.fieldKey` (nama variabel), `data.parse = "kv"` untuk format `key:val, key2:val2`.
+   - Output node: gunakan `data.templateId` dari `src/lib/templates/whatsappTemplates.ts` atau `data.text` dengan placeholder `{{var}}`.
+   - Condition node: beri label/`data.condition` pada edge keluar (mis. `ya`, `batal`, `1`, `2`). Opsi akan muncul sebagai prompt; input user menjadi trigger routing.
+   - End node: otomatis menghentikan alur.
+
+2. Di Workflow Studio, klik Simulate di panel WhatsApp untuk memulai. Bot akan berjalan hingga membutuhkan input, lalu menunggu balasan chat Anda.
+
+3. Contoh pengisian di node Farm Registration:
    - Nama farm
    - Nama peternak
    - Lokasi
    - Kapasitas kandang
    - Tanggal mulai
 
-2. QR code akan otomatis di-generate dan dikirim via WhatsApp
+4. QR code akan otomatis di-generate dan dikirim via WhatsApp (node output dengan `templateId: QR_ASSIGNED`).
 
-3. Daily check-in:
+5. Daily check-in:
    - Input data harian
    - Validation otomatis
    - Jika mortalitas >2%, alert akan dikirim
 
-4. Harvest:
+6. Harvest:
    - Trigger dengan keyword "panen" atau "harvest"
    - Input jumlah ekor dan berat total
    - Report PDF akan di-generate
-   - Notifikasi dikirim via WhatsApp
+   - Notifikasi dikirim via WhatsApp menggunakan template `HARVEST_SUMMARY`
+
+## Node Library Compatibility (Right‑click Customization)
+Semua template dibangun dari tipe node yang ada di Node Library sehingga pengguna dapat klik kanan pada setiap node untuk mengedit/mengganti executor.
+
+- Input
+  - WhatsApp Trigger → `whatsapp.trigger`
+  - Ask Question → `ask_question`
+- Processing
+  - Process Data → `process_data`
+  - Calculate / AI Analysis (opsional) → `calculate` / `ai_analysis`
+- Logic
+  - Condition / Switch → `control.switch`
+  - Decision / Merge (default) → `default`
+- Output
+  - WhatsApp Message / Send Message → `whatsapp.send` / `send_message`
+  - Store Records → `store_records`
+  - Report (PDF) → `report_pdf` (opsional)
+- Meta
+  - Start / End → `start` / `end`
+
+Mapping per template:
+- Budidaya Broiler – End‑to‑End: Ask Question → Process Data (QR) → WhatsApp Message → Ask Question (daily) → Process Data (performance) → Condition → WhatsApp Message (3 cabang) → Merge → Ask Question (harvest) → Process Data (report) → WhatsApp Message → End
+- Broiler Daily Check‑in: Ask Question → Process Data (performance) → Condition → WhatsApp Message (3 cabang) → Merge → End
+- Broiler Harvest Processing: Ask Question → Process Data (report) → WhatsApp Message → Store Records (opsional) → End
+- Broiler Data Infrastructure: Ask Question → Process Data (validate → transform → enrich) → Store Records → Process Data (analytics/report/audit) → Store Records (backup) → End
+- Broiler Cloud Infrastructure: Process Data (storage setup → backup → analytics → api gateway → scaling → monitoring) → End
+
+Semua node di atas berasal dari Node Library, sehingga menu konteks (right‑click) tersedia untuk:
+- Mengganti executor atau konfigurasi
+- Menambah sub‑node/attachments (jika tersedia)
+- Menghapus / menduplikasi node
 
 ## Customization
 

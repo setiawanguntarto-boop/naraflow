@@ -1,5 +1,15 @@
 import { useLanguage } from "@/hooks/use-language";
-export const WhatsAppMockup = () => {
+type WhatsAppMockupProps = {
+  agentName?: string;
+  agentIcon?: string; // emoji or single char
+  agentSubtitle?: string; // e.g., "online" or "typing..."
+};
+
+export const WhatsAppMockup = ({
+  agentName = "Rahayu",
+  agentIcon = "🐔",
+  agentSubtitle = "online",
+}: WhatsAppMockupProps) => {
   const { t } = useLanguage();
   const chats = [
     {
@@ -82,41 +92,35 @@ export const WhatsAppMockup = () => {
         </div>
       </div>
 
-      {/* WhatsApp Header */}
+      {/* WhatsApp Chat Header (Agent) */}
       <div className="bg-[#075E54] text-white px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
             <path d="M15.5 6.5l-6 6 6 6" />
           </svg>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-lg">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#25D366]">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
+            <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-lg">
+              <span className="select-none">{agentIcon}</span>
             </div>
-            <span className="font-semibold text-lg">WhatsApp</span>
+            <div className="leading-tight">
+              <div className="font-semibold">{agentName}</div>
+              <div className="text-[10px] opacity-90">{agentSubtitle}</div>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <svg
-            className="w-6 h-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <rect x="3" y="8" width="18" height="12" rx="2" />
+          {/* Video */}
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14" />
+            <path d="M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
-          <svg
-            className="w-6 h-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <line x1="12" y1="5" x2="12" y2="5" strokeLinecap="round" />
-            <line x1="12" y1="12" x2="12" y2="12" strokeLinecap="round" />
-            <line x1="12" y1="19" x2="12" y2="19" strokeLinecap="round" />
+          {/* Call */}
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.95.69l1.5 4.5a1 1 0 01-.5 1.21l-2.26 1.13a11 11 0 005.52 5.52l1.13-2.26a1 1 0 011.21-.5l4.5 1.5a1 1 0 01.69.95V19a2 2 0 01-2 2h-1C9.72 21 3 14.28 3 6V5z" />
+          </svg>
+          {/* Menu */}
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
           </svg>
         </div>
       </div>

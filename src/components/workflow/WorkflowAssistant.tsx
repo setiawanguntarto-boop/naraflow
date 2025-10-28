@@ -26,7 +26,7 @@ export const WorkflowAssistant = () => {
   };
 
   return (
-    <div className="flex-1 overflow-hidden flex flex-col bg-white">
+    <div className="flex-1 overflow-auto flex flex-col bg-white">
       {/* Header with Clear Button */}
       <div className="p-3 border-b border-gray-200 flex items-center justify-end bg-gray-50">
         <Button

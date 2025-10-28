@@ -73,29 +73,45 @@ Balas dengan <b>iya</b> untuk konfirmasi.`,
   }, [messages, conversation]);
 
   return (
-    <div className="w-[320px] h-[600px] bg-card rounded-[2rem] shadow-strong flex flex-col overflow-hidden float-animation">
-      {/* WhatsApp Header */}
-      <div className="bg-brand-secondary text-surface-primary-foreground p-4 flex items-center">
+    <div className="w-[320px] h-[600px] bg-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border-8 border-gray-900">
+      {/* WhatsApp Header - Solid Green */}
+      <div className="bg-[#25D366] text-white p-4 flex items-center shadow-sm">
         <div className="flex items-center">
-          <div className="w-8 h-8 rounded-full bg-surface-muted mr-3"></div>
+          <div className="w-8 h-8 rounded-full bg-white/20 mr-3 flex items-center justify-center">
+            <span className="text-xs font-bold text-white">RA</span>
+          </div>
           <div>
             <div className="text-sm font-semibold">Rahayu.ai</div>
-            <div className="text-xs opacity-80">online</div>
+            <div className="text-xs opacity-90">online</div>
           </div>
         </div>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 bg-background-soft p-4 overflow-y-auto flex flex-col gap-3">
+      {/* Chat Area - Solid WhatsApp Background */}
+      <div className="flex-1 bg-[#E5DDD5] p-4 overflow-y-auto flex flex-col gap-3 relative">
+        {/* WhatsApp Pattern Background */}
+        <div 
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 35px,
+              rgba(189, 163, 145, 0.1) 35px,
+              rgba(189, 163, 145, 0.1) 40px
+            )`
+          }}
+        ></div>
+        
         {messages.map((msg, i) => (
           <div
             key={i}
             className={`
-              max-w-[85%] p-3 rounded-xl text-sm break-words message-animate
+              max-w-[85%] p-3 rounded-xl text-sm break-words message-animate relative z-10
               ${
                 msg.type === "sent"
-                  ? "bg-brand-secondary text-surface-primary-foreground self-end rounded-br-sm"
-                  : "bg-card text-card-foreground self-start rounded-bl-sm shadow-soft"
+                  ? "bg-[#DCF8C6] text-gray-800 self-end rounded-br-sm shadow-sm"
+                  : "bg-white text-gray-800 self-start rounded-bl-sm shadow-sm"
               }
             `}
             style={{
@@ -111,15 +127,12 @@ Balas dengan <b>iya</b> untuk konfirmasi.`,
         ))}
       </div>
 
-      {/* Input Area */}
-      <div className="bg-surface-muted p-3 flex items-center gap-2">
-        <input
-          type="text"
-          className="flex-1 px-4 py-2 bg-card rounded-full text-sm outline-none border border-border"
-          placeholder="Type a message..."
-          disabled
-        />
-        <div className="w-10 h-10 bg-brand-secondary rounded-full flex justify-center items-center text-surface-primary-foreground">
+      {/* Input Area - Solid Gray */}
+      <div className="bg-gray-100 p-3 flex items-center gap-2 border-t border-gray-300">
+        <div className="flex-1 px-4 py-2 bg-white rounded-full text-sm border border-gray-300 text-gray-500">
+          Type a message...
+        </div>
+        <div className="w-10 h-10 bg-[#25D366] rounded-full flex justify-center items-center text-white shadow-sm hover:bg-[#20BD5C] transition-colors">
           <SendIcon className="w-4 h-4" />
         </div>
       </div>

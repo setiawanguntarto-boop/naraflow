@@ -17,6 +17,7 @@ const Solutions = lazy(() => import("./pages/Solutions"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Contact = lazy(() => import("./pages/Contact"));
 const WorkflowStudio = lazy(() => import("./pages/WorkflowStudio"));
+const ProdukIoT = lazy(() => import("./pages/produk-iot"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
                   <Route path="/how-it-works" element={<HowItWorks />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/solutions" element={<Solutions />} />
+                  <Route path="/produk-iot" element={<ProdukIoT />} />
                   <Route path="/workflow-studio" element={<WorkflowStudio />} />
                   <Route path="/faq" element={<FAQ />} />
                   <Route path="/contact" element={<Contact />} />

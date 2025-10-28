@@ -29,6 +29,8 @@ export const useBroilerWorkflowGenerator = () => {
           label: 'Ask Question',
           title: 'Farm Registration',
           description: 'Input data farm dan peternak',
+          prompt: 'Isi data farm (format: farm_name:..., owner_name:..., location:..., capacity:...)',
+          parse: 'kv',
           metrics: [
             {
               name: 'farm_name',
@@ -69,8 +71,9 @@ export const useBroilerWorkflowGenerator = () => {
         data: { 
           label: 'Process Data',
           title: 'QR Code Generator',
+          debug: false,
           description: `// Generate QR Code untuk Kandang
-const farmId = input.farm_name.toLowerCase().replace(/\\s+/g, '_');
+const farmId = input.farm_name?.toLowerCase().replace(/\\s+/g, '_') || 'farm_001';
 const shedId = \`\${farmId}_shed_1\`;
 
 return {
@@ -92,6 +95,7 @@ return {
           label: 'WhatsApp Message',
           title: 'Kirim QR Code',
           description: 'Kirim QR code ke peternak via WhatsApp',
+          templateId: 'QR_ASSIGNED',
           config: {
             recipientType: 'farmer',
             messageType: 'confirmation',
@@ -122,6 +126,8 @@ return {
             label: 'Ask Question',
             title: 'Daily Check-in Data',
             description: 'Input data harian broiler',
+            prompt: 'Masukkan data harian (format: day_of_cycle:..., mortality:..., feed_kg:..., avg_weight_g:..., temp_c:...)',
+            parse: 'kv',
             metrics: [
               {
                 name: 'shed_id',
@@ -181,6 +187,7 @@ return {
           data: {
             label: 'Process Data',
             title: 'Calculate Performance',
+            debug: false,
             description: `// Performance Calculator untuk Broiler
 const population = input.population_start || 10000;
 const mortality = input.mortality || 0;
@@ -223,7 +230,9 @@ if (mortalityPct > 5.0) {
   return { path: 'warning', message: 'WARNING: Mortality ' + mortalityPct + '%' };
 } else {
   return { path: 'normal', message: 'NORMAL: Mortality ' + mortalityPct + '%' };
-}`
+}`,
+            prompt: 'Kondisi mortalitas (critical / warning / normal)',
+            autoRoute: true
           }
         }
       );
@@ -251,7 +260,8 @@ if (mortalityPct > 5.0) {
           data: {
             label: 'WhatsApp Message',
             title: 'Critical Alert',
-            description: `🚨 CRITICAL ALERT: Mortalitas Tinggi!\n\nMortalitas: {{mortality_pct}}%\nPopulasi tersisa: {{current_population}}\nFCR: {{FCR}}\n\nSegera lakukan tindakan!`,
+            description: `🚨 CRITICAL ALERT: Mortalitas Tinggi!`,
+            templateId: 'ALERT_MORTALITY',
             config: {
               recipientType: 'both',
               messageType: 'alert',
@@ -278,7 +288,8 @@ if (mortalityPct > 5.0) {
           data: {
             label: 'WhatsApp Message',
             title: 'Warning Alert',
-            description: `⚠️ WARNING: Mortalitas Meningkat\n\nMortalitas: {{mortality_pct}}%\nFCR: {{FCR}}\nADG: {{ADG}} g/hari\n\nMohon perhatikan!`,
+            description: `⚠️ WARNING: Mortalitas Meningkat`,
+            templateId: 'PERFORMANCE_UPDATE',
             config: {
               recipientType: 'ppl',
               messageType: 'alert',
@@ -305,7 +316,8 @@ if (mortalityPct > 5.0) {
           data: {
             label: 'WhatsApp Message',
             title: 'Daily Confirmation',
-            description: `✅ Data Harian Tercatat\n\nHari ke: {{day_of_cycle}}\nMortalitas: {{mortality}} ekor ({{mortality_pct}}%)\nFCR: {{FCR}}\nADG: {{ADG}} g/hari\n\nTerima kasih!`,
+            description: `✅ Data Harian Tercatat`,
+            templateId: 'DAILY_CHECKIN_REMINDER',
             config: {
               recipientType: 'farmer',
               messageType: 'confirmation',
@@ -328,15 +340,15 @@ if (mortalityPct > 5.0) {
       // 4. Connect paths to merges
       baseEdges.push(
         // Critical path
-        { id: nextEdgeId(conditionCheck, criticalAlert), source: conditionCheck, target: criticalAlert, label: 'If True >5%', sourceHandle: 'right', targetHandle: 'left' },
+        { id: nextEdgeId(conditionCheck, criticalAlert), source: conditionCheck, target: criticalAlert, label: 'critical' },
         { id: nextEdgeId(criticalAlert, criticalMerge), source: criticalAlert, target: criticalMerge },
         
         // Warning path
-        { id: nextEdgeId(conditionCheck, warningAlert), source: conditionCheck, target: warningAlert, label: 'If True 2-5%', sourceHandle: 'right', targetHandle: 'left' },
+        { id: nextEdgeId(conditionCheck, warningAlert), source: conditionCheck, target: warningAlert, label: 'warning' },
         { id: nextEdgeId(warningAlert, warningMerge), source: warningAlert, target: warningMerge },
         
         // Normal path
-        { id: nextEdgeId(conditionCheck, normalConfirm), source: conditionCheck, target: normalConfirm, label: 'If False <2%', sourceHandle: 'right', targetHandle: 'left' },
+        { id: nextEdgeId(conditionCheck, normalConfirm), source: conditionCheck, target: normalConfirm, label: 'normal' },
         { id: nextEdgeId(normalConfirm, normalMerge), source: normalConfirm, target: normalMerge }
       );
 
@@ -388,7 +400,7 @@ if (mortalityPct > 5.0) {
 
       // Find the final merge node or use whatsappQR as starting point
       const lastNodeId = templateId === 'broiler-full' 
-        ? baseNodes.find(n => n.data.label === 'Merge' && n.data.title === 'Final Merge')?.id || whatsappQR
+        ? baseNodes.find(n => (n.data as any).label === 'Merge' && (n.data as any).title === 'Final Merge')?.id || whatsappQR
         : whatsappQR;
 
       baseNodes.push(
@@ -400,6 +412,8 @@ if (mortalityPct > 5.0) {
             label: 'Ask Question',
             title: 'Harvest Data Input',
             description: 'Input data panen broiler',
+            prompt: 'Masukkan data panen (format: shed_id:..., harvest_date:YYYY-MM-DD, qty:..., total_weight_kg:..., duration_days:...)',
+            parse: 'kv',
             metrics: [
               {
                 name: 'shed_id',
@@ -450,6 +464,7 @@ if (mortalityPct > 5.0) {
           data: {
             label: 'Process Data',
             title: 'Generate Harvest Report',
+            debug: false,
             description: `// Harvest Calculator
 const total_weight = input.total_weight_kg;
 const qty = input.qty;
@@ -475,7 +490,8 @@ return {
           data: {
             label: 'WhatsApp Message',
             title: 'Send Harvest Report',
-            description: '📦 PANEN SIAP\n\nData panen berhasil diproses. Laporan lengkap telah dikirim.',
+            description: '📦 PANEN SIAP - Laporan lengkap telah dikirim.',
+            templateId: 'HARVEST_SUMMARY',
             config: {
               recipientType: 'both',
               messageType: 'report',
@@ -527,6 +543,8 @@ return {
             label: 'Ask Question',
             title: 'Multi-source Data Collection',
             description: 'Input data dari berbagai sumber (WhatsApp, IoT, Manual)',
+            prompt: 'Input multi-sumber (format: data_source:..., farm_id:..., data_payload:{...}, timestamp:...)',
+            parse: 'kv',
             metrics: [
               {
                 name: 'data_source',

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { compileWorkflowToFSM, stepFSM } from "@/lib/fsm/compileWorkflowToFSM";
 
 interface Message {
   id: string;
@@ -26,7 +27,20 @@ export function WhatsAppSimulationPanel({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isSimulating, setIsSimulating] = useState(false);
+  const [awaitingInput, setAwaitingInput] = useState(false);
+  const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
+  const [vars, setVars] = useState<Record<string, any>>({});
+  const [quickOptions, setQuickOptions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [fsm, setFsm] = useState<any | null>(null);
+  const [fsmStateId, setFsmStateId] = useState<string | null>(null);
+  // Derive agent header info
+  const agentName =
+    nodes.find(n => (n?.type || "").toLowerCase() === "start")?.data?.label ||
+    nodes[0]?.data?.label ||
+    "Rahayu";
+  const agentIcon = "🐔"; // simple emoji avatar
+  const agentSubtitle = "online";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -35,6 +49,19 @@ export function WhatsAppSimulationPanel({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Compile FSM whenever graph changes
+  useEffect(() => {
+    try {
+      if (nodes && edges) {
+        const compiled = compileWorkflowToFSM(nodes, edges);
+        setFsm(compiled);
+        setFsmStateId(compiled.startId);
+      }
+    } catch (e) {
+      console.error("Failed to compile FSM", e);
+    }
+  }, [nodes, edges]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -47,21 +74,99 @@ export function WhatsAppSimulationPanel({
       timestamp: Date.now(),
     };
     setMessages(prev => [...prev, userMessage]);
+    const incoming = inputMessage;
     setInputMessage("");
 
-    // Simulate agent response
-    setIsSimulating(true);
-    setTimeout(() => {
-      const agentMessage: Message = {
-        id: `msg-${Date.now()}`,
-        text: "Thank you for your message. How can I help you today?",
-        sender: "agent",
-        timestamp: Date.now(),
+    // If FSM is waiting for input, store and continue traversal
+    if (awaitingInput && currentNodeId) {
+      const node = nodes.find(n => n.id === currentNodeId);
+
+      // Parsing helper for key:value, comma-separated pairs
+      const parseKeyValueLine = (text: string): Record<string, any> => {
+        const result: Record<string, any> = {};
+        text
+          .split(",")
+          .map(p => p.trim())
+          .filter(Boolean)
+          .forEach(p => {
+            const [k, ...rest] = p.split(":");
+            if (!k || rest.length === 0) return;
+            const key = k.trim().toLowerCase().replace(/\s+/g, "_");
+            const valueRaw = rest.join(":").trim();
+            const num = Number(valueRaw);
+            result[key] = isNaN(num) ? valueRaw : num;
+          });
+        return result;
       };
-      setMessages(prev => [...prev, agentMessage]);
-      setIsSimulating(false);
-    }, 1000);
+
+      // Decide how to store input
+      const key = node?.data?.fieldKey || node?.data?.label || node?.data?.title || `input_${currentNodeId}`;
+      let updates: Record<string, any> = {};
+      if (node?.data?.parse === "kv" || /[:].*,/.test(incoming)) {
+        updates = parseKeyValueLine(incoming);
+      } else {
+        updates[String(key).replace(/\s+/g, "_").toLowerCase()] = incoming;
+      }
+
+      setVars(prev => ({ ...prev, ...updates }));
+      setAwaitingInput(false);
+      setQuickOptions([]);
+      // Step FSM using user input
+      if (fsm) {
+        const res = stepFSM(fsm, fsmStateId || currentNodeId, incoming, { ...vars, ...updates });
+        for (const out of res.outputs) {
+          pushMsg(out, "agent");
+        }
+        setAwaitingInput(res.awaitingInput);
+        setFsmStateId(res.nextStateId);
+        setVars(res.variables);
+      }
+    } else if (fsm) {
+      // Not awaiting explicit input yet (user typed first). Feed message to FSM.
+      const res = stepFSM(fsm, fsmStateId, incoming, vars);
+      for (const out of res.outputs) {
+        pushMsg(out, "agent");
+      }
+      setAwaitingInput(res.awaitingInput);
+      setFsmStateId(res.nextStateId);
+      setVars(res.variables);
+    }
   };
+
+  // Helpers to classify node types from various schemas
+  const getKind = (node: any): "start" | "end" | "input" | "output" | "process" | "condition" | "unknown" => {
+    const t = (node?.type || "").toString().toLowerCase();
+    const label = (node?.data?.label || node?.data?.title || "").toString().toLowerCase();
+    if (t === "start" || label.includes("start")) return "start";
+    if (t === "end" || label.includes("end")) return "end";
+    if (t.includes("ask") || t.includes("input") || t.includes("trigger") || label.includes("ask") || label.includes("input")) return "input";
+    if (t.includes("send") || t.includes("output") || label.includes("send") || label.includes("whatsapp") || label.includes("message")) return "output";
+    if (t.includes("condition") || t.includes("decision") || label.includes("condition") || label.includes("decision")) return "condition";
+    if (t.includes("process") || t.includes("ai") || t.includes("calculate") || label.includes("process") || label.includes("calculate") || label.includes("analysis")) return "process";
+    return "unknown";
+  };
+
+  const idToNode = new Map<string, any>();
+  const outgoingOf = (id: string) => edges.filter(e => e.source === id);
+  const incomingTargets = new Set(edges.map(e => e.target));
+
+  const pushMsg = (text: string, sender: "user" | "agent" = "agent") =>
+    setMessages(prev => [
+      ...prev,
+      { id: `msg-${Date.now()}-${Math.random()}`, text, sender, timestamp: Date.now() },
+    ]);
+
+  // Replace {{var_name}} with stored variables
+  const formatText = (text: string) =>
+    String(text).replace(/\{\{\s*([^}]+)\s*\}\}/g, (_m, p1) => {
+      const k = String(p1).replace(/\s+/g, "_").toLowerCase();
+      const v = (vars as any)[k];
+      return v !== undefined && v !== null ? String(v) : "";
+    });
+
+  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+  // remove old continueFrom; now handled by FSM
 
   const handleRunSimulation = async () => {
     if (!nodes.length || !edges.length) {
@@ -72,7 +177,7 @@ export function WhatsAppSimulationPanel({
     setIsSimulating(true);
     onSimulate?.();
 
-    // Clear previous messages and add simulation welcome
+    // Reset and start header message
     setMessages([
       {
         id: "sim-start",
@@ -82,60 +187,31 @@ export function WhatsAppSimulationPanel({
       },
     ]);
 
-    // Simulate workflow execution with node-by-node flow
-    const startNode = nodes.find(n => n.type === "start");
-    if (startNode) {
-      setTimeout(() => {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: "node-start",
-            text: `✓ Executed: ${startNode.data?.label || "Start Node"}`,
-            sender: "agent",
-            timestamp: Date.now(),
-          },
-        ]);
-      }, 500);
+    // Build graph helpers
+    idToNode.clear();
+    nodes.forEach(n => idToNode.set(n.id, n));
+
+    // Find entry node (start | input | node without incoming edges)
+    const entry =
+      nodes.find(n => getKind(n) === "start") ||
+      nodes.find(n => getKind(n) === "input") ||
+      nodes.find(n => !incomingTargets.has(n.id)) ||
+      nodes[0];
+
+    setVars({});
+    setCurrentNodeId(entry.id);
+    if (fsm) {
+      const res = stepFSM(fsm, entry.id, null, {});
+      for (const out of res.outputs) {
+        pushMsg(out, "agent");
+      }
+      setAwaitingInput(res.awaitingInput);
+      setFsmStateId(res.nextStateId);
+      setVars(res.variables);
+      toast.success("Interactive simulation started. Reply to proceed.");
+    } else {
+      toast.error("Failed to compile workflow to FSM");
     }
-
-    // Simulate a few workflow nodes
-    for (let i = 0; i < Math.min(nodes.length, 3); i++) {
-      const node = nodes[i];
-      if (node.type === "start" || !node.data?.label) continue;
-
-      setTimeout(
-        () => {
-          setMessages(prev => [
-            ...prev,
-            {
-              id: `node-${node.id}`,
-              text: `→ Processing: ${node.data.label}`,
-              sender: "agent",
-              timestamp: Date.now(),
-            },
-          ]);
-        },
-        1000 + i * 500
-      );
-    }
-
-    // Complete simulation
-    setTimeout(
-      () => {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: "sim-complete",
-            text: "✅ Workflow simulation completed successfully!",
-            sender: "agent",
-            timestamp: Date.now(),
-          },
-        ]);
-        setIsSimulating(false);
-        toast.success("Simulation completed!");
-      },
-      2000 + nodes.length * 500
-    );
   };
 
   const handleClearChat = () => {
@@ -143,15 +219,25 @@ export function WhatsAppSimulationPanel({
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-border-light shadow-soft flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-brand-primary" />
-          <h3 className="font-semibold text-foreground">4. WhatsApp Simulation</h3>
+    <div className="bg-card rounded-2xl border border-border-light shadow-soft flex flex-col overflow-hidden">
+      {/* WhatsApp-like Header */}
+      <div className="px-4 py-3 bg-[#075E54] text-white flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15.5 6.5l-6 6 6 6" />
+          </svg>
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-lg">
+              <span className="select-none">{agentIcon}</span>
+            </div>
+            <div className="leading-tight">
+              <div className="font-semibold">{agentName}</div>
+              <div className="text-[10px] opacity-90">{agentSubtitle}</div>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleRunSimulation} disabled={isSimulating} size="sm" variant="outline">
+        <div className="flex items-center gap-2">
+          <Button onClick={handleRunSimulation} disabled={isSimulating} size="sm" variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-white/20">
             {isSimulating ? (
               "⏳"
             ) : (
@@ -160,14 +246,22 @@ export function WhatsAppSimulationPanel({
               </>
             )}
           </Button>
-          <Button onClick={handleClearChat} size="sm" variant="ghost">
+          <Button onClick={handleClearChat} size="sm" variant="ghost" className="text-white hover:bg-white/10">
             <RotateCcw className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4 bg-gray-50 dark:bg-gray-900/50">
+      <ScrollArea
+        className="flex-1 p-4"
+        style={{
+          backgroundColor: "#E5DDD5",
+          backgroundImage:
+            "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARMAAAARCAYAAAA/I68vAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAAHVSURBVHja7dAxAQAACMCg2f9Pk4HwItgGSSGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCGEEEIIIYQQQgghhBBCCCF8t3sB1eEk4/gAAAAASUVORK5CYII=')",
+          backgroundRepeat: "repeat",
+        }}
+      >
         <div className="space-y-3">
           {messages.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">

@@ -44,6 +44,7 @@ import { globalCanvasEventBus } from "@/hooks/useCanvasEventBus";
 import { QuickTemplatesPanel, BROILER_TEMPLATES, type QuickTemplate } from "@/components/workflow/QuickTemplatesPanel";
 import { useBroilerWorkflowGenerator } from "@/hooks/useBroilerWorkflowGenerator";
 import "@xyflow/react/dist/style.css";
+import { getContextAwareMessage } from "@/lib/workflowAssistantEngine";
 
 // Lazy load heavy components
 const WorkflowCanvas = lazy(() =>
@@ -219,10 +220,31 @@ const WorkflowStudioContent = () => {
     setPrompt(generatedPrompt);
     setShowBroilerTemplates(false);
     toast.success(`Workflow "${BROILER_TEMPLATES.find(t => t.id === templateId)?.name}" generated successfully!`);
+
+    try {
+      const msg = getContextAwareMessage("generated", {
+        ...buildCtx(),
+        // Use the just generated data when available (nodes/edges were set above)
+      });
+      pushAssistantMessage({ role: "assistant", text: msg });
+    } catch {}
   }, [generateBroilerWorkflow, actions]);
+
+  // Count errors (not warnings) for badge display
+  const errorCount = validationErrors?.filter(e => e.type === "error").length || 0;
 
   // Zustand generation store for assistant communication
   const { pushMessage: pushAssistantMessage } = useGenerationStore();
+  const buildCtx = useCallback(() => ({
+    nodes,
+    edges: Object.fromEntries(edges.map(e => [e.id, e])),
+    llamaConnected: !!llamaConfig.connected,
+    selectedPreset: selectedPreset?.title ?? null,
+    errorCount,
+  }), [nodes, edges, llamaConfig.connected, selectedPreset?.title, errorCount]);
+  const prevPromptRef = useRef<string>("");
+  const lastCountsRef = useRef<{ nodes: number; edges: number }>({ nodes: 0, edges: 0 });
+  const prevLlamaConnectedRef = useRef<boolean | null>(null);
   const extractSteps = (text: string): string[] => {
     return text
       .split(/→|->|,/)
@@ -272,6 +294,44 @@ const WorkflowStudioContent = () => {
     }
   }, [Object.keys(nodes).length, Object.keys(edges).length]); // Only depend on counts to avoid excessive re-validation
 
+  // Notify assistant when counts increase (node/edge added)
+  useEffect(() => {
+    const nodeCount = Object.keys(nodes).length;
+    const edgeCount = edges.length;
+    const prev = lastCountsRef.current;
+    if (nodeCount > prev.nodes) {
+      try {
+        const msg = getContextAwareMessage("node_added", buildCtx());
+        pushAssistantMessage({ role: "assistant", text: msg });
+      } catch {}
+    }
+    if (edgeCount > prev.edges) {
+      try {
+        const msg = getContextAwareMessage("edge_added", buildCtx());
+        pushAssistantMessage({ role: "assistant", text: msg });
+      } catch {}
+    }
+    lastCountsRef.current = { nodes: nodeCount, edges: edgeCount };
+  }, [Object.keys(nodes).length, edges.length]);
+
+  // Notify assistant on LLaMA connection status changes
+  useEffect(() => {
+    if (prevLlamaConnectedRef.current === null) {
+      prevLlamaConnectedRef.current = !!llamaConfig.connected;
+      return;
+    }
+    const prev = prevLlamaConnectedRef.current;
+    const curr = !!llamaConfig.connected;
+    if (curr !== prev) {
+      try {
+        const type = curr ? "llama_connected" : "llama_disconnected";
+        const msg = getContextAwareMessage(type, buildCtx());
+        pushAssistantMessage({ role: "assistant", text: msg });
+      } catch {}
+      prevLlamaConnectedRef.current = curr;
+    }
+  }, [llamaConfig.connected]);
+
   // Send validation summary to WorkflowAssistant when validation runs
   useEffect(() => {
     if (validationErrors && validationErrors.length > 0) {
@@ -314,13 +374,35 @@ const WorkflowStudioContent = () => {
     }
   }, [selectedPreset, prompt]);
 
-  // Count errors (not warnings) for badge display
-  const errorCount = validationErrors?.filter(e => e.type === "error").length || 0;
-
   const generateWorkflow = useCallback(async () => {
     if (!prompt.trim()) {
       toast.error("Masukkan deskripsi workflow");
       return;
+    }
+
+    // Check if this is a broiler workflow based on selected template or prompt content
+    const isBroilerWorkflow = 
+      selectedPreset?.id === 'broiler' ||
+      prompt.toLowerCase().includes('broiler') ||
+      prompt.toLowerCase().includes('budidaya');
+
+    // If broiler template is selected, use the template generator directly
+    if (isBroilerWorkflow && selectedBroilerTemplate) {
+      // Use Broiler Template Generator - this generates the full workflow structure
+      const templateId = selectedBroilerTemplate.id;
+      toast.info("Generating broiler workflow template...");
+      handleBroilerWorkflowGenerate(selectedBroilerTemplate.prompt, templateId);
+      return;
+    }
+
+    // If preset is broiler but no template selected, find and use the default template
+    if (isBroilerWorkflow && !selectedBroilerTemplate) {
+      const defaultTemplate = BROILER_TEMPLATES.find(t => t.id === 'broiler-full');
+      if (defaultTemplate) {
+        setSelectedBroilerTemplate(defaultTemplate);
+        handleBroilerWorkflowGenerate(defaultTemplate.prompt, defaultTemplate.id);
+        return;
+      }
     }
 
     // Push user message to assistant
@@ -345,7 +427,7 @@ const WorkflowStudioContent = () => {
         text: `✅ Workflow generated successfully! I've created ${previewData.nodes.length} nodes. Would you like to apply it to the canvas?`,
       });
     }
-  }, [prompt, selectedTemplate, interpret, pushAssistantMessage, previewData]);
+  }, [prompt, selectedTemplate, selectedPreset, selectedBroilerTemplate, interpret, pushAssistantMessage, previewData, handleBroilerWorkflowGenerate]);
 
   const handleApplyToCanvas = useCallback(() => {
     if (previewData) {
@@ -447,6 +529,10 @@ const WorkflowStudioContent = () => {
                     setShowBroilerTemplates(true);
                   } else {
                     setSelectedPreset(preset);
+                    try {
+                      const msg = getContextAwareMessage("preset_selected", buildCtx());
+                      pushAssistantMessage({ role: "assistant", text: msg });
+                    } catch {}
                   }
                 }}
                 selectedPresetId={selectedPreset?.id}
@@ -489,6 +575,13 @@ const WorkflowStudioContent = () => {
                     value={prompt}
                     onChange={value => {
                       setPrompt(value);
+                      if (!prevPromptRef.current && value.trim().length > 0) {
+                        try {
+                          const msg = getContextAwareMessage("describe_started", buildCtx());
+                          pushAssistantMessage({ role: "assistant", text: msg });
+                        } catch {}
+                      }
+                      prevPromptRef.current = value;
                       // Also update interpreter template
                       const mentionMatch = value.match(/@(\w+)/);
                       if (mentionMatch && mentionMatch[1]) {
@@ -596,6 +689,10 @@ const WorkflowStudioContent = () => {
                       onClick={() => {
                         actions.validateWorkflow();
                         actions.toggleValidation();
+                      try {
+                        const msg = getContextAwareMessage("validation_run", buildCtx());
+                        pushAssistantMessage({ role: "assistant", text: msg });
+                      } catch {}
                       }}
                       className={`relative flex-shrink-0 ${uiState.showValidation && errorCount === 0 ? "bg-green-500/10 border-green-500" : ""} ${errorCount > 0 ? "hover:bg-destructive/90" : ""}`}
                       title={
@@ -640,7 +737,13 @@ const WorkflowStudioContent = () => {
                   <Suspense fallback={<CanvasLoader />}>
                     <WorkflowCanvas
                       onNodeClick={node => actions.selectNode(node.id)}
-                      onOpenConfig={node => setConfigNode(node)}
+                      onOpenConfig={node => {
+                        setConfigNode(node);
+                        try {
+                          const msg = getContextAwareMessage("node_config_opened", buildCtx());
+                          pushAssistantMessage({ role: "assistant", text: msg });
+                        } catch {}
+                      }}
                       onDrop={handleCanvasDrop}
                       onDeleteEdge={actions.removeEdge}
                       onUpdateEdge={actions.updateEdge}
@@ -789,7 +892,18 @@ const WorkflowStudioContent = () => {
         {showEnhancedAssistant && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
             <div className="relative w-full max-w-5xl">
-              <EnhancedWorkflowAssistant onClose={() => setShowEnhancedAssistant(false)} />
+              <EnhancedWorkflowAssistant
+                {...({
+                  onClose: () => setShowEnhancedAssistant(false),
+                  context: {
+                    nodeCount: Object.keys(nodesRecord).length,
+                    edgeCount: edges.length,
+                    errorCount,
+                    llamaConnected: !!llamaConfig.connected,
+                    selectedPreset: selectedPreset?.title ?? null,
+                  },
+                } as any)}
+              />
             </div>
           </div>
         )}

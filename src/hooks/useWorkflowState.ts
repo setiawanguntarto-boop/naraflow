@@ -1855,6 +1855,7 @@ export const useWorkflowState = create<WorkflowState>()(
 
 // Selectors for optimized subscriptions
 export const useNodes = () => useWorkflowState(state => state.nodesArray);
+export const useNodesRecord = () => useWorkflowState(state => state.nodes);
 export const useEdges = () => useWorkflowState(state => state.edgesArray);
 export const useUIState = () => useWorkflowState(state => state.ui);
 export const useRuntimeState = () => useWorkflowState(state => state.runtime);

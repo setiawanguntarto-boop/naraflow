@@ -267,6 +267,7 @@ export const QuickTemplatesPanel = ({
   const handleGenerate = () => {
     if (selectedTemplate) {
       onGenerate?.(selectedTemplate.prompt, selectedTemplate.id);
+      // This will trigger the broiler workflow generation with the full template structure
     }
   };
 

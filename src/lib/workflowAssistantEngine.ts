@@ -14,6 +14,123 @@ export interface WorkflowSuggestion {
   action?: () => void;
 }
 
+// Added: Context-aware assistant support
+export type StudioEvent =
+  | "preset_selected"
+  | "describe_started"
+  | "generated"
+  | "node_added"
+  | "edge_added"
+  | "node_config_opened"
+  | "validation_run"
+  | "deploy_opened"
+  | "llama_connected"
+  | "llama_disconnected";
+
+export interface StudioContext {
+  nodes: Record<string, any>;
+  edges: Record<string, any>;
+  llamaConnected: boolean;
+  selectedPreset?: string | null;
+  errorCount?: number;
+}
+
+export function snapshotContext(ctx: StudioContext) {
+  const nodeArray = Object.values(ctx.nodes || {});
+  const edgeArray = Object.values(ctx.edges || {});
+
+  const hasStart = nodeArray.some(n => n.type === "start");
+  const hasEnd = nodeArray.some(n => n.type === "end");
+  const connected = new Set<string>();
+  edgeArray.forEach(e => { connected.add(e.source); connected.add(e.target); });
+  const disconnectedCount = nodeArray.filter(n => !connected.has(n.id)).length;
+
+  return {
+    nodeCount: nodeArray.length,
+    edgeCount: edgeArray.length,
+    hasStart,
+    hasEnd,
+    disconnectedCount,
+    llamaConnected: !!ctx.llamaConnected,
+    errorCount: ctx.errorCount ?? 0,
+    selectedPreset: ctx.selectedPreset ?? null,
+  };
+}
+
+export function getContextAwareMessage(event: StudioEvent, ctx: StudioContext): string {
+  const s = snapshotContext(ctx);
+
+  const next = (steps: string[]) =>
+    steps.filter(Boolean).map((t, i) => `${i + 1}. ${t}`).join("\n");
+
+  switch (event) {
+    case "preset_selected":
+      return `✅ Preset dipilih: ${s.selectedPreset || "Unknown"}.\n` + next([
+        s.nodeCount === 0 ? "Klik Generate untuk membuat workflow awal." : "",
+        !s.llamaConnected ? "Opsional: sambungkan LLaMA untuk fitur AI (Connect to LLaMA)." : "",
+        "Gunakan @mention untuk memilih template lain bila perlu.",
+      ]);
+
+    case "describe_started":
+      return `✍️ Baik, saya tangkap deskripsi Anda.\n` + next([
+        "Klik Generate untuk melihat preview workflow.",
+        "Review di preview modal lalu pilih Apply to Canvas.",
+      ]);
+
+    case "generated":
+      return `🧠 Workflow berhasil dibuat (${s.nodeCount} nodes, ${s.edgeCount} edges di preview).\n` + next([
+        "Klik Apply to Canvas untuk menerapkan.",
+        "Gunakan Auto Layout agar rapi.",
+        "Jalankan Validate untuk cek error.",
+      ]);
+
+    case "node_added":
+      return `🧩 Node baru ditambahkan. Total sekarang ${s.nodeCount} nodes.\n` + next([
+        s.disconnectedCount > 0 ? `Masih ada ${s.disconnectedCount} node belum terhubung — buat edge untuk menghubungkan.` : "",
+        !s.hasStart ? "Tambahkan Start node untuk titik masuk flow." : "",
+        !s.hasEnd ? "Pertimbangkan End node untuk menutup alur." : "",
+      ]);
+
+    case "edge_added":
+      return `🔗 Koneksi baru dibuat. Total edges: ${s.edgeCount}.\n` + next([
+        s.disconnectedCount > 0 ? `Masih ada ${s.disconnectedCount} node belum terhubung.` : "Semua node tampak terhubung, mantap!",
+        "Buka Validate untuk memastikan konfigurasi sudah benar.",
+      ]);
+
+    case "node_config_opened":
+      return `⚙️ Mengonfigurasi node.\n` + next([
+        "Isi title, description, dan parameter penting.",
+        "Simpan lalu jalankan Validate.",
+      ]);
+
+    case "validation_run":
+      return (s.errorCount > 0)
+        ? `🔍 Validasi menemukan ${s.errorCount} error.\n` + next([
+            "Klik item error untuk loncat ke node terkait.",
+            "Perbaiki konfigurasi lalu jalankan Validate lagi.",
+          ])
+        : `✅ Tidak ada error pada validasi.\n` + next([
+            "Anda bisa lanjut ke tahap simulasi atau deployment.",
+          ]);
+
+    case "deploy_opened":
+      return `🚀 Menyiapkan deployment.\n` + next([
+        s.errorCount > 0 ? "Selesaikan error validasi sebelum deploy." : "",
+        !s.llamaConnected ? "Pastikan koneksi LLaMA sesuai kebutuhan fitur." : "",
+        "Uji coba di sandbox sebelum produksi.",
+      ]);
+
+    case "llama_connected":
+      return `🔌 LLaMA terhubung. Anda bisa memakai fitur AI (generate/interpret).`;
+
+    case "llama_disconnected":
+      return `⚠️ LLaMA terputus. Anda tetap bisa lanjut, atau sambungkan kembali untuk fitur AI.`;
+
+    default:
+      return `ℹ️ Lanjutkan membangun workflow. Gunakan Validate untuk memastikan tidak ada error.`;
+  }
+}
+
 export async function analyzeWorkflowGraph(
   query: string,
   nodes: Record<string, any>,

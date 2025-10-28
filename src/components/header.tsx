@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { NaraflowLogo } from "./ui/icons";
 import { Button } from "./ui/button-extended";
 import { useLanguage } from "@/hooks/use-language";
@@ -14,6 +14,7 @@ export const Header = () => {
   const [showResponsibleAIPanel, setShowResponsibleAIPanel] = useState(false);
   const { t } = useLanguage();
   const { llamaConfig } = useWorkflowState();
+  const location = useLocation();
   const navItems = [
     {
       href: "/about",
@@ -28,6 +29,11 @@ export const Header = () => {
     {
       href: "/pricing",
       label: t("nav.pricing"),
+      isAnchor: false,
+    },
+    {
+      href: "/produk-iot",
+      label: "Produk IoT",
       isAnchor: false,
     },
     {
@@ -143,7 +149,11 @@ export const Header = () => {
                 <a
                   key={item.href}
                   href={item.href}
-                  className="text-foreground-muted hover:text-brand-primary transition-colors font-medium"
+                  className={`${
+                    location.pathname === item.href
+                      ? "text-brand-primary font-semibold"
+                      : "text-foreground-muted hover:text-brand-primary"
+                  } transition-colors duration-200`}
                 >
                   {item.label}
                 </a>
@@ -151,7 +161,11 @@ export const Header = () => {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className="text-foreground-muted hover:text-brand-primary transition-colors font-medium"
+                  className={`${
+                    location.pathname === item.href
+                      ? "text-brand-primary font-semibold"
+                      : "text-foreground-muted hover:text-brand-primary"
+                  } transition-colors duration-200`}
                 >
                   {item.label}
                 </Link>
@@ -210,7 +224,11 @@ export const Header = () => {
                   <a
                     key={item.href}
                     href={item.href}
-                    className="text-foreground-muted hover:text-brand-primary transition-colors font-medium py-2"
+                    className={`${
+                      location.pathname === item.href
+                        ? "text-brand-primary font-semibold"
+                        : "text-foreground-muted hover:text-brand-primary"
+                    } transition-colors duration-200 font-medium py-2`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}
@@ -219,7 +237,11 @@ export const Header = () => {
                   <Link
                     key={item.href}
                     to={item.href}
-                    className="text-foreground-muted hover:text-brand-primary transition-colors font-medium py-2"
+                    className={`${
+                      location.pathname === item.href
+                        ? "text-brand-primary font-semibold"
+                        : "text-foreground-muted hover:text-brand-primary"
+                    } transition-colors duration-200 font-medium py-2`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}

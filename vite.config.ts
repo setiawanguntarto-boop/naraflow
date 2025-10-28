@@ -4,6 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
 import { VitePWA } from 'vite-plugin-pwa';
+// @ts-expect-error - Missing types for connect-history-api-fallback
 import history from 'connect-history-api-fallback';
 
 // https://vitejs.dev/config/
@@ -12,7 +13,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     middlewareMode: false,
-    setupMiddlewares(middlewares) {
+    setupMiddlewares(middlewares: any) {
       middlewares.use(history());
       return middlewares;
     },
@@ -184,29 +185,72 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor libraries
-          vendor: ['react', 'react-dom'],
-          // UI components
-          ui: [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tooltip'
-          ],
-          // Canvas and workflow
-          canvas: ['@xyflow/react'],
-          // AI and state management
-          ai: ['zustand', '@tanstack/react-query'],
-          // Charts and visualization
-          charts: ['recharts'],
-          // Form handling
-          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
-          // Utilities
-          utils: ['clsx', 'tailwind-merge', 'date-fns', 'lucide-react']
+        manualChunks(id) {
+          // Isolate ELK.js to separate chunk (it's very large)
+          if (id.includes('elkjs') || id.includes('elk.bundled')) {
+            return 'elk';
+          }
+
+          // Isolate large vendor libraries
+          if (id.includes('node_modules')) {
+            // Separate Radix UI components
+            if (id.includes('@radix-ui')) {
+              return 'radix-ui';
+            }
+            
+            // Canvas library
+            if (id.includes('@xyflow')) {
+              return 'reactflow';
+            }
+            
+            // Charts
+            if (id.includes('recharts')) {
+              return 'charts';
+            }
+            
+            // Form libraries
+            if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+              return 'forms';
+            }
+            
+            // State management
+            if (id.includes('zustand') || id.includes('@tanstack/react-query')) {
+              return 'state';
+            }
+            
+            // Large utilities
+            if (id.includes('framer-motion') || id.includes('three')) {
+              return 'animations';
+            }
+            
+            // All other node_modules
+            return 'vendor';
+          }
+
+          // Workflow-specific chunks
+          if (id.includes('/src/components/canvas/')) {
+            return 'canvas';
+          }
+          
+          if (id.includes('/src/components/workflow/')) {
+            return 'workflow';
+          }
+          
+          if (id.includes('/src/core/layout/')) {
+            return 'layout';
+          }
+          
+          if (id.includes('/src/lib/executors/')) {
+            return 'executors';
+          }
+          
+          if (id.includes('/src/lib/templates/')) {
+            return 'templates';
+          }
+          
+          if (id.includes('/src/lib/promptInterpreter/')) {
+            return 'prompt-interpreter';
+          }
         }
       }
     },
