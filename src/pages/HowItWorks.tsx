@@ -1,6 +1,7 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { HowItWorks, DataCollectionSection } from "@/components/sections/how-it-works";
+import { AnimatedBackground } from "@/components/sections/AnimatedBackground";
 import { LanguageProvider } from "@/hooks/use-language";
 
 const HowItWorksPage = () => {
@@ -9,21 +10,17 @@ const HowItWorksPage = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <main>
-          {/* Page Header - Pastel Purple Brand Identity */}
-          <section className="relative">
-            <div
-              className="absolute inset-0 -z-10"
-              style={{
-                background:
-                  "linear-gradient(135deg, hsl(265 95% 97%) 0%, hsl(265 90% 92%) 100%)",
-              }}
-            />
-            <div className="container mx-auto px-4 py-10 md:py-14">
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-                How It Works
-              </h1>
-              <p className="mt-2 text-sm md:text-base text-foreground-muted max-w-2xl">
-                Langkah-langkah sederhana membangun otomasi WhatsApp dengan Naraflow.
+          {/* Hero Header - Transformational narrative with subtle moving background */}
+          <section className="relative py-24 overflow-hidden bg-gradient-to-b from-background to-background-soft">
+            <AnimatedBackground />
+
+            <div className="relative z-10 text-center container mx-auto px-6">
+              <h2 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent mb-6">
+                How Naraflow Works
+              </h2>
+              <p className="text-lg md:text-xl text-foreground-muted max-w-3xl mx-auto leading-relaxed">
+                Automasi dimulai dari percakapan WhatsApp dan berakhir dengan insight bisnis siap pakai. 
+                Semua terjadi tanpa coding, langsung dari chat ke dashboard Anda.
               </p>
             </div>
           </section>
