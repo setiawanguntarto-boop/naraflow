@@ -23,6 +23,8 @@ import { Suspense } from "react";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { toast } from "sonner";
 import { EdgeValidator } from "@/utils/edgeValidation";
+import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
+import { NODE_CATEGORIES } from "@/data/nodeCategories";
 import {
   useWorkflowActions,
   useNodes,
@@ -464,20 +466,37 @@ export const WorkflowCanvas = ({
     (event: React.DragEvent) => {
       event.preventDefault();
 
-      const nodeDataString = event.dataTransfer.getData("application/reactflow");
-      if (!nodeDataString || !onDrop) return;
+      const raw = event.dataTransfer.getData("application/reactflow");
+      if (!raw || !onDrop) return;
 
+      const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+
+      // Prefer JSON payload when provided
       try {
-        const nodeData = JSON.parse(nodeDataString);
-        const position = screenToFlowPosition({
-          x: event.clientX,
-          y: event.clientY,
-        });
+        const parsed = JSON.parse(raw);
+        onDrop(parsed, position);
+        return;
+      } catch {}
 
-        onDrop(nodeData, position);
-      } catch (error) {
-        console.error("Failed to parse dropped node data:", error);
+      // Fallback: NodeLibrary sends a simple id string; resolve asset from registries
+      const nodeId = String(raw);
+
+      // Try v3 registry first
+      const v3 = nodeTypeRegistry.getAllNodeTypes().find(n => n.id === nodeId);
+      if (v3) {
+        onDrop({ id: nodeId, label: v3.label, type: v3.id }, position);
+        return;
       }
+
+      // Fallback to legacy v2 labels list (NODE_CATEGORIES)
+      const allV2Labels: string[] = ([] as string[]).concat(
+        ...Object.values(NODE_CATEGORIES)
+      );
+      const matchedLabel = allV2Labels.find(
+        label => label.toLowerCase().replace(/\s+/g, "_") === nodeId
+      );
+
+      onDrop({ id: nodeId, label: matchedLabel || nodeId, type: "default" }, position);
     },
     [screenToFlowPosition, onDrop]
   );
