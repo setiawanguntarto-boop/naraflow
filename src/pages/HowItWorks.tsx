@@ -1,7 +1,6 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
-import { AnimatedBackground } from "@/components/sections/AnimatedBackground";
 import { LanguageProvider } from "@/hooks/use-language";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 // NOTE: the asset currently exists as .png.png; will normalize later
@@ -59,11 +58,9 @@ const HowItWorksPage = () => {
             className="relative py-20 md:py-24 overflow-hidden bg-gradient-to-b from-background to-background-soft"
             aria-labelledby="hiw-hero-title"
           >
-            {!reduceMotion && <AnimatedBackground />}
-
-            <div className="relative z-10 container mx-auto px-6 grid md:grid-cols-2 items-center gap-6 md:gap-8">
+            <div className="relative z-10 container mx-auto px-6 grid md:grid-cols-2 items-center gap-4 md:gap-6">
               {/* Left: Title and copy */}
-              <div className="text-center md:text-left">
+              <div className="text-center md:text-left md:pr-4 lg:pr-8">
                 <h2
                   id="hiw-hero-title"
                   className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent mb-6"
@@ -77,7 +74,7 @@ const HowItWorksPage = () => {
               </div>
 
               {/* Right: Hero image with soft background removal mask */}
-              <div className="relative h-[300px] md:h-[460px] md:-ml-6 lg:-ml-10">
+              <div className="relative h-[300px] md:h-[460px] md:-ml-4 lg:-ml-6">
                 <img
                   src={heroImg}
                   alt="WhatsApp to insights visual"
