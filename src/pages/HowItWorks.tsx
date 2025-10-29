@@ -53,22 +53,44 @@ const HowItWorksPage = () => {
         <main role="main" aria-label="How Naraflow Works">
           {/* Hero Header - Transformational narrative with subtle moving background */}
           <section
-            className="relative py-24 overflow-hidden bg-gradient-to-b from-background to-background-soft"
+            className="relative py-20 md:py-24 overflow-hidden bg-gradient-to-b from-background to-background-soft"
             aria-labelledby="hiw-hero-title"
           >
             {!reduceMotion && <AnimatedBackground />}
 
-            <div className="relative z-10 text-center container mx-auto px-6">
-              <h2
-                id="hiw-hero-title"
-                className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent mb-6"
-              >
-                How Naraflow Works
-              </h2>
-              <p className="text-lg md:text-xl text-foreground-muted max-w-3xl mx-auto leading-relaxed">
-                Automasi dimulai dari percakapan WhatsApp dan berakhir dengan insight bisnis siap pakai. 
-                Semua terjadi tanpa coding, langsung dari chat ke dashboard Anda.
-              </p>
+            <div className="relative z-10 container mx-auto px-6 grid md:grid-cols-2 items-center gap-8 md:gap-12">
+              {/* Left: Title and copy */}
+              <div className="text-center md:text-left">
+                <h2
+                  id="hiw-hero-title"
+                  className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent mb-6"
+                >
+                  How Naraflow Works
+                </h2>
+                <p className="text-base md:text-xl text-foreground-muted leading-relaxed max-w-xl md:max-w-none mx-auto md:mx-0">
+                  Automasi dimulai dari percakapan WhatsApp dan berakhir dengan insight bisnis siap pakai. 
+                  Semua terjadi tanpa coding, langsung dari chat ke dashboard Anda.
+                </p>
+              </div>
+
+              {/* Right: Hero image with soft background removal mask */}
+              <div className="relative h-[300px] md:h-[420px]">
+                <img
+                  src="/images/how-it-works-hero.png"
+                  alt="WhatsApp to insights visual"
+                  className="absolute right-0 bottom-0 h-full w-auto object-contain select-none pointer-events-none drop-shadow-xl"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "/placeholder.svg";
+                  }}
+                  style={{
+                    WebkitMaskImage:
+                      "radial-gradient(120% 120% at 70% 60%, #000 55%, rgba(0,0,0,0) 85%)",
+                    maskImage:
+                      "radial-gradient(120% 120% at 70% 60%, #000 55%, rgba(0,0,0,0) 85%)",
+                    mixBlendMode: "multiply",
+                  }}
+                />
+              </div>
             </div>
           </section>
           <ErrorBoundary>
