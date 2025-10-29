@@ -183,7 +183,7 @@ export const Header = () => {
               asChild
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
-              <Link to="/workflow-studio">🚀 Workflow Studio</Link>
+              <Link to="/workflow-studio">Workflow Studio</Link>
             </Button>
           </div>
 
