@@ -1,6 +1,6 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Suspense, lazy, useEffect, useMemo } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { AnimatedBackground } from "@/components/sections/AnimatedBackground";
 import { LanguageProvider } from "@/hooks/use-language";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -46,6 +46,7 @@ const HowItWorksPage = () => {
     "Pelajari bagaimana Naraflow mengubah percakapan WhatsApp menjadi automasi bisnis dan insight siap pakai tanpa coding."
   );
   const reduceMotion = usePrefersReducedMotion();
+  const [imgOk, setImgOk] = useState(true);
   return (
     <LanguageProvider>
       <div className="min-h-screen bg-background">
@@ -79,16 +80,18 @@ const HowItWorksPage = () => {
                   src="/images/how-it-works-hero.png"
                   alt="WhatsApp to insights visual"
                   className="absolute right-0 bottom-0 h-full w-auto object-contain select-none pointer-events-none drop-shadow-xl"
+                  onLoad={() => setImgOk(true)}
                   onError={(e) => {
+                    setImgOk(false);
                     (e.currentTarget as HTMLImageElement).src = "/placeholder.svg";
                   }}
-                  style={{
+                  style={imgOk ? {
                     WebkitMaskImage:
                       "radial-gradient(120% 120% at 70% 60%, #000 55%, rgba(0,0,0,0) 85%)",
                     maskImage:
                       "radial-gradient(120% 120% at 70% 60%, #000 55%, rgba(0,0,0,0) 85%)",
                     mixBlendMode: "multiply",
-                  }}
+                  } : {}}
                 />
               </div>
             </div>
