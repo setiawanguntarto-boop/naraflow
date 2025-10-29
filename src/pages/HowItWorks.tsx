@@ -47,6 +47,7 @@ const HowItWorksPage = () => {
     "Pelajari bagaimana Naraflow mengubah percakapan WhatsApp menjadi automasi bisnis dan insight siap pakai tanpa coding."
   );
   const reduceMotion = usePrefersReducedMotion();
+  const base = (import.meta as any).env?.BASE_URL || "/";
   const [imgOk, setImgOk] = useState(true);
   return (
     <LanguageProvider>
@@ -60,7 +61,7 @@ const HowItWorksPage = () => {
           >
             {/* Lowest layer background image (from public/images) */}
             <img
-              src="/images/how-it-works-backdrop.png"
+              src={`${base}images/how-it-works-backdrop.png`}
               alt=""
               aria-hidden
               draggable={false}
