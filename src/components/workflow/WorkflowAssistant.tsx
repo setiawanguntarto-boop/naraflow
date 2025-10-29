@@ -98,7 +98,7 @@ export const WorkflowAssistant = () => {
 
     const nodes = Object.values(state.nodes);
     const edges = Object.values(state.edges);
-    const { nodes: fixedNodes, edges: fixedEdges } = WorkflowValidator.autoFixWorkflow(nodes as any[], edges as any[]);
+    const { nodes: fixedNodes, edges: fixedEdges, changes } = WorkflowValidator.autoFixWorkflow(nodes as any[], edges as any[]);
     const patchNodes: Record<string, any> = {};
     fixedNodes.forEach(n => (patchNodes[n.id] = n as any));
     const patchEdges: Record<string, any> = {};
@@ -111,7 +111,11 @@ export const WorkflowAssistant = () => {
       const after = (useWorkflowState.getState().validationErrors || []) as any[];
       const afterErr = after.filter(e => e.type === "error").length;
       const afterWarn = after.filter(e => e.type === "warning").length;
-      const summary = `Auto-fix complete! Errors: ${beforeErr} → ${afterErr}, warnings: ${beforeWarn} → ${afterWarn}.`;
+      
+      // Show what was fixed
+      const fixes = changes.slice(0, 3).map(c => `• ${c.description}`).join("\n");
+      const more = changes.length > 3 ? `\n…and ${changes.length - 3} more` : "";
+      const summary = `Auto-fix complete! Errors: ${beforeErr} → ${afterErr}, warnings: ${beforeWarn} → ${afterWarn}.\n\n${fixes}${more}`;
 
       pushMessage({
         role: "assistant",

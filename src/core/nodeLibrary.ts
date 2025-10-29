@@ -30,7 +30,7 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     defaultConnections: ["flow.start"],
     exampleUseCase: "Begin automated farm monitoring when sensor detects sunrise",
     icon: "play-circle",
-    color: "#6B7280",
+    color: "#22C55E",
     suggestedLabels: {
       input: [],
       output: ["flow.start"],
@@ -183,7 +183,7 @@ export const nodeLibrary: Record<string, NodeDefinition> = {
     defaultConnections: [],
     exampleUseCase: "Complete daily farm monitoring workflow",
     icon: "stop-circle",
-    color: "#6B7280",
+    color: "#6D28D9",
     suggestedLabels: {
       input: ["flow.complete", "flow.end"],
       output: [],

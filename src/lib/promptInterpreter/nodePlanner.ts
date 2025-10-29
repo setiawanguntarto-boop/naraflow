@@ -45,7 +45,7 @@ export function planNodes(analysis: PromptAnalysis): NodePlan[] {
   // Node 1: Start
   plans.push({
     nodeId: nodeIds.start,
-    nodeType: "default", // Use default node type
+    nodeType: "start",
     position: { x: currentX, y: currentY },
     config: {
       label: "Start",
@@ -149,7 +149,7 @@ export function planNodes(analysis: PromptAnalysis): NodePlan[] {
   currentX += NODE_SPACING_X;
   plans.push({
     nodeId: nodeIds.end,
-    nodeType: "default",
+    nodeType: "end",
     position: { x: currentX, y: currentY },
     config: {
       label: "End",

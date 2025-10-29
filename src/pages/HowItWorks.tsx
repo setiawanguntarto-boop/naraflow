@@ -1,6 +1,6 @@
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { HowItWorks } from "@/components/sections/how-it-works";
+import { HowItWorks, DataCollectionSection } from "@/components/sections/how-it-works";
 import { LanguageProvider } from "@/hooks/use-language";
 
 const HowItWorksPage = () => {
@@ -10,6 +10,7 @@ const HowItWorksPage = () => {
         <Header />
         <main>
           <HowItWorks />
+          <DataCollectionSection />
         </main>
         <Footer />
       </div>

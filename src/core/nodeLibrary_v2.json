@@ -39,7 +39,7 @@
       "defaultConnections": ["flow.start"],
       "exampleUseCase": "Begin automated farm monitoring when sensor detects sunrise",
       "icon": "play-circle",
-      "color": "#6B7280"
+      "color": "#22C55E"
     },
     "ask_question": {
       "id": "ask_question", 
@@ -231,7 +231,7 @@
       "defaultConnections": [],
       "exampleUseCase": "Complete daily farm monitoring workflow",
       "icon": "stop-circle",
-      "color": "#6B7280"
+      "color": "#6D28D9"
     }
   }
 }

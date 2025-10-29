@@ -1,6 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { Building2 } from "lucide-react";
 
 export interface WorkflowPreset {
@@ -9,6 +10,7 @@ export interface WorkflowPreset {
   title: string;
   description: string;
   prompt: string;
+  color: string;
 }
 
 const presets: WorkflowPreset[] = [
@@ -18,6 +20,7 @@ const presets: WorkflowPreset[] = [
     title: "Budidaya Broiler",
     description: "Workflow peternakan ayam modern",
     prompt: "Workflow untuk budidaya broiler",
+    color: "#BBF7D0", // pastel green (green-200)
   },
   {
     id: "udang",
@@ -25,6 +28,7 @@ const presets: WorkflowPreset[] = [
     title: "Budidaya Udang",
     description: "Proses budidaya udang berkelanjutan",
     prompt: "Workflow untuk budidaya udang",
+    color: "#93C5FD", // pastel blue (blue-300)
   },
   {
     id: "singkong",
@@ -32,6 +36,7 @@ const presets: WorkflowPreset[] = [
     title: "Trading Singkong",
     description: "Alur verifikasi dan pencatatan",
     prompt: "Workflow untuk trading singkong",
+    color: "#86EFAC", // pastel green variant (green-300)
   },
   {
     id: "sales",
@@ -39,6 +44,7 @@ const presets: WorkflowPreset[] = [
     title: "Sales Canvasser",
     description: "Kunjungan dan validasi prospek",
     prompt: "Workflow untuk sales canvasser",
+    color: "#FDBA74", // pastel orange (orange-300)
   },
   {
     id: "hotel",
@@ -46,6 +52,7 @@ const presets: WorkflowPreset[] = [
     title: "Manajemen Hotel",
     description: "Housekeeping dan reservasi",
     prompt: "Workflow untuk manajemen hotel",
+    color: "#FCA5A5", // pastel red (red-300)
   },
   {
     id: "sampah",
@@ -53,6 +60,7 @@ const presets: WorkflowPreset[] = [
     title: "Bank Sampah",
     description: "Transaksi dan penimbangan",
     prompt: "Workflow untuk bank sampah",
+    color: "#A7F3D0", // pastel emerald (emerald-200)
   },
 ];
 
@@ -92,9 +100,19 @@ export function PresetPanel({ onSelect, selectedPresetId }: PresetPanelProps) {
                 >
                   <div className="p-3">
                     <div className="flex items-start gap-2 mb-1">
-                      <span className="text-lg">{preset.emoji}</span>
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: preset.color }}
+                      >
+                        <span className="text-sm text-white">{preset.emoji}</span>
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-foreground">{preset.title}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm text-foreground">{preset.title}</p>
+                          {preset.id !== "broiler" && (
+                            <Badge variant="secondary" className="text-xs">Beta</Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-2">

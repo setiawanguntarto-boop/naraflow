@@ -21,10 +21,9 @@ import { EdgeContextMenu } from "./EdgeContextMenu";
 import { CustomEdge } from "./edges/CustomEdge";
 import { Suspense } from "react";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { EdgeValidator } from "@/utils/edgeValidation";
 import { toast } from "sonner";
+import { EdgeValidator } from "@/utils/edgeValidation";
 import {
-  useWorkflowState,
   useWorkflowActions,
   useNodes,
   useEdges,
@@ -107,7 +106,6 @@ export const WorkflowCanvas = ({
   const edges = useEdges();
   const uiState = useUIState();
   const actions = useWorkflowActions();
-  const { validationOptions } = useWorkflowState();
 
   // Event bus integration
   const { emit, EVENT_TYPES } = useCanvasEventBus();
@@ -249,6 +247,19 @@ export const WorkflowCanvas = ({
   const handleConnect = useCallback(
     (connection: Connection) => {
       if (connection.source && connection.target) {
+        // Validate constraints for Start/End and general connection rules
+        try {
+          const validation = EdgeValidator.validateConnection(
+            connection,
+            Object.values(nodes) as any,
+            Object.values(edges) as any,
+            { preventDuplicates: true, preventSelfConnections: true }
+          );
+          if (!validation.isValid) {
+            toast.error(validation.message || "Connection not allowed");
+            return;
+          }
+        } catch {}
         // Check if this is an attachment connection (sub-node)
         const isAttachmentPort =
           connection.sourceHandle &&
@@ -731,22 +742,6 @@ export const WorkflowCanvas = ({
     setSelectedCount(selectedNodes + selectedEdges);
   }, [nodes, edges]);
 
-  // Validation function for React Flow
-  const isValidConnection = useCallback(
-    (connection: Connection) => {
-      const result = EdgeValidator.validateConnection(connection, nodes, edges, validationOptions);
-
-      if (!result.isValid) {
-        toast.error("Invalid Connection", {
-          description: result.message,
-        });
-      }
-
-      return result.isValid;
-    },
-    [nodes, edges, validationOptions]
-  );
-
   // Keyboard shortcuts for all operations
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -977,7 +972,6 @@ export const WorkflowCanvas = ({
         onSelectionContextMenu={handleMultiSelectContextMenu}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        isValidConnection={isValidConnection}
         fitView
         attributionPosition="bottom-right"
         className="workflow-canvas scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400"

@@ -6,7 +6,6 @@ import {
   Box,
   Shield,
   Zap,
-  Rocket,
   AlertCircle,
   Wifi,
   WifiOff,
@@ -93,11 +92,6 @@ const WorkflowPreviewModal = lazy(() =>
 );
 const DeployAgentModal = lazy(() =>
   import("@/components/workflow/DeployAgentModal").then(mod => ({ default: mod.DeployAgentModal }))
-);
-const ConfigurationPanel = lazy(() =>
-  import("@/components/workflow/ConfigurationPanel").then(mod => ({
-    default: mod.ConfigurationPanel,
-  }))
 );
 const FloatingChatButton = lazy(() =>
   import("@/components/workflow/FloatingChatButton").then(mod => ({
@@ -655,17 +649,6 @@ const WorkflowStudioContent = () => {
               </ScrollArea>
             </div>
 
-            {/* Configuration Panel - Below Node Library */}
-            <Suspense fallback={<PanelLoader />}>
-              <ConfigurationPanel
-                nodes={Object.values(nodes)}
-                edges={Object.values(edges)}
-                onDeploy={config => {
-                  setDeploymentConfig(config);
-                  setShowDeployModal(true);
-                }}
-              />
-            </Suspense>
           </div>
 
           {/* Right Column: Canvas + Simulation */}
@@ -677,33 +660,6 @@ const WorkflowStudioContent = () => {
                   <span className="flex-shrink-0">Workflow Canvas</span>
                   <div className="flex items-center gap-2 overflow-x-auto max-w-full">
                     <Button
-                      variant={errorCount > 0 ? "destructive" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        actions.validateWorkflow();
-                        actions.toggleValidation();
-                      try {
-                        const msg = getContextAwareMessage("validation_run", buildCtx());
-                        pushAssistantMessage({ role: "assistant", text: msg });
-                      } catch {}
-                      }}
-                      className={`relative flex-shrink-0 ${uiState.showValidation && errorCount === 0 ? "bg-green-500/10 border-green-500" : ""} ${errorCount > 0 ? "hover:bg-destructive/90" : ""}`}
-                      title={
-                        errorCount > 0
-                          ? `Found ${errorCount} validation errors. Click to view details.`
-                          : "Validate workflow and view validation results."
-                      }
-                    >
-                      <Shield className={`w-4 h-4 mr-1 ${errorCount > 0 ? "text-white" : ""}`} />
-                      Validate
-                      {errorCount > 0 && (
-                        <span className="ml-1.5 bg-white text-red-500 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border border-red-500">
-                          {errorCount}
-                        </span>
-                      )}
-                    </Button>
-
-                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setShowLlamaPanel(true)}
@@ -711,6 +667,14 @@ const WorkflowStudioContent = () => {
                     >
                       <Zap className="w-4 h-4 mr-1" />
                       Connect to LLaMA
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      onClick={() => setShowDeployModal(true)}
+                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white flex-shrink-0 shadow-md hover:shadow-lg transition-all duration-300"
+                    >
+                      Deploy
                     </Button>
 
                     {/* Workflow Size Indicator */}
@@ -856,6 +820,14 @@ const WorkflowStudioContent = () => {
               edges: Object.values(edges),
             }}
             initialConfig={deploymentConfig}
+            onWorkflowUpdate={(updatedWorkflow) => {
+              // Update the workflow in the store so the modal reflects changes
+              const patchNodes: Record<string, any> = {};
+              updatedWorkflow.nodes.forEach(n => (patchNodes[n.id] = n as any));
+              const patchEdges: Record<string, any> = {};
+              updatedWorkflow.edges.forEach(e => (patchEdges[e.id as any] = e as any));
+              actions.batchUpdate({ nodes: patchNodes, edges: patchEdges });
+            }}
           />
         </Suspense>
 
