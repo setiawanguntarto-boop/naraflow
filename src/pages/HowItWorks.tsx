@@ -4,6 +4,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { AnimatedBackground } from "@/components/sections/AnimatedBackground";
 import { LanguageProvider } from "@/hooks/use-language";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import heroImg from "@/assets/how-it-works-hero.png";
 
 // Lazy-load heavy sections for faster TTI
 const HowItWorks = lazy(() =>
@@ -47,7 +48,6 @@ const HowItWorksPage = () => {
   );
   const reduceMotion = usePrefersReducedMotion();
   const [imgOk, setImgOk] = useState(true);
-  const [imgSrc, setImgSrc] = useState<string>("/images/how-it-works-hero.png");
   return (
     <LanguageProvider>
       <div className="min-h-screen bg-background">
@@ -78,22 +78,13 @@ const HowItWorksPage = () => {
               {/* Right: Hero image with soft background removal mask */}
               <div className="relative h-[300px] md:h-[420px]">
                 <img
-                  src={imgSrc}
+                  src={heroImg}
                   alt="WhatsApp to insights visual"
                   className="absolute right-0 bottom-0 h-full w-auto object-contain select-none pointer-events-none drop-shadow-xl"
                   loading="eager"
                   decoding="async"
                   onLoad={() => setImgOk(true)}
                   onError={(e) => {
-                    // Try alternative paths before falling back
-                    if (imgSrc.startsWith("/images/")) {
-                      setImgSrc("images/how-it-works-hero.png");
-                      return;
-                    }
-                    if (imgSrc.startsWith("images/")) {
-                      setImgSrc("/how-it-works-hero.png");
-                      return;
-                    }
                     setImgOk(false);
                     (e.currentTarget as HTMLImageElement).src = "/placeholder.svg";
                   }}
