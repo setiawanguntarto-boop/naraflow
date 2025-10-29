@@ -67,41 +67,90 @@ export function MentionInput({
 
     // If the selection is outside our contentEditable, ignore and keep caret at end
     if (!root.contains(range.startContainer)) {
-      return root.textContent?.length ?? 0;
+      const text = getEditableText();
+      return text.length;
     }
 
+    // Save the actual DOM position, not just text offset
+    const savedRange = range.cloneRange();
+    const startContainer = range.startContainer;
+    const startOffset = range.startOffset;
+
+    // Calculate text offset for fallback
     const preCaretRange = range.cloneRange();
     preCaretRange.selectNodeContents(root);
     preCaretRange.setEnd(range.startContainer, range.startOffset);
+    const textOffset = preCaretRange.toString().length;
 
-    return preCaretRange.toString().length;
+    return {
+      textOffset,
+      startContainer,
+      startOffset,
+      range: savedRange,
+    };
   };
 
-  const restoreCursorPosition = (position: number) => {
-    if (!contentEditableRef.current) return;
+  const restoreCursorPosition = (saved: number | { textOffset: number; startContainer: Node; startOffset: number; range: Range } | null) => {
+    if (!contentEditableRef.current || saved === null) return;
 
-    const textNodes: Text[] = [];
-    const treeWalker = document.createTreeWalker(contentEditableRef.current, NodeFilter.SHOW_TEXT);
+    const selection = window.getSelection();
+    if (!selection) return;
 
-    let node: Text | null;
-    while ((node = treeWalker.nextNode() as Text)) {
-      textNodes.push(node);
-    }
+    // Handle both old number format and new object format
+    if (typeof saved === 'number') {
+      // Legacy support: restore by text offset
+      const textNodes: Text[] = [];
+      const treeWalker = document.createTreeWalker(contentEditableRef.current, NodeFilter.SHOW_TEXT);
 
-    let currentPosition = 0;
-    for (const textNode of textNodes) {
-      const nodeLength = textNode.textContent?.length || 0;
-      if (currentPosition + nodeLength >= position) {
-        const range = document.createRange();
-        range.setStart(textNode, position - currentPosition);
-        range.setEnd(textNode, position - currentPosition);
-
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
-        break;
+      let node: Text | null;
+      while ((node = treeWalker.nextNode() as Text)) {
+        textNodes.push(node);
       }
-      currentPosition += nodeLength;
+
+      let currentPosition = 0;
+      for (const textNode of textNodes) {
+        const nodeLength = textNode.textContent?.length || 0;
+        if (currentPosition + nodeLength >= saved) {
+          try {
+            const range = document.createRange();
+            range.setStart(textNode, Math.min(saved - currentPosition, nodeLength));
+            range.setEnd(textNode, Math.min(saved - currentPosition, nodeLength));
+            selection.removeAllRanges();
+            selection.addRange(range);
+          } catch (e) {
+            // Fallback: place at end if range creation fails
+            const text = getEditableText();
+            if (text.length > 0) {
+              restoreCursorPosition(text.length);
+            }
+          }
+          break;
+        }
+        currentPosition += nodeLength;
+      }
+    } else {
+      // New object format: try to restore to same DOM position
+      try {
+        // First try to use the saved range directly
+        if (saved.range && contentEditableRef.current.contains(saved.startContainer)) {
+          try {
+            selection.removeAllRanges();
+            selection.addRange(saved.range);
+            return;
+          } catch (e) {
+            // Range might be detached, fall through to text offset method
+          }
+        }
+
+        // Fallback: restore by text offset
+        restoreCursorPosition(saved.textOffset);
+      } catch (e) {
+        // Last resort: place at end
+        const text = getEditableText();
+        if (text.length > 0) {
+          restoreCursorPosition(text.length);
+        }
+      }
     }
   };
 
@@ -271,7 +320,12 @@ export function MentionInput({
 
   // Monitor for @ mentions and update styled content with debounce
   useEffect(() => {
-    if (!contentEditableRef.current || isInternalUpdate.current) return;
+    if (!contentEditableRef.current) return;
+    
+    // Skip if this is an internal update (to prevent cursor jumping during typing)
+    if (isInternalUpdate.current) {
+      return;
+    }
 
     const updateStyledContent = () => {
       try {
@@ -319,7 +373,12 @@ export function MentionInput({
 
         // Restore cursor position after updating innerHTML
         if (cursorPosition !== null) {
-          setTimeout(() => restoreCursorPosition(cursorPosition), 0);
+          // Use double RAF to ensure DOM is fully updated
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              restoreCursorPosition(cursorPosition);
+            });
+          });
         }
       } catch (error) {
         console.error("Error in updateStyledContent:", error);
@@ -329,11 +388,38 @@ export function MentionInput({
       }
     };
 
-    const handleInput = () => {
+    const handleInput = (e?: Event) => {
       try {
+        if (isInternalUpdate.current) return; // Prevent recursive updates
+        
+        // Save cursor position BEFORE reading text or calling onChange
+        const savedPosition = saveCursorPosition();
+        
         const text = getEditableText();
-        console.log("🔍 Input text:", text);
+        
+        // Mark as internal update to prevent useEffect from interfering
+        isInternalUpdate.current = true;
+        
+        // Call onChange (this might trigger parent re-render)
         onChange(text);
+        
+        // Restore cursor position IMMEDIATELY before any other DOM operations
+        // Use multiple RAFs to ensure it happens after React's render cycle
+        if (savedPosition !== null) {
+          // First RAF: wait for current frame
+          requestAnimationFrame(() => {
+            // Second RAF: wait for next frame (after React render)
+            requestAnimationFrame(() => {
+              // Third RAF: ensure DOM is fully stable
+              requestAnimationFrame(() => {
+                restoreCursorPosition(savedPosition);
+                isInternalUpdate.current = false;
+              });
+            });
+          });
+        } else {
+          isInternalUpdate.current = false;
+        }
 
         // Clear existing timeout
         if (updateTimeoutRef.current) {
@@ -342,9 +428,6 @@ export function MentionInput({
 
         // Don't update styled content while user is actively typing
         // We'll update on blur instead to avoid cursor jumping
-        // updateTimeoutRef.current = setTimeout(() => {
-        //   updateStyledContent(true);
-        // }, 1000);
 
         // Check for @ mentions
         const lastAtPos = text.lastIndexOf("@");
@@ -434,20 +517,40 @@ export function MentionInput({
     });
     div.addEventListener("blur", handleBlur);
     // Ensure caret is placed at end on focus to avoid jump-to-start
-    div.addEventListener("focus", () => {
-      const len = div.textContent?.length ?? 0;
-      setTimeout(() => restoreCursorPosition(len), 0);
+    div.addEventListener("focus", (e) => {
+      // Don't restore if user clicked to place cursor somewhere specific
+      requestAnimationFrame(() => {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          // If cursor is already positioned, don't move it
+          if (range.startOffset > 0 || range.startContainer !== div || range.startContainer.textContent?.length) {
+            return;
+          }
+        }
+        // Only restore to end if cursor wasn't explicitly positioned
+        const text = getEditableText();
+        if (text.length > 0) {
+          restoreCursorPosition(text.length);
+        }
+      });
     });
 
     console.log("🔧 Event listeners attached to contentEditable");
 
-    // Always update styled content if there are mentions or preset selected
-    if (value && (value.includes("@") || selectedPreset)) {
+    // Only update styled content if NOT an internal update (avoid during active typing)
+    // AND if value actually changed (not just a re-render with same value)
+    const currentText = getEditableText();
+    const valueChanged = value !== currentText;
+    
+    if (!isInternalUpdate.current && valueChanged && value && (value.includes("@") || selectedPreset)) {
+      // This happens when value prop changes externally or after blur
       const parts = parseTextWithMentions(value, selectedPreset);
 
       // Save cursor position
       const cursorPosition = saveCursorPosition();
 
+      isInternalUpdate.current = true;
       div.innerHTML = "";
       parts.forEach(part => {
         if (part.type === "mention" && part.template) {
@@ -478,11 +581,32 @@ export function MentionInput({
 
       // Restore cursor position
       if (cursorPosition !== null) {
-        setTimeout(() => restoreCursorPosition(cursorPosition), 0);
+        // Use triple RAF to ensure DOM and React render are fully complete
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              restoreCursorPosition(cursorPosition);
+              isInternalUpdate.current = false;
+            });
+          });
+        });
+      } else {
+        isInternalUpdate.current = false;
       }
-    } else {
-      // Just set the text content for plain text
+    } else if (!isInternalUpdate.current && valueChanged) {
+      // Just set the text content for plain text (only if value actually changed)
+      isInternalUpdate.current = true;
       div.textContent = value || "";
+      // Restore cursor to end if we're setting plain text
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const text = div.textContent || "";
+          if (text.length > 0) {
+            restoreCursorPosition(text.length);
+          }
+          isInternalUpdate.current = false;
+        });
+      });
     }
 
     // Trigger initial input check (only if div exists)

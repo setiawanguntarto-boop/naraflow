@@ -699,33 +699,40 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig, 
 
                       {/* Post-deploy Metrics */}
                       <div className="mt-4 grid sm:grid-cols-3 gap-3">
-                        <div className="rounded-md border border-gray-200 p-3">
+                        <div className="rounded-md border border-gray-200 p-3 overflow-hidden min-w-0">
                           <p className="text-xs font-semibold mb-2">Token Scopes</p>
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-1.5 min-w-0">
                             {(tokenMetrics.scopes && tokenMetrics.scopes.length > 0
                               ? tokenMetrics.scopes
                               : ["unknown"]).map((s, i) => (
-                                <Badge key={i} variant="outline">{s}</Badge>
+                                <Badge 
+                                  key={i} 
+                                  variant="outline"
+                                  className="text-[10px] px-1.5 py-0.5 max-w-full truncate"
+                                  title={s}
+                                >
+                                  <span className="truncate block max-w-[120px]">{s}</span>
+                                </Badge>
                               ))}
                           </div>
                           {tokenMetrics.expiresAt && (
-                            <p className="text-[10px] text-gray-500 mt-2">Expires: {new Date(tokenMetrics.expiresAt * 1000).toLocaleString()}</p>
+                            <p className="text-[10px] text-gray-500 mt-2 truncate">Expires: {new Date(tokenMetrics.expiresAt * 1000).toLocaleString()}</p>
                           )}
                         </div>
-                        <div className="rounded-md border border-gray-200 p-3">
+                        <div className="rounded-md border border-gray-200 p-3 overflow-hidden min-w-0">
                           <p className="text-xs font-semibold mb-2">WABA Status</p>
                           <div className="space-y-1 text-xs">
-                            <div>ID: {wabaMetrics.wabaId || "unknown"}</div>
-                            <div>Review: {wabaMetrics.reviewStatus || "UNKNOWN"}</div>
-                            <div>Ownership: {wabaMetrics.ownership || "unknown"}</div>
+                            <div className="truncate" title={wabaMetrics.wabaId || "unknown"}>ID: {wabaMetrics.wabaId || "unknown"}</div>
+                            <div className="truncate">Review: {wabaMetrics.reviewStatus || "UNKNOWN"}</div>
+                            <div className="truncate">Ownership: {wabaMetrics.ownership || "unknown"}</div>
                           </div>
                         </div>
-                        <div className="rounded-md border border-gray-200 p-3">
+                        <div className="rounded-md border border-gray-200 p-3 overflow-hidden min-w-0">
                           <p className="text-xs font-semibold mb-2">Webhook</p>
                           <div className="space-y-1 text-xs">
-                            <div>Verified: {webhookMetrics.verified ? "yes" : "no"}</div>
-                            <div>Last Delivery: {webhookMetrics.lastDeliveryAt || "-"}</div>
-                            <div>Last Status: {webhookMetrics.lastStatusCode || "-"}</div>
+                            <div className="truncate">Verified: {webhookMetrics.verified ? "yes" : "no"}</div>
+                            <div className="truncate">Last Delivery: {webhookMetrics.lastDeliveryAt || "-"}</div>
+                            <div className="truncate">Last Status: {webhookMetrics.lastStatusCode || "-"}</div>
                           </div>
                         </div>
                       </div>
