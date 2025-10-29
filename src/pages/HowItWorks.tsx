@@ -55,15 +55,23 @@ const HowItWorksPage = () => {
         <main role="main" aria-label="How Naraflow Works">
           {/* Hero Header - Transformational narrative with subtle moving background */}
           <section
-            className="relative py-20 md:py-24 overflow-hidden bg-gradient-to-b from-background to-background-soft"
+            className="relative py-20 md:py-24 overflow-hidden"
             aria-labelledby="hiw-hero-title"
           >
-            {/* Lowest layer background – match main page gradient */}
-            <div
+            {/* Lowest layer background image (from public/images) */}
+            <img
+              src="/images/how-it-works-backdrop.png"
+              alt=""
               aria-hidden
-              className="absolute inset-0 -z-10 pointer-events-none"
-              style={{ background: 'var(--gradient-hero)' }}
+              draggable={false}
+              className="absolute inset-0 -z-20 w-full h-full object-cover opacity-90 pointer-events-none select-none"
+              onError={(e) => {
+                // Fallback to main gradient if the image isn't present yet
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+              }}
             />
+            {/* Gradient fallback layer to ensure readability */}
+            <div aria-hidden className="absolute inset-0 -z-10 pointer-events-none" style={{ background: 'var(--gradient-hero)' }} />
             <div className="relative z-10 container mx-auto px-6 grid md:grid-cols-2 items-center gap-4 md:gap-6">
               {/* Left: Title and copy */}
               <div className="text-center md:text-left md:pr-4 lg:pr-8">
