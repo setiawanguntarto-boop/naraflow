@@ -61,7 +61,7 @@ const HowItWorksPage = () => {
           >
             {!reduceMotion && <AnimatedBackground />}
 
-            <div className="relative z-10 container mx-auto px-6 grid md:grid-cols-2 items-center gap-8 md:gap-12">
+            <div className="relative z-10 container mx-auto px-6 grid md:grid-cols-2 items-center gap-6 md:gap-8">
               {/* Left: Title and copy */}
               <div className="text-center md:text-left">
                 <h2
@@ -77,11 +77,11 @@ const HowItWorksPage = () => {
               </div>
 
               {/* Right: Hero image with soft background removal mask */}
-              <div className="relative h-[300px] md:h-[420px]">
+              <div className="relative h-[300px] md:h-[460px] md:-ml-6 lg:-ml-10">
                 <img
                   src={heroImg}
                   alt="WhatsApp to insights visual"
-                  className="absolute right-0 bottom-0 h-full w-auto object-contain select-none pointer-events-none drop-shadow-xl"
+                  className="absolute right-0 bottom-0 h-full w-auto object-contain select-none pointer-events-none drop-shadow-xl transform scale-[1.15] md:scale-[1.25] origin-right"
                   loading="eager"
                   decoding="async"
                   onLoad={() => setImgOk(true)}
