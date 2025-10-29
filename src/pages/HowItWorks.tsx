@@ -4,7 +4,8 @@ import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { AnimatedBackground } from "@/components/sections/AnimatedBackground";
 import { LanguageProvider } from "@/hooks/use-language";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import heroImg from "@/assets/how-it-works-hero.png";
+// NOTE: the asset currently exists as .png.png; will normalize later
+import heroImg from "@/assets/how-it-works-hero.png.png";
 
 // Lazy-load heavy sections for faster TTI
 const HowItWorks = lazy(() =>
