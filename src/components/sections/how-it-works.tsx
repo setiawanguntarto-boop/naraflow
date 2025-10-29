@@ -35,6 +35,7 @@ export const HowItWorks = () => {
       desc: t("how.desc1"),
       icon: MessageSquare,
       gradient: "from-blue-500 to-cyan-500",
+      bg: "bg-blue-50",
       delay: 0,
     },
     {
@@ -42,6 +43,7 @@ export const HowItWorks = () => {
       desc: t("how.desc2"),
       icon: LayoutDashboard,
       gradient: "from-purple-500 to-pink-500",
+      bg: "bg-purple-50",
       delay: 0.1,
     },
     {
@@ -49,6 +51,7 @@ export const HowItWorks = () => {
       desc: t("how.desc3"),
       icon: Bot,
       gradient: "from-green-500 to-emerald-500",
+      bg: "bg-emerald-50",
       delay: 0.2,
     },
     {
@@ -56,6 +59,7 @@ export const HowItWorks = () => {
       desc: t("how.desc4"),
       icon: Database,
       gradient: "from-orange-500 to-red-500",
+      bg: "bg-amber-50",
       delay: 0.3,
     },
     {
@@ -63,6 +67,7 @@ export const HowItWorks = () => {
       desc: t("how.desc5"),
       icon: BarChart3,
       gradient: "from-indigo-500 to-blue-600",
+      bg: "bg-indigo-50",
       delay: 0.4,
     },
     {
@@ -70,6 +75,7 @@ export const HowItWorks = () => {
       desc: t("how.desc6"),
       icon: Rocket,
       gradient: "from-purple-600 to-indigo-600",
+      bg: "bg-violet-50",
       delay: 0.5,
     },
   ];
@@ -91,7 +97,7 @@ export const HowItWorks = () => {
             return (
             <div
               key={idx}
-                className="group relative bg-white dark:bg-surface-elevated rounded-2xl p-8 border border-neutral-100 dark:border-border-light shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden transform hover:-translate-y-2"
+                className={`group relative ${step.bg} dark:bg-surface-elevated rounded-2xl p-8 border border-neutral-100 dark:border-border-light shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden transform hover:-translate-y-2`}
                 style={{
                   animation: inView ? `fadeInUp 0.6s ease-out ${step.delay}s forwards` : 'none',
                   opacity: inView ? 1 : 0,
