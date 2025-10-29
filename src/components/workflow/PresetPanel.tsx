@@ -87,14 +87,19 @@ export function PresetPanel({ onSelect, selectedPresetId }: PresetPanelProps) {
           <div className="space-y-2 pr-2">
             {presets.map(preset => {
               const isSelected = selectedPresetId === preset.id;
+              
+              // Warna section box: hijau pastel untuk broiler, abu-abu pastel untuk lainnya (in progress)
+              const sectionBgColor = preset.id === "broiler" 
+                ? "bg-green-50 border-green-100" 
+                : "bg-gray-50 border-gray-100";
 
               return (
                 <Card
                   key={preset.id}
-                  className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+                  className={`cursor-pointer transition-all hover:shadow-md border-2 ${sectionBgColor} ${
                     isSelected
-                      ? "border-brand-primary bg-brand-primary/5"
-                      : "border-transparent hover:border-border"
+                      ? "ring-2 ring-brand-primary ring-offset-2"
+                      : "hover:shadow-lg"
                   }`}
                   onClick={() => onSelect(preset)}
                 >
