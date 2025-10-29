@@ -58,6 +58,12 @@ const HowItWorksPage = () => {
             className="relative py-20 md:py-24 overflow-hidden bg-gradient-to-b from-background to-background-soft"
             aria-labelledby="hiw-hero-title"
           >
+            {/* Lowest layer background – match main page gradient */}
+            <div
+              aria-hidden
+              className="absolute inset-0 -z-10 pointer-events-none"
+              style={{ background: 'var(--gradient-hero)' }}
+            />
             <div className="relative z-10 container mx-auto px-6 grid md:grid-cols-2 items-center gap-4 md:gap-6">
               {/* Left: Title and copy */}
               <div className="text-center md:text-left md:pr-4 lg:pr-8">
