@@ -488,30 +488,42 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
               <div className="space-y-2">
                 <Label htmlFor="recipient-type" className="text-xs">Recipient Type</Label>
                 <Select 
-                  value={nodeConfig.recipientType || "farmer"}
+                  value={nodeConfig.recipientType || (workflowMetadata?.showBroilerPresets ? "farmer" : "user")}
                   onValueChange={(value) => setNodeConfig({...nodeConfig, recipientType: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="farmer">Peternak</SelectItem>
-                    <SelectItem value="ppl">PPL</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="both">Peternak + PPL</SelectItem>
+                    {workflowMetadata?.showBroilerPresets ? (
+                      <>
+                        <SelectItem value="farmer">Peternak</SelectItem>
+                        <SelectItem value="ppl">PPL</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="both">Peternak + PPL</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="user">User</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="team">Team</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="message-type" className="text-xs">Message Type</Label>
                 <Select 
-                  value={nodeConfig.messageType || "reminder"}
+                  value={nodeConfig.messageType || "notification"}
                   onValueChange={(value) => setNodeConfig({...nodeConfig, messageType: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="notification">Notification</SelectItem>
                     <SelectItem value="reminder">Reminder</SelectItem>
                     <SelectItem value="alert">Alert</SelectItem>
                     <SelectItem value="confirmation">Confirmation</SelectItem>
