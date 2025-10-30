@@ -149,7 +149,7 @@ export class ConnectionLabelValidator {
     }
 
     // General semantic validation
-    this.validateSemanticConsistency(fromNodeType, toNodeType, labelId, errors, warnings);
+    this.validateSemanticConsistency(String(fromNodeType), String(toNodeType), labelId, errors, warnings);
 
     return {
       valid: errors.length === 0,
@@ -221,8 +221,8 @@ export class ConnectionLabelValidator {
 
     const applicableRules = this.rules.filter(
       rule =>
-        this.matchesNodeType(fromNodeType, rule.fromNodeType) &&
-        this.matchesNodeType(toNodeType, rule.toNodeType)
+        this.matchesNodeType(String(fromNodeType), rule.fromNodeType) &&
+        this.matchesNodeType(String(toNodeType), rule.toNodeType)
     );
 
     const suggestions = new Set<string>();
@@ -256,7 +256,7 @@ export class ConnectionLabelValidator {
 
       const labelId = edge.data?.labelId;
       if (labelId) {
-        const result = this.validateConnection(fromNode, toNode, labelId);
+        const result = this.validateConnection(fromNode, toNode, String(labelId));
         errors.push(...result.errors);
         warnings.push(...result.warnings);
         suggestions.push(...result.suggestions);
