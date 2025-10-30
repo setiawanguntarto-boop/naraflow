@@ -9,7 +9,8 @@ export async function chatModelExecutor(
   context: ExecutionContext,
   config: any
 ): Promise<NodeResult> {
-  const { llm, logger, payload, memory } = context;
+  const { llm, logger } = context.services;
+  const { payload, memory } = context;
 
   if (!llm) {
     return {

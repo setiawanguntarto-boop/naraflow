@@ -580,7 +580,7 @@ const WorkflowStudioContent = () => {
                       setSelectedTemplate(template);
                       setInterpreterTemplate(template);
                     }}
-                    selectedPreset={(selectedTemplate?.id || null) as PresetType | null}
+                    selectedPreset={selectedTemplate}
                     placeholder="Describe your workflow in natural language..."
                   />
                 </div>

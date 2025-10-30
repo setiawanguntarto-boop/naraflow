@@ -6,7 +6,7 @@ interface MentionInputProps {
   value: string;
   onChange: (value: string) => void;
   onTemplateSelect?: (template: WorkflowPreset) => void;
-  selectedPreset?: PresetType | null;
+  selectedPreset?: WorkflowPreset | null;
   placeholder?: string;
   className?: string;
 }

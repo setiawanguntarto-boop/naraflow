@@ -9,7 +9,8 @@ export async function whatsappSendExecutor(
   context: ExecutionContext,
   config: any
 ): Promise<NodeResult> {
-  const { logger, sendMessage, vars } = context;
+  const { logger, sendMessage } = context.services;
+  const { vars } = context;
 
   if (!sendMessage) {
     return {

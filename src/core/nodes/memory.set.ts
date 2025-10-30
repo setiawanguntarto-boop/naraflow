@@ -53,6 +53,7 @@ export const MemorySetNode: NodeTypeDefinition = {
     timeoutMs: 1000,
     retry: {
       count: 0,
+      backoffMs: 1000,
     },
   },
 

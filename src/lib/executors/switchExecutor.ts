@@ -6,7 +6,8 @@
 import { ExecutionContext, NodeResult } from "@/core/nodeLibrary_v3";
 
 export async function switchExecutor(context: ExecutionContext, config: any): Promise<NodeResult> {
-  const { logger, payload, memory, vars } = context;
+  const { logger } = context.services;
+  const { payload, memory, vars } = context;
 
   try {
     // Evaluate expression

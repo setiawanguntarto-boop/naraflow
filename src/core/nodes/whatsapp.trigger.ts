@@ -48,7 +48,7 @@ export const WhatsAppTriggerNode: NodeTypeDefinition = {
   outputs: {
     default: {
       name: "default",
-      type: "message",
+      type: "data",
       description: "Normalized WhatsApp message payload",
     },
   },

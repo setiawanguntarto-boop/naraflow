@@ -9,7 +9,8 @@ export async function validationExecutor(
   context: ExecutionContext,
   config: any
 ): Promise<NodeResult> {
-  const { logger, payload } = context;
+  const { logger } = context.services;
+  const { payload } = context;
 
   try {
     // Get field value
@@ -130,10 +131,10 @@ async function runValidator(
           `
           );
 
-          const result = validationFn(value, context);
+          const result = validationFn(value, context?.payload);
           return { valid: Boolean(result) };
         } catch (error: any) {
-          logger?.warn(`JS validation error: ${error.message}`);
+          context?.services?.logger?.warn(`JS validation error: ${error.message}`);
           return { valid: false, message: error.message };
         }
       }
