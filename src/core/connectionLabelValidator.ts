@@ -114,8 +114,8 @@ export class ConnectionLabelValidator {
     // Find applicable rules
     const applicableRules = this.rules.filter(
       rule =>
-        this.matchesNodeType(fromNodeType, rule.fromNodeType) &&
-        this.matchesNodeType(toNodeType, rule.toNodeType)
+        this.matchesNodeType(String(fromNodeType), rule.fromNodeType) &&
+        this.matchesNodeType(String(toNodeType), rule.toNodeType)
     );
 
     if (applicableRules.length === 0) {

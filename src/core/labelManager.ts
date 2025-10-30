@@ -7,20 +7,20 @@ export class LabelManager {
   static getAllLabels(): ConnectionLabel[] {
     const labels: ConnectionLabel[] = [];
     Object.values(this.library.categories).forEach(category => {
-      labels.push(...category.labels);
+      labels.push(...(category.labels as ConnectionLabel[]));
     });
     return labels;
   }
 
   static getLabelsByCategory(categoryId: string): ConnectionLabel[] {
     const category = this.library.categories[categoryId as keyof typeof this.library.categories];
-    return category ? category.labels : [];
+    return category ? (category.labels as ConnectionLabel[]) : [];
   }
 
   static getLabelById(labelId: string): ConnectionLabel | null {
     for (const category of Object.values(this.library.categories)) {
       const label = category.labels.find(l => l.id === labelId);
-      if (label) return label;
+      if (label) return label as ConnectionLabel;
     }
     return null;
   }
@@ -38,11 +38,12 @@ export class LabelManager {
   }
 
   static getCategories(): ConnectionLabelCategory[] {
-    return Object.values(this.library.categories);
+    return Object.values(this.library.categories) as ConnectionLabelCategory[];
   }
 
   static getCategoryById(categoryId: string): ConnectionLabelCategory | null {
-    return this.library.categories[categoryId as keyof typeof this.library.categories] || null;
+    const cat = this.library.categories[categoryId as keyof typeof this.library.categories];
+    return cat ? (cat as ConnectionLabelCategory) : null;
   }
 
   static getLabelsByDirection(direction: "forward" | "backward" | "loop"): ConnectionLabel[] {

@@ -13,6 +13,7 @@ export interface InterpreterOptions {
   llmProvider?: "openai" | "llama" | "none";
   validate?: boolean;
   preview?: boolean;
+  template?: any;
 }
 
 export interface InterpreterResult {
@@ -34,7 +35,7 @@ export async function interpretPrompt(
 
   try {
     // Step 1: Parse prompt (intent detection + entity extraction)
-    const analysis = await originalInterpretPrompt(prompt, { llmProvider });
+    const analysis = await originalInterpretPrompt(prompt, { llmProvider, template: options.template });
 
     if (!analysis) {
       return {

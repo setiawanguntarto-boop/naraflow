@@ -269,6 +269,24 @@ interface WorkflowState {
     setLlamaConfig: (config: Partial<WorkflowState["llamaConfig"]>) => void;
     appendLlamaLog: (message: string) => void;
     applyTemplateFlow: (templateId: keyof typeof workflowTemplates) => void;
+    setLlamaCache: (prompt: string, data: any) => void;
+    getLlamaCache: (prompt: string) => any | null;
+    clearLlamaCache: () => void;
+    toggleLocalLlama: () => void;
+
+    // Connection Label Operations
+    setConnectionLabel: (edgeId: string, label: ConnectionLabel) => void;
+    getConnectionLabel: (edgeId: string) => ConnectionLabel | null;
+    removeConnectionLabel: (edgeId: string) => void;
+
+    // Edge Configuration Operations
+    setDefaultEdgeType: (type: WorkflowState['defaultEdgeType']) => void;
+    setDefaultEdgeStyle: (style: WorkflowState['defaultEdgeStyle']) => void;
+    setDefaultEdgeAnimated: (animated: boolean) => void;
+    setDefaultEdgeWidth: (width: number) => void;
+    setDefaultEdgeCondition: (condition: EdgeConditionType) => void;
+    setValidationOptions: (options: Partial<ValidationOptions>) => void;
+    applyStyleToAllEdges: (style: Partial<EdgeEntity>) => void;
   };
 }
 
@@ -1861,6 +1879,82 @@ export const useWorkflowState = create<WorkflowState>()(
               [connectionId]: updatedEdge,
             },
             edgesArray: state.edgesArray.map(e => (e.id === connectionId ? updatedEdge : e)),
+          };
+        }, false);
+      },
+
+      // LLaMA Cache Operations
+      setLlamaCache: (prompt: string, data: any) => {
+        set(state => ({
+          llamaCache: {
+            ...state.llamaCache,
+            [prompt]: data,
+          },
+        }), false);
+      },
+
+      getLlamaCache: (prompt: string) => {
+        const { llamaCache } = get();
+        return llamaCache[prompt] || null;
+      },
+
+      clearLlamaCache: () => {
+        set({ llamaCache: {} }, false);
+      },
+
+      toggleLocalLlama: () => {
+        set(state => ({
+          llamaConfig: {
+            ...state.llamaConfig,
+            useLocalLlama: !state.llamaConfig.useLocalLlama,
+          },
+        }), false);
+      },
+
+      // Edge Configuration Operations
+      setDefaultEdgeType: (type: WorkflowState['defaultEdgeType']) => {
+        set({ defaultEdgeType: type }, false);
+      },
+
+      setDefaultEdgeStyle: (style: WorkflowState['defaultEdgeStyle']) => {
+        set({ defaultEdgeStyle: style }, false);
+      },
+
+      setDefaultEdgeAnimated: (animated: boolean) => {
+        set({ defaultEdgeAnimated: animated }, false);
+      },
+
+      setDefaultEdgeWidth: (width: number) => {
+        set({ defaultEdgeWidth: width }, false);
+      },
+
+      setDefaultEdgeCondition: (condition: EdgeConditionType) => {
+        set({ defaultEdgeCondition: condition }, false);
+      },
+
+      setValidationOptions: (options: Partial<ValidationOptions>) => {
+        set(state => ({
+          validationOptions: {
+            ...state.validationOptions,
+            ...options,
+          },
+        }), false);
+      },
+
+      applyStyleToAllEdges: (style: Partial<EdgeEntity>) => {
+        set(state => {
+          const updatedEdges: Record<string, EdgeEntity> = {};
+          Object.entries(state.edges).forEach(([id, edge]) => {
+            updatedEdges[id] = {
+              ...edge,
+              ...style,
+              style: { ...edge.style, ...style.style },
+            };
+          });
+
+          return {
+            edges: updatedEdges,
+            edgesArray: Object.values(updatedEdges),
           };
         }, false);
       },

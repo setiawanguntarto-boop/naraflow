@@ -22,7 +22,9 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
-  const { setConnectionLabel, getConnectionLabel } = useWorkflowState();
+  const setConnectionLabel = useWorkflowState(state => state.actions.setConnectionLabel);
+  const getConnectionLabel = useWorkflowState(state => state.actions.getConnectionLabel);
+  const removeConnectionLabel = useWorkflowState(state => state.actions.removeConnectionLabel);
 
   const currentLabel = getConnectionLabel(connectionId);
 
@@ -57,7 +59,6 @@ export const ConnectionLabelMenu: React.FC<ConnectionLabelMenuProps> = ({
   };
 
   const handleRemoveLabel = () => {
-    const { removeConnectionLabel } = useWorkflowState.getState();
     removeConnectionLabel(connectionId);
     onClose();
   };

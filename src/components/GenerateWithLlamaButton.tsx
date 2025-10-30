@@ -26,7 +26,9 @@ export function GenerateWithLlamaButton({
     model?: string;
   } | null>(null);
 
-  const { llamaConfig, setLlamaCache, getLlamaCache } = useWorkflowState();
+  const llamaConfig = useWorkflowState(state => state.llamaConfig);
+  const setLlamaCache = useWorkflowState(state => state.actions.setLlamaCache);
+  const getLlamaCache = useWorkflowState(state => state.actions.getLlamaCache);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
