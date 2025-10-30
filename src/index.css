@@ -509,62 +509,6 @@
     margin-left: 8px;
   }
 
-  /* Advanced Resize System */
-  .resize-handle {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 20px;
-    height: 20px;
-    cursor: nwse-resize;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: hsl(var(--brand-primary) / 0.1);
-    border-top-left-radius: 4px;
-    border: 1px solid hsl(var(--brand-primary) / 0.3);
-    opacity: 0;
-    transition: all 0.2s ease;
-    z-index: 10;
-  }
-
-  .resize-handle:hover,
-  .resize-handle.resizing {
-    opacity: 1;
-    background: hsl(var(--brand-primary) / 0.2);
-    border-color: hsl(var(--brand-primary) / 0.5);
-  }
-
-  .resize-handle-icon {
-    color: hsl(var(--brand-primary));
-    opacity: 0.7;
-  }
-
-  .resize-handle:hover .resize-handle-icon,
-  .resize-handle.resizing .resize-handle-icon {
-    opacity: 1;
-  }
-
-  /* Show resize handle when node is selected */
-  .react-flow__node.selected .resize-handle {
-    opacity: 0.8;
-  }
-
-  /* Prevent text selection during resize */
-  .resize-handle.resizing {
-    user-select: none;
-  }
-
-  .resize-handle.resizing * {
-    user-select: none;
-  }
-
-  /* Node resize mode indicator */
-  .node-resizing {
-    outline: 2px dashed hsl(var(--brand-primary) / 0.5);
-    outline-offset: 2px;
-  }
-
   @keyframes pulse-handle {
     0%,
     100% {

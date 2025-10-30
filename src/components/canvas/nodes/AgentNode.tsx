@@ -4,8 +4,6 @@ import { Bot, AlertCircle } from "lucide-react";
 import { useWorkflowState } from "@/hooks/useWorkflowState";
 import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
 import { AdvancedHandle } from "../handles/AdvancedHandle";
-import { useAdvancedResize } from "@/hooks/useAdvancedResize";
-import { ResizeHandle } from "../ResizeHandle";
 
 interface AgentNodeProps {
   id: string;
@@ -37,26 +35,12 @@ export const AgentNode = memo(({ id, data, selected }: AgentNodeProps) => {
   // Active ports (either from data or inferred from type definition)
   const activePorts = data.attachmentPorts || Object.keys(attachmentPorts);
 
-  // Advanced resize system
-  const { dimensions, isResizing, handleResizeStart } = useAdvancedResize({
-    nodeId: id,
-    initialWidth: (data.width as number) || 320,
-    initialHeight: (data.height as number) || 140,
-    constraints: {
-      minWidth: 200,
-      minHeight: 120,
-      maxWidth: 500,
-      maxHeight: 400,
-    },
-  });
-
   return (
     <div
       className={`
         relative px-4 py-3 rounded-xl border-2 shadow-soft
-        transition-all duration-200
+        transition-all duration-200 min-w-[200px] max-w-[320px]
         bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20
-        ${isResizing ? "node-resizing" : ""}
         ${
           hasErrors
             ? "border-red-500 border-2"
@@ -65,10 +49,6 @@ export const AgentNode = memo(({ id, data, selected }: AgentNodeProps) => {
               : "border-purple-300 hover:border-purple-400 dark:border-purple-700 dark:hover:border-purple-600"
         }
       `}
-      style={{
-        width: `${dimensions.width}px`,
-        height: `${dimensions.height}px`,
-      }}
     >
       {/* Error indicator */}
       {hasErrors && (
@@ -160,14 +140,6 @@ export const AgentNode = memo(({ id, data, selected }: AgentNodeProps) => {
             ))}
           </div>
         </div>
-      )}
-
-      {/* Resize Handle - shown when selected */}
-      {selected && (
-        <ResizeHandle
-          onResizeStart={handleResizeStart}
-          isResizing={isResizing}
-        />
       )}
     </div>
   );

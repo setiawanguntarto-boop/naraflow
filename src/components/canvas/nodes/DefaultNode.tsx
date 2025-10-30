@@ -5,8 +5,6 @@ import { useWorkflowState } from "@/hooks/useWorkflowState";
 import { getCategoryForNode, CATEGORY_COLORS } from "@/data/nodeCategories";
 import { getIconForLabel } from "@/data/nodeIcons";
 import { AdvancedHandle } from "../handles/AdvancedHandle";
-import { useAdvancedResize } from "@/hooks/useAdvancedResize";
-import { ResizeHandle } from "../ResizeHandle";
 
 interface DefaultNodeProps extends NodeProps {
   onContextMenu?: (event: React.MouseEvent, node: Node) => void;
@@ -42,27 +40,14 @@ export const DefaultNode = memo(({ id, data, selected, onContextMenu }: DefaultN
   // Get handle color based on category
   const handleColor = getColorFromCategory(category);
 
-  // Advanced resize system
-  const { dimensions, isResizing, handleResizeStart } = useAdvancedResize({
-    nodeId: id,
-    initialWidth: (data.width as number) || 280,
-    initialHeight: (data.height as number) || 120,
-    constraints: {
-      minWidth: 160,
-      minHeight: 80,
-      maxWidth: 500,
-      maxHeight: 400,
-    },
-  });
-
   return (
     <div
       onContextMenu={e => onContextMenu?.(e, { id, data, selected } as Node)}
       className={`
         relative px-4 py-3 rounded-xl border-2 shadow-soft
         transition-all duration-200
+        min-w-[160px] max-w-[280px]
         ${categoryColors?.bg || "bg-card"}
-        ${isResizing ? "node-resizing" : ""}
         ${
           hasErrors
             ? "border-red-500 border-2"
@@ -73,10 +58,6 @@ export const DefaultNode = memo(({ id, data, selected, onContextMenu }: DefaultN
                 : `${categoryColors?.border || "border-brand-primary/30"} hover:border-brand-primary/50`
         }
       `}
-      style={{
-        width: `${dimensions.width}px`,
-        height: `${dimensions.height}px`,
-      }}
     >
       {/* Error/Warning indicator */}
       {(hasErrors || hasWarnings) && (
@@ -173,14 +154,6 @@ export const DefaultNode = memo(({ id, data, selected, onContextMenu }: DefaultN
           id="output-default"
           percentage={50}
           isOutput={true}
-        />
-      )}
-
-      {/* Resize Handle - shown when selected */}
-      {selected && (
-        <ResizeHandle
-          onResizeStart={handleResizeStart}
-          isResizing={isResizing}
         />
       )}
     </div>
