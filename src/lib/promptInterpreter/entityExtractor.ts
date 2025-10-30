@@ -7,6 +7,14 @@ import { ExtractedEntity } from "./types";
 import { Intent } from "./types";
 import { getCachedEntityExtraction, cacheEntityExtraction, promptCache } from "./cacheService";
 
+// Get OpenAI API key from environment (if available)
+const getOpenAIKey = () => {
+  if (typeof window !== 'undefined') {
+    return (window as any).OPENAI_API_KEY || localStorage.getItem('openai_api_key');
+  }
+  return null;
+};
+
 /**
  * Extract entities from prompt using LLM with regex fallback
  */
@@ -15,9 +23,16 @@ export async function extractEntities(
   intent: Intent,
   llmProvider?: "openai" | "llama" | "none"
 ): Promise<ExtractedEntity[]> {
+  console.log("🔍 [Entity Extractor] Starting...", {
+    intentType: intent.type,
+    llmProvider,
+    promptLength: prompt.length
+  });
+
   // Check cache first
   const cached = getCachedEntityExtraction(prompt, intent.type);
   if (cached) {
+    console.log("✅ [Entity Extractor] Cache hit");
     return cached;
   }
 
@@ -26,20 +41,24 @@ export async function extractEntities(
   // Try LLM extraction if provider is available
   if (llmProvider && llmProvider !== "none") {
     try {
+      console.log("🤖 [Entity Extractor] Using LLM extraction");
       entities = await extractWithLLM(prompt, intent, llmProvider);
 
       // Validate and fallback to regex if LLM returns invalid results
       if (entities.length === 0 || !isValidEntityArray(entities)) {
+        console.log("⚠️ [Entity Extractor] LLM returned invalid results, using regex fallback");
         entities = extractWithRegex(prompt, intent);
       }
     } catch (error) {
-      console.warn("LLM extraction failed, using regex fallback:", error);
+      console.warn("❌ [Entity Extractor] LLM failed, using regex fallback:", error);
       entities = extractWithRegex(prompt, intent);
     }
   } else {
-    // Use regex extraction directly
+    console.log("📝 [Entity Extractor] Using regex extraction (no LLM provider)");
     entities = extractWithRegex(prompt, intent);
   }
+
+  console.log(`✅ [Entity Extractor] Extracted ${entities.length} entities`);
 
   // Cache results
   cacheEntityExtraction(prompt, intent.type, entities);
@@ -74,11 +93,90 @@ Only extract relevant fields that need to be collected from users.`;
 Intent type: ${intent.type}
 Return only valid JSON array, no additional text.`;
 
-  // For now, we'll use a simplified version
-  // In production, this would call LLMService
-  // const response = await llmService.chat([...], {...});
+  if (provider === "openai") {
+    return await extractWithOpenAI(systemPrompt, userPrompt);
+  } else {
+    // LLama or other providers - fallback to regex for now
+    console.warn("LLama provider not fully implemented, using regex");
+    return [];
+  }
+}
 
-  return []; // Placeholder - implement actual LLM call
+/**
+ * Extract entities using OpenAI API
+ */
+async function extractWithOpenAI(
+  systemPrompt: string,
+  userPrompt: string
+): Promise<ExtractedEntity[]> {
+  const apiKey = getOpenAIKey();
+  
+  if (!apiKey) {
+    console.warn("OpenAI API key not found, cannot use LLM extraction");
+    throw new Error("OpenAI API key not configured");
+  }
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.1,
+        max_tokens: 500,
+        response_format: { type: "json_object" }
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`OpenAI API error: ${response.status} - ${error}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      throw new Error("Empty response from OpenAI");
+    }
+
+    // Parse JSON response
+    let parsed: any;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      // Try to extract JSON from markdown code block
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        parsed = JSON.parse(jsonMatch[1]);
+      } else {
+        throw new Error("Failed to parse JSON from LLM response");
+      }
+    }
+
+    // Handle both array and object with array property
+    const entities = Array.isArray(parsed) ? parsed : parsed.fields || parsed.entities || [];
+
+    // Validate structure
+    if (!isValidEntityArray(entities)) {
+      console.warn("Invalid entity structure from LLM");
+      return [];
+    }
+
+    console.log(`✅ LLM extracted ${entities.length} entities`);
+    return entities;
+
+  } catch (error: any) {
+    console.error("OpenAI extraction failed:", error.message);
+    throw error;
+  }
 }
 
 /**
