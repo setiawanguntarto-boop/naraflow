@@ -58,14 +58,6 @@ import {
   FileJson,
 } from "lucide-react";
 
-// Edge types are statically loaded for better performance
-const edgeTypes = {
-  smoothstep: CustomEdge,
-  straight: CustomEdge,
-  step: CustomEdge,
-  default: CustomEdge,
-};
-
 interface WorkflowCanvasProps {
   onNodeClick?: (node: Node) => void;
   onDrop?: (nodeData: any, position: { x: number; y: number }) => void;
@@ -411,6 +403,14 @@ export const WorkflowCanvas = ({
     },
     [onNodeClick, onDuplicate, actions, showContextMenu]
   );
+
+  // Memoize edge types to prevent recreation on every render
+  const edgeTypes = useMemo(() => ({
+    smoothstep: CustomEdge,
+    straight: CustomEdge,
+    step: CustomEdge,
+    default: CustomEdge,
+  }), []);
 
   // Create node types with context menu handler and lazy loading
   const nodeTypes = useMemo(() => {

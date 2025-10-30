@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { 
   workflowFeatures, 
   getRelatedFeatures, 
@@ -144,7 +145,18 @@ export const EnhancedWorkflowAssistant = ({
   }, [ctx.errorCount, ctx.llamaConnected, ctx.nodeCount]);
 
   return (
-    <div className="w-full max-w-5xl mx-auto bg-card rounded-2xl border border-border shadow-2xl max-h-[90vh] flex flex-col">
+    <ErrorBoundary 
+      fallback={
+        <div className="w-full max-w-5xl mx-auto bg-card rounded-2xl border border-border shadow-2xl p-6">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
+            <p className="text-sm text-muted-foreground">Please try refreshing the page.</p>
+          </div>
+        </div>
+      }
+    >
+      <div className="w-full max-w-5xl mx-auto bg-card rounded-2xl border border-border shadow-2xl max-h-[90vh] flex flex-col">
       {/* Header */}
       <div className="p-6 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
@@ -437,6 +449,7 @@ export const EnhancedWorkflowAssistant = ({
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 };
 
