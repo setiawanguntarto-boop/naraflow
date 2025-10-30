@@ -1,6 +1,7 @@
 import React from "react";
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import { Sparkles } from "lucide-react";
+import { AdvancedHandle } from "../handles/AdvancedHandle";
 
 interface LlamaNodeProps {
   data: {
@@ -57,19 +58,32 @@ export function LlamaNode({ data, selected }: LlamaNodeProps) {
       </div>
 
       {/* Input Handle */}
-      <Handle
+      <AdvancedHandle
         type="target"
         position={Position.Left}
-        className="w-5 h-5 bg-purple-600 border-2 border-white dark:border-gray-800 cursor-pointer"
-        style={{ top: "50%", width: "16px", height: "16px" }}
+        id="input-1"
+        percentage={50}
+        isOutput={false}
       />
 
-      {/* Output Handle */}
-      <Handle
+      {/* Success Output Handle */}
+      <AdvancedHandle
         type="source"
         position={Position.Right}
-        className="w-5 h-5 bg-purple-600 border-2 border-white dark:border-gray-800 cursor-pointer"
-        style={{ top: "50%", width: "16px", height: "16px" }}
+        id="success"
+        percentage={30}
+        label="Success"
+        isOutput={true}
+      />
+
+      {/* Error Output Handle */}
+      <AdvancedHandle
+        type="source"
+        position={Position.Right}
+        id="error"
+        percentage={70}
+        label="Error"
+        isOutput={true}
       />
     </div>
   );

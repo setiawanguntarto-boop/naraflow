@@ -1,9 +1,10 @@
 import { memo } from "react";
-import { Handle, Position, NodeProps, Node } from "@xyflow/react";
+import { Position, NodeProps, Node } from "@xyflow/react";
 import { AlertCircle } from "lucide-react";
 import { useWorkflowState } from "@/hooks/useWorkflowState";
 import { getCategoryForNode, CATEGORY_COLORS } from "@/data/nodeCategories";
 import { getIconForLabel } from "@/data/nodeIcons";
+import { AdvancedHandle } from "../handles/AdvancedHandle";
 
 interface DefaultNodeProps extends NodeProps {
   onContextMenu?: (event: React.MouseEvent, node: Node) => void;
@@ -72,37 +73,35 @@ export const DefaultNode = memo(({ id, data, selected, onContextMenu }: DefaultN
           {metricsCount}
         </div>
       )}
-      {/* Multiple Input Handles */}
+      {/* Input Handles - Using Advanced Handle System */}
       {data.connectors &&
       Array.isArray(data.connectors) &&
       data.connectors.filter((c: any) => c.type === "target").length > 0 ? (
         (data.connectors as any[])
           .filter((c: any) => c.type === "target")
-          .map((connector: any, idx: number) => (
-            <Handle
-              key={connector.id}
-              type="target"
-              position={connector.position || Position.Left}
-              id={connector.id}
-              className="w-5 h-5 border-2 border-background cursor-pointer"
-              style={{
-                width: "16px",
-                height: "16px",
-                top: connector.top || `${30 + idx * 20}%`,
-                backgroundColor: connector.color || handleColor,
-              }}
-            />
-          ))
+          .map((connector: any, idx: number, arr: any[]) => {
+            const percentage = arr.length > 1
+              ? ((idx + 1) / (arr.length + 1)) * 100
+              : 50;
+            return (
+              <AdvancedHandle
+                key={connector.id}
+                type="target"
+                position={connector.position || Position.Left}
+                id={connector.id}
+                percentage={percentage}
+                isOutput={false}
+                label={connector.label}
+              />
+            );
+          })
       ) : (
-        <Handle
+        <AdvancedHandle
           type="target"
           position={Position.Left}
-          className="w-5 h-5 border-2 border-background cursor-pointer"
-          style={{
-            width: "16px",
-            height: "16px",
-            backgroundColor: handleColor,
-          }}
+          id="input-default"
+          percentage={50}
+          isOutput={false}
         />
       )}
 
@@ -126,37 +125,35 @@ export const DefaultNode = memo(({ id, data, selected, onContextMenu }: DefaultN
         </div>
       </div>
 
-      {/* Multiple Output Handles */}
+      {/* Output Handles - Using Advanced Handle System */}
       {data.connectors &&
       Array.isArray(data.connectors) &&
       data.connectors.filter((c: any) => c.type === "source").length > 0 ? (
         (data.connectors as any[])
           .filter((c: any) => c.type === "source")
-          .map((connector: any, idx: number) => (
-            <Handle
-              key={connector.id}
-              type="source"
-              position={connector.position || Position.Right}
-              id={connector.id}
-              className="w-5 h-5 border-2 border-background cursor-pointer"
-              style={{
-                width: "16px",
-                height: "16px",
-                top: connector.top || `${30 + idx * 20}%`,
-                backgroundColor: connector.color || handleColor,
-              }}
-            />
-          ))
+          .map((connector: any, idx: number, arr: any[]) => {
+            const percentage = arr.length > 1
+              ? ((idx + 1) / (arr.length + 1)) * 100
+              : 50;
+            return (
+              <AdvancedHandle
+                key={connector.id}
+                type="source"
+                position={connector.position || Position.Right}
+                id={connector.id}
+                percentage={percentage}
+                isOutput={true}
+                label={connector.label}
+              />
+            );
+          })
       ) : (
-        <Handle
+        <AdvancedHandle
           type="source"
           position={Position.Right}
-          className="w-5 h-5 border-2 border-background cursor-pointer"
-          style={{
-            width: "16px",
-            height: "16px",
-            backgroundColor: handleColor,
-          }}
+          id="output-default"
+          percentage={50}
+          isOutput={true}
         />
       )}
     </div>
