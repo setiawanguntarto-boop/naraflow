@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Save, AlertCircle, Plus, Trash2, Zap } from "lucide-react";
+import { X, Save, AlertCircle, Plus, Trash2, Zap, ChevronDown } from "lucide-react";
 import { Node } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useWorkflowMetadata } from "@/hooks/useWorkflowState";
 
 interface MetricDefinition {
@@ -528,6 +530,664 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
                     <SelectItem value="alert">Alert</SelectItem>
                     <SelectItem value="confirmation">Confirmation</SelectItem>
                     <SelectItem value="report">Report</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Decision/Condition Configuration */}
+        {(node.data?.label === "Decision" || node.data?.label === "Condition" || node.data?.label === "Switch (Route)") && (
+          <div className="space-y-4 pt-4 border-t">
+            <Label className="text-sm font-semibold">Condition Configuration</Label>
+            
+            {/* Condition Type Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="condition-type" className="text-xs">Condition Type</Label>
+              <Select 
+                value={nodeConfig.conditionType || "simple"}
+                onValueChange={(value) => setNodeConfig({...nodeConfig, conditionType: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="simple">Simple Comparison</SelectItem>
+                  <SelectItem value="expression">Custom Expression</SelectItem>
+                  <SelectItem value="multiple">Multiple Conditions</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Simple Condition Builder */}
+            {nodeConfig.conditionType === "simple" && (
+              <div className="space-y-3 p-3 bg-muted/50 rounded-md">
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-1">
+                    <Label className="text-xs">Left Value</Label>
+                    <Input 
+                      placeholder="{{payload.value}}"
+                      value={nodeConfig.leftOperand || ""}
+                      onChange={(e) => setNodeConfig({...nodeConfig, leftOperand: e.target.value})}
+                      className="text-xs"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <Label className="text-xs">Operator</Label>
+                    <Select 
+                      value={nodeConfig.operator || "equals"}
+                      onValueChange={(value) => setNodeConfig({...nodeConfig, operator: value})}
+                    >
+                      <SelectTrigger className="text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="equals">=</SelectItem>
+                        <SelectItem value="not_equals">≠</SelectItem>
+                        <SelectItem value="greater_than">&gt;</SelectItem>
+                        <SelectItem value="less_than">&lt;</SelectItem>
+                        <SelectItem value="greater_or_equal">≥</SelectItem>
+                        <SelectItem value="less_or_equal">≤</SelectItem>
+                        <SelectItem value="contains">Contains</SelectItem>
+                        <SelectItem value="starts_with">Starts With</SelectItem>
+                        <SelectItem value="is_empty">Is Empty</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-1">
+                    <Label className="text-xs">Right Value</Label>
+                    <Input 
+                      placeholder="30"
+                      value={nodeConfig.rightOperand || ""}
+                      onChange={(e) => setNodeConfig({...nodeConfig, rightOperand: e.target.value})}
+                      className="text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground bg-blue-500/10 p-2 rounded">
+                  Preview: <code>{nodeConfig.leftOperand || "{{value}}"} {nodeConfig.operator || "equals"} {nodeConfig.rightOperand || "threshold"}</code>
+                </div>
+              </div>
+            )}
+
+            {/* Custom Expression */}
+            {nodeConfig.conditionType === "expression" && (
+              <div className="space-y-2">
+                <Label className="text-xs">Custom Expression</Label>
+                <Textarea 
+                  placeholder="payload.temperature > 30 && payload.humidity < 60"
+                  value={nodeConfig.expression || ""}
+                  onChange={(e) => setNodeConfig({...nodeConfig, expression: e.target.value})}
+                  className="font-mono text-xs"
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Available variables: payload, memory, vars
+                </p>
+              </div>
+            )}
+
+            {/* Multiple Conditions */}
+            {nodeConfig.conditionType === "multiple" && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Conditions</Label>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      const conditions = nodeConfig.conditions || [];
+                      setNodeConfig({
+                        ...nodeConfig, 
+                        conditions: [...conditions, {leftOperand: "", operator: "equals", rightOperand: ""}]
+                      });
+                    }}
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Condition
+                  </Button>
+                </div>
+                
+                {(nodeConfig.conditions || []).map((condition: any, index: number) => (
+                  <div key={index} className="p-3 bg-muted/50 rounded-md space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs">Condition {index + 1}</Label>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => {
+                          const conditions = [...(nodeConfig.conditions || [])];
+                          conditions.splice(index, 1);
+                          setNodeConfig({...nodeConfig, conditions});
+                        }}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Input 
+                        placeholder="{{value}}"
+                        value={condition.leftOperand || ""}
+                        onChange={(e) => {
+                          const conditions = [...(nodeConfig.conditions || [])];
+                          conditions[index].leftOperand = e.target.value;
+                          setNodeConfig({...nodeConfig, conditions});
+                        }}
+                        className="text-xs"
+                      />
+                      <Select 
+                        value={condition.operator || "equals"}
+                        onValueChange={(value) => {
+                          const conditions = [...(nodeConfig.conditions || [])];
+                          conditions[index].operator = value;
+                          setNodeConfig({...nodeConfig, conditions});
+                        }}
+                      >
+                        <SelectTrigger className="text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="equals">=</SelectItem>
+                          <SelectItem value="not_equals">≠</SelectItem>
+                          <SelectItem value="greater_than">&gt;</SelectItem>
+                          <SelectItem value="less_than">&lt;</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input 
+                        placeholder="threshold"
+                        value={condition.rightOperand || ""}
+                        onChange={(e) => {
+                          const conditions = [...(nodeConfig.conditions || [])];
+                          conditions[index].rightOperand = e.target.value;
+                          setNodeConfig({...nodeConfig, conditions});
+                        }}
+                        className="text-xs"
+                      />
+                    </div>
+                  </div>
+                ))}
+                
+                {(nodeConfig.conditions || []).length > 1 && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Logic Gate</Label>
+                    <Select 
+                      value={nodeConfig.logicGate || "AND"}
+                      onValueChange={(value) => setNodeConfig({...nodeConfig, logicGate: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AND">All conditions must match (AND)</SelectItem>
+                        <SelectItem value="OR">Any condition can match (OR)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* API Call / HTTP Request Configuration */}
+        {(node.data?.label === "Fetch External Data" || node.data?.label === "HTTP Request" || node.data?.label === "API Call") && (
+          <div className="space-y-4 pt-4 border-t">
+            <Label className="text-sm font-semibold">API Configuration</Label>
+            
+            {/* HTTP Method & URL */}
+            <div className="grid grid-cols-4 gap-2">
+              <div className="col-span-1">
+                <Label className="text-xs">Method</Label>
+                <Select 
+                  value={nodeConfig.method || "GET"}
+                  onValueChange={(value) => setNodeConfig({...nodeConfig, method: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GET">GET</SelectItem>
+                    <SelectItem value="POST">POST</SelectItem>
+                    <SelectItem value="PUT">PUT</SelectItem>
+                    <SelectItem value="PATCH">PATCH</SelectItem>
+                    <SelectItem value="DELETE">DELETE</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-3">
+                <Label className="text-xs">URL</Label>
+                <Input 
+                  placeholder="https://api.example.com/endpoint"
+                  value={nodeConfig.url || ""}
+                  onChange={(e) => setNodeConfig({...nodeConfig, url: e.target.value})}
+                  className="text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Query Parameters */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <Label className="text-xs">Query Parameters</Label>
+                <ChevronDown className="w-4 h-4" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2 pt-2">
+                {(nodeConfig.queryParams || []).map((param: any, index: number) => (
+                  <div key={index} className="grid grid-cols-2 gap-2">
+                    <Input 
+                      placeholder="key"
+                      value={param.key || ""}
+                      onChange={(e) => {
+                        const params = [...(nodeConfig.queryParams || [])];
+                        params[index].key = e.target.value;
+                        setNodeConfig({...nodeConfig, queryParams: params});
+                      }}
+                      className="text-xs"
+                    />
+                    <div className="flex gap-1">
+                      <Input 
+                        placeholder="value"
+                        value={param.value || ""}
+                        onChange={(e) => {
+                          const params = [...(nodeConfig.queryParams || [])];
+                          params[index].value = e.target.value;
+                          setNodeConfig({...nodeConfig, queryParams: params});
+                        }}
+                        className="text-xs flex-1"
+                      />
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => {
+                          const params = [...(nodeConfig.queryParams || [])];
+                          params.splice(index, 1);
+                          setNodeConfig({...nodeConfig, queryParams: params});
+                        }}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    const params = nodeConfig.queryParams || [];
+                    setNodeConfig({
+                      ...nodeConfig, 
+                      queryParams: [...params, {key: "", value: ""}]
+                    });
+                  }}
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Parameter
+                </Button>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Authentication */}
+            <div className="space-y-2">
+              <Label className="text-xs">Authentication</Label>
+              <Select 
+                value={nodeConfig.authType || "none"}
+                onValueChange={(value) => setNodeConfig({...nodeConfig, authType: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="bearer">Bearer Token</SelectItem>
+                  <SelectItem value="apiKey">API Key</SelectItem>
+                  <SelectItem value="basic">Basic Auth</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {nodeConfig.authType && nodeConfig.authType !== "none" && (
+                <Input 
+                  type="password"
+                  placeholder="Enter token or API key"
+                  value={nodeConfig.authToken || ""}
+                  onChange={(e) => setNodeConfig({...nodeConfig, authToken: e.target.value})}
+                  className="text-xs font-mono"
+                />
+              )}
+            </div>
+
+            {/* Request Body (for POST/PUT/PATCH) */}
+            {["POST", "PUT", "PATCH"].includes(nodeConfig.method || "") && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Request Body</Label>
+                  <Select 
+                    value={nodeConfig.bodyType || "json"}
+                    onValueChange={(value) => setNodeConfig({...nodeConfig, bodyType: value})}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="json">JSON</SelectItem>
+                      <SelectItem value="form">Form Data</SelectItem>
+                      <SelectItem value="text">Plain Text</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Textarea 
+                  placeholder='{"key": "{{payload.value}}"}'
+                  value={nodeConfig.body || ""}
+                  onChange={(e) => setNodeConfig({...nodeConfig, body: e.target.value})}
+                  className="font-mono text-xs"
+                  rows={4}
+                />
+              </div>
+            )}
+
+            {/* Headers */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <Label className="text-xs">Custom Headers</Label>
+                <ChevronDown className="w-4 h-4" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2 pt-2">
+                {(nodeConfig.headers || []).map((header: any, index: number) => (
+                  <div key={index} className="grid grid-cols-2 gap-2">
+                    <Input 
+                      placeholder="Header-Name"
+                      value={header.key || ""}
+                      onChange={(e) => {
+                        const headers = [...(nodeConfig.headers || [])];
+                        headers[index].key = e.target.value;
+                        setNodeConfig({...nodeConfig, headers});
+                      }}
+                      className="text-xs"
+                    />
+                    <div className="flex gap-1">
+                      <Input 
+                        placeholder="value"
+                        value={header.value || ""}
+                        onChange={(e) => {
+                          const headers = [...(nodeConfig.headers || [])];
+                          headers[index].value = e.target.value;
+                          setNodeConfig({...nodeConfig, headers});
+                        }}
+                        className="text-xs flex-1"
+                      />
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => {
+                          const headers = [...(nodeConfig.headers || [])];
+                          headers.splice(index, 1);
+                          setNodeConfig({...nodeConfig, headers});
+                        }}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    const headers = nodeConfig.headers || [];
+                    setNodeConfig({
+                      ...nodeConfig, 
+                      headers: [...headers, {key: "", value: ""}]
+                    });
+                  }}
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Header
+                </Button>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Advanced Options */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <Label className="text-xs">Advanced Options</Label>
+                <ChevronDown className="w-4 h-4" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3 pt-2">
+                <div className="space-y-2">
+                  <Label className="text-xs">Timeout (ms)</Label>
+                  <Input 
+                    type="number"
+                    value={nodeConfig.timeout || 30000}
+                    onChange={(e) => setNodeConfig({...nodeConfig, timeout: parseInt(e.target.value)})}
+                    className="text-xs"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={nodeConfig.retryOnFailure || false}
+                    onCheckedChange={(checked) => setNodeConfig({...nodeConfig, retryOnFailure: checked})}
+                  />
+                  <Label className="text-xs">Retry on failure</Label>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        )}
+
+        {/* Store Records / Database Configuration */}
+        {(node.data?.label === "Store Records" || node.data?.label === "Save Data" || node.data?.label === "Database") && (
+          <div className="space-y-4 pt-4 border-t">
+            <Label className="text-sm font-semibold">Storage Configuration</Label>
+            
+            {/* Storage Destination */}
+            <div className="space-y-2">
+              <Label className="text-xs">Destination</Label>
+              <Select 
+                value={nodeConfig.destination || "google_sheets"}
+                onValueChange={(value) => setNodeConfig({...nodeConfig, destination: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="google_sheets">Google Sheets</SelectItem>
+                  <SelectItem value="supabase">Supabase Database</SelectItem>
+                  <SelectItem value="local_storage">Local Storage</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Google Sheets Configuration */}
+            {nodeConfig.destination === "google_sheets" && (
+              <div className="space-y-3 p-3 bg-muted/50 rounded-md">
+                <div className="space-y-2">
+                  <Label className="text-xs">Sheet ID</Label>
+                  <Input 
+                    placeholder="1a2b3c4d5e6f..."
+                    value={nodeConfig.sheetId || ""}
+                    onChange={(e) => setNodeConfig({...nodeConfig, sheetId: e.target.value})}
+                    className="text-xs font-mono"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Find in URL: docs.google.com/spreadsheets/d/<strong>[SHEET_ID]</strong>/edit
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Tab Name</Label>
+                  <Input 
+                    placeholder="Sheet1"
+                    value={nodeConfig.sheetName || ""}
+                    onChange={(e) => setNodeConfig({...nodeConfig, sheetName: e.target.value})}
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Supabase Configuration */}
+            {nodeConfig.destination === "supabase" && (
+              <div className="space-y-3 p-3 bg-muted/50 rounded-md">
+                <div className="space-y-2">
+                  <Label className="text-xs">Table Name</Label>
+                  <Input 
+                    placeholder="records"
+                    value={nodeConfig.sheetId || ""}
+                    onChange={(e) => setNodeConfig({...nodeConfig, sheetId: e.target.value})}
+                    className="text-xs font-mono"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Write Mode */}
+            <div className="space-y-2">
+              <Label className="text-xs">Write Mode</Label>
+              <Select 
+                value={nodeConfig.writeMode || "append"}
+                onValueChange={(value) => setNodeConfig({...nodeConfig, writeMode: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="append">Append (Add new rows)</SelectItem>
+                  <SelectItem value="overwrite">Overwrite (Replace all data)</SelectItem>
+                  <SelectItem value="update">Update (Match & update)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Primary Key for Update Mode */}
+            {nodeConfig.writeMode === "update" && (
+              <div className="space-y-2">
+                <Label className="text-xs">Primary Key Field</Label>
+                <Input 
+                  placeholder="id or email"
+                  value={nodeConfig.primaryKey || ""}
+                  onChange={(e) => setNodeConfig({...nodeConfig, primaryKey: e.target.value})}
+                  className="text-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Field to match records for updating
+                </p>
+              </div>
+            )}
+
+            {/* Field Mapping */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Field Mapping</Label>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    const mapping = nodeConfig.fieldMapping || [];
+                    setNodeConfig({
+                      ...nodeConfig, 
+                      fieldMapping: [...mapping, {source: "", target: "", transform: "none"}]
+                    });
+                  }}
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Add Field
+                </Button>
+              </div>
+              
+              {(nodeConfig.fieldMapping || []).map((field: any, index: number) => (
+                <div key={index} className="grid grid-cols-3 gap-2 p-2 bg-muted/30 rounded">
+                  <div>
+                    <Label className="text-xs">From</Label>
+                    <Input 
+                      placeholder="{{payload.name}}"
+                      value={field.source || ""}
+                      onChange={(e) => {
+                        const mapping = [...(nodeConfig.fieldMapping || [])];
+                        mapping[index].source = e.target.value;
+                        setNodeConfig({...nodeConfig, fieldMapping: mapping});
+                      }}
+                      className="text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">To Column</Label>
+                    <Input 
+                      placeholder="customer_name"
+                      value={field.target || ""}
+                      onChange={(e) => {
+                        const mapping = [...(nodeConfig.fieldMapping || [])];
+                        mapping[index].target = e.target.value;
+                        setNodeConfig({...nodeConfig, fieldMapping: mapping});
+                      }}
+                      className="text-xs"
+                    />
+                  </div>
+                  <div className="flex items-end gap-1">
+                    <div className="flex-1">
+                      <Label className="text-xs">Transform</Label>
+                      <Select 
+                        value={field.transform || "none"}
+                        onValueChange={(value) => {
+                          const mapping = [...(nodeConfig.fieldMapping || [])];
+                          mapping[index].transform = value;
+                          setNodeConfig({...nodeConfig, fieldMapping: mapping});
+                        }}
+                      >
+                        <SelectTrigger className="text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="uppercase">UPPERCASE</SelectItem>
+                          <SelectItem value="lowercase">lowercase</SelectItem>
+                          <SelectItem value="date">Date Format</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => {
+                        const mapping = [...(nodeConfig.fieldMapping || [])];
+                        mapping.splice(index, 1);
+                        setNodeConfig({...nodeConfig, fieldMapping: mapping});
+                      }}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              
+              {(!nodeConfig.fieldMapping || nodeConfig.fieldMapping.length === 0) && (
+                <div className="text-xs text-muted-foreground bg-yellow-500/10 p-3 rounded">
+                  ⚠️ No field mapping defined. All payload fields will be saved as-is.
+                </div>
+              )}
+            </div>
+
+            {/* Additional Options */}
+            <div className="space-y-3 p-3 bg-muted/50 rounded-md">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={nodeConfig.includeTimestamp !== false}
+                  onCheckedChange={(checked) => setNodeConfig({...nodeConfig, includeTimestamp: checked})}
+                />
+                <Label className="text-xs">Include timestamp column</Label>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-xs">On Conflict</Label>
+                <Select 
+                  value={nodeConfig.onConflict || "ignore"}
+                  onValueChange={(value) => setNodeConfig({...nodeConfig, onConflict: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ignore">Ignore (Skip duplicates)</SelectItem>
+                    <SelectItem value="overwrite">Overwrite (Replace)</SelectItem>
+                    <SelectItem value="fail">Fail (Show error)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

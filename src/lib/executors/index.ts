@@ -12,3 +12,5 @@ export { switchExecutor } from "./switchExecutor";
 export { whatsappSendExecutor } from "./whatsappSendExecutor";
 export { performanceCalcExecutor } from "./performanceCalcExecutor";
 export { reportGeneratorExecutor } from "./reportGeneratorExecutor";
+export { httpRequestExecutor } from "./httpRequestExecutor";
+export { storageSaveExecutor } from "./storageSaveExecutor";

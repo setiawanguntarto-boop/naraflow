@@ -10,8 +10,23 @@ export async function switchExecutor(context: ExecutionContext, config: any): Pr
   const { payload, memory, vars } = context;
 
   try {
+    let expression = config.expression;
+    
+    // Build expression from simple condition
+    if (config.conditionType === "simple" && config.leftOperand && config.operator) {
+      expression = buildSimpleExpression(config.leftOperand, config.operator, config.rightOperand);
+    }
+    
+    // Build expression from multiple conditions
+    if (config.conditionType === "multiple" && config.conditions && config.conditions.length > 0) {
+      expression = buildMultipleConditionsExpression(
+        config.conditions, 
+        config.logicGate || "AND"
+      );
+    }
+    
     // Evaluate expression
-    const result = await evaluateExpression(config.expression, { payload, memory, vars });
+    const result = await evaluateExpression(expression, { payload, memory, vars });
 
     logger.info(`Expression result: ${result}`);
 
@@ -69,4 +84,35 @@ async function evaluateExpression(expression: string, context: any): Promise<any
     // Fallback to simple string comparison if evaluation fails
     return expression;
   }
+}
+
+function buildSimpleExpression(left: string, operator: string, right: string): string {
+  const opMap: Record<string, string> = {
+    "equals": "==",
+    "not_equals": "!=",
+    "greater_than": ">",
+    "less_than": "<",
+    "greater_or_equal": ">=",
+    "less_or_equal": "<=",
+  };
+  
+  if (operator === "contains") {
+    return `${left}.includes(${right})`;
+  } else if (operator === "starts_with") {
+    return `${left}.startsWith(${right})`;
+  } else if (operator === "is_empty") {
+    return `${left} == null || ${left} == ''`;
+  }
+  
+  const op = opMap[operator] || "==";
+  return `${left} ${op} ${right}`;
+}
+
+function buildMultipleConditionsExpression(conditions: any[], gate: string): string {
+  const expressions = conditions.map(c => 
+    buildSimpleExpression(c.leftOperand, c.operator, c.rightOperand)
+  );
+  
+  const connector = gate === "AND" ? " && " : " || ";
+  return expressions.join(connector);
 }

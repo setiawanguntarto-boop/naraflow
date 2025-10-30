@@ -10,6 +10,45 @@ export const SwitchNode: NodeTypeDefinition = {
   configSchema: {
     type: "object",
     properties: {
+      conditionType: {
+        type: "string",
+        enum: ["simple", "expression", "multiple"],
+        default: "simple",
+        description: "Type of condition evaluation"
+      },
+      operator: {
+        type: "string",
+        enum: ["equals", "not_equals", "greater_than", "less_than", "greater_or_equal", "less_or_equal", "contains", "starts_with", "is_empty"],
+        default: "equals",
+        description: "Comparison operator"
+      },
+      leftOperand: {
+        type: "string",
+        description: "Left side of comparison (e.g., {{payload.temperature}})"
+      },
+      rightOperand: {
+        type: "string",
+        description: "Right side of comparison (e.g., 30)"
+      },
+      logicGate: {
+        type: "string",
+        enum: ["AND", "OR"],
+        default: "AND",
+        description: "Logic gate for multiple conditions"
+      },
+      conditions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            leftOperand: { type: "string" },
+            operator: { type: "string" },
+            rightOperand: { type: "string" }
+          }
+        },
+        default: [],
+        description: "Multiple conditions for complex logic"
+      },
       expression: {
         type: "string",
         description: "Expression to evaluate (e.g., \"payload.status === 'complete'\")",
@@ -33,7 +72,7 @@ export const SwitchNode: NodeTypeDefinition = {
         default: [],
       },
     },
-    required: ["expression", "cases"],
+    required: ["cases"],
   },
 
   inputs: {
