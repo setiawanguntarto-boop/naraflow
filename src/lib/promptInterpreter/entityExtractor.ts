@@ -87,17 +87,16 @@ Intent type: ${intent.type}
 Return only valid JSON array, no additional text.`;
 
   try {
-    // Get API key from localStorage or environment
-    const apiKey = typeof window !== 'undefined' 
-      ? (window as any).OPENAI_API_KEY || localStorage.getItem('openai_api_key')
-      : null;
-    
-    if (!apiKey) {
-      console.warn("OpenAI API key not found, cannot use LLM extraction");
-      throw new Error("OpenAI API key not configured");
-    }
+    // SECURITY: API keys should never be stored in localStorage or browser globals
+    // This feature is disabled for security reasons
+    // To enable LLM-based entity extraction:
+    // 1. Set up a Supabase Edge Function
+    // 2. Store the OpenAI API key in Supabase Secrets
+    // 3. Call the edge function from here instead
+    console.warn("LLM entity extraction is disabled. API keys must not be stored in browser.");
+    throw new Error("LLM entity extraction requires server-side API key management");
 
-    // Create LLM service instance
+    /* Disabled for security - requires server-side implementation
     const llmService = createLLMService(
       provider === "openai" ? "openai" : "google",
       apiKey
@@ -154,6 +153,7 @@ Return only valid JSON array, no additional text.`;
 
     console.log(`✅ LLM extracted ${entities.length} entities`);
     return entities;
+    */
 
   } catch (error: any) {
     console.error("LLM extraction failed:", error.message);

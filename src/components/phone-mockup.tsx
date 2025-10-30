@@ -118,12 +118,11 @@ Balas dengan <b>iya</b> untuk konfirmasi.`,
               animationDelay: `${i * 2.5}s`,
               opacity: 0,
             }}
-            dangerouslySetInnerHTML={{
-              __html:
-                msg.text +
-                `<div class='text-[0.65rem] opacity-70 mt-2 text-right'>${msg.time}</div>`,
-            }}
-          />
+          >
+            {/* SECURITY: Removed dangerouslySetInnerHTML */}
+            <div>{msg.text}</div>
+            <div className="text-[0.65rem] opacity-70 mt-2 text-right">{msg.time}</div>
+          </div>
         ))}
       </div>
 

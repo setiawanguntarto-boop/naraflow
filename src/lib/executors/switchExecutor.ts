@@ -11,7 +11,7 @@ export async function switchExecutor(context: ExecutionContext, config: any): Pr
 
   try {
     // Evaluate expression
-    const result = evaluateExpression(config.expression, { payload, memory, vars });
+    const result = await evaluateExpression(config.expression, { payload, memory, vars });
 
     logger.info(`Expression result: ${result}`);
 
@@ -47,22 +47,26 @@ export async function switchExecutor(context: ExecutionContext, config: any): Pr
   }
 }
 
-function evaluateExpression(expression: string, context: any): any {
-  // Basic safe expression evaluation
-  // In production, use a sandboxed expression evaluator like expr-eval or safer-eval
-
+async function evaluateExpression(expression: string, context: any): Promise<any> {
+  // SECURITY: Use safe expression evaluator instead of Function constructor
+  
   try {
-    // Replace context references
-    const safeExpression = expression
-      .replace(/payload\./g, "context.payload.")
-      .replace(/memory\./g, "context.memory.")
-      .replace(/vars\./g, "context.vars.");
-
-    // Simple evaluation using Function constructor
-    const func = new Function("context", `return ${safeExpression}`);
-    return func(context);
+    const { Parser } = await import('expr-eval');
+    const parser = new Parser();
+    
+    // Create safe context with payload, memory, and vars
+    const safeContext = {
+      payload: context.payload,
+      memory: context.memory,
+      vars: context.vars,
+      value: context.vars?.value,
+      input: context.vars?.input,
+      data: context.vars?.data,
+    };
+    
+    return parser.evaluate(expression, safeContext);
   } catch (error) {
-    // Fallback to simple string comparison
+    // Fallback to simple string comparison if evaluation fails
     return expression;
   }
 }
