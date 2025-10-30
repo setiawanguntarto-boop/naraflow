@@ -182,6 +182,13 @@ const WorkflowStudioContent = () => {
     setSelectedTemplate: setInterpreterTemplate,
   } = usePromptInterpreter();
 
+  // Handler for template selection from @mention
+  const handleTemplateSelect = useCallback((template: WorkflowPreset) => {
+    setSelectedTemplate(template);
+    setInterpreterTemplate(template); // Sync with interpreter
+    toast.success(`Template "${template.label}" selected`);
+  }, [setInterpreterTemplate]);
+
   // Handler for broiler template selection
   const handleBroilerTemplateSelect = useCallback((template: QuickTemplate) => {
     setSelectedBroilerTemplate(template);
@@ -411,8 +418,8 @@ const WorkflowStudioContent = () => {
       text: "Got it! Let me interpret your workflow... 🧠",
     });
 
-    // Use prompt interpreter with template context
-    await interpret(prompt, selectedTemplate);
+    // Use prompt interpreter with template context (interpreter has synced template)
+    await interpret(prompt, interpreterTemplate);
 
     // After interpretation, show result if successful
     if (previewData) {
@@ -583,10 +590,7 @@ const WorkflowStudioContent = () => {
                         if (template) setSelectedTemplate(template);
                       }
                     }}
-                    onTemplateSelect={template => {
-                      setSelectedTemplate(template);
-                      setInterpreterTemplate(template);
-                    }}
+                    onTemplateSelect={handleTemplateSelect}
                     selectedPreset={selectedTemplate}
                     placeholder="Describe your workflow in natural language..."
                   />
