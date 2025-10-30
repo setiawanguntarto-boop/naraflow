@@ -8,6 +8,9 @@ import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
 import { planNotificationWorkflow } from "./nodePlanners/notification.planner";
 import { planConditionalWorkflow } from "./nodePlanners/conditional.planner";
 
+// Re-export types for convenience
+export type { NodePlan } from "./types";
+
 const NODE_SPACING_X = 250;
 const NODE_SPACING_Y = 150;
 

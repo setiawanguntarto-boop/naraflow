@@ -82,13 +82,17 @@ export interface LayoutController {
 
 // Event types for layout system
 export interface LayoutEvent {
-  type: "layout:start" | "layout:complete" | "layout:error" | "layout:restore";
+  type: "layout:start" | "layout:complete" | "layout:error" | "layout:restore" | "layout:progress";
   payload: {
     engine?: string;
     direction?: string;
     nodeCount?: number;
     error?: Error;
     executionTime?: number;
+    layoutQuality?: number;
+    stage?: string;
+    progress?: number;
+    message?: string;
   };
 }
 

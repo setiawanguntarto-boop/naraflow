@@ -5,7 +5,7 @@
 
 import { ExtractedEntity } from "./types";
 import { Intent } from "./types";
-import { getCachedEntityExtraction, cacheEntityExtraction } from "./cacheService";
+import { getCachedEntityExtraction, cacheEntityExtraction, promptCache } from "./cacheService";
 
 /**
  * Extract entities from prompt using LLM with regex fallback
@@ -224,5 +224,5 @@ function isValidEntityArray(entities: any[]): boolean {
  * Clear extraction cache (useful for testing)
  */
 export function clearExtractionCache(): void {
-  extractionCache.clear();
+  promptCache.clear();
 }

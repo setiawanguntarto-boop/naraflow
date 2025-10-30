@@ -1,7 +1,7 @@
 export async function generateWorkflowFromPrompt(
   endpoint: string,
-  apiKey?: string,
   prompt: string,
+  apiKey?: string,
   mode: "local" | "cloud" = "local"
 ) {
   // Example minimal body — adapt to your LLaMA endpoint contract.

@@ -13,11 +13,11 @@ export interface StepDetail {
 export interface FeatureData {
   title: string;
   description: string;
-  icon: string;
-  category: "fundamental" | "ai" | "quality" | "deployment" | "advanced";
+  icon?: string;
+  category?: "fundamental" | "ai" | "quality" | "deployment" | "advanced";
   
   // Step-by-step instructions yang sangat detail
-  stepByStep: StepDetail[];
+  stepByStep?: StepDetail[];
   
   // Best practices dan common mistakes
   bestPractices?: string[];
