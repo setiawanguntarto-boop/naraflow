@@ -198,10 +198,17 @@ const WorkflowStudioContent = () => {
     const nodesRecord = Object.fromEntries(broilerNodes.map(node => [node.id, node]));
     const edgesRecord = Object.fromEntries(broilerEdges.map(edge => [edge.id, edge]));
     
-    // Apply to canvas
+    // Apply to canvas and set broiler mode
     actions.batchUpdate({
       nodes: nodesRecord,
       edges: edgesRecord,
+    });
+    
+    // Enable broiler presets for this workflow
+    actions.setWorkflowMetadata({
+      type: 'broiler',
+      templateId,
+      showBroilerPresets: true,
     });
     
     setPrompt(generatedPrompt);

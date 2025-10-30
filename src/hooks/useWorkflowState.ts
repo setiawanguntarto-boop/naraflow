@@ -108,6 +108,13 @@ interface BatchUpdate {
   runtime?: Partial<RuntimeState>;
 }
 
+// Workflow Metadata (context-aware features)
+interface WorkflowMetadata {
+  type?: "general" | "broiler" | "custom";
+  templateId?: string;
+  showBroilerPresets?: boolean;
+}
+
 interface WorkflowState {
   // Core Data (Runtime State)
   nodes: Record<string, NodeEntity>;
@@ -118,6 +125,9 @@ interface WorkflowState {
 
   // Runtime State (session and execution)
   runtime: RuntimeState;
+  
+  // Workflow Metadata
+  workflowMetadata: WorkflowMetadata;
 
   // Legacy arrays for React Flow compatibility
   nodesArray: Node[];
@@ -273,6 +283,10 @@ interface WorkflowState {
     getLlamaCache: (prompt: string) => any | null;
     clearLlamaCache: () => void;
     toggleLocalLlama: () => void;
+    
+    // Workflow Metadata Operations
+    setWorkflowMetadata: (metadata: Partial<WorkflowMetadata>) => void;
+    toggleBroilerPresets: () => void;
 
     // Connection Label Operations
     setConnectionLabel: (edgeId: string, label: ConnectionLabel) => void;
@@ -343,6 +357,12 @@ export const useWorkflowState = create<WorkflowState>()(
       hasUnsavedChanges: false,
       executionInProgress: false,
       currentExecutionId: null,
+    },
+    
+    // Workflow Metadata
+    workflowMetadata: {
+      type: "general",
+      showBroilerPresets: false,
     },
 
     // Legacy arrays for React Flow compatibility
@@ -1380,6 +1400,10 @@ export const useWorkflowState = create<WorkflowState>()(
               ...get().runtime,
               hasUnsavedChanges: true,
             },
+            workflowMetadata: {
+              type: 'general',
+              showBroilerPresets: false,
+            },
           },
           false
         );
@@ -1751,6 +1775,9 @@ export const useWorkflowState = create<WorkflowState>()(
 
         const { nodesRecord, edgesRecord } = arraysToRecords(template.nodes, template.edges);
         const { nodesArray, edgesArray } = recordsToArrays(nodesRecord, edgesRecord);
+        
+        // Detect if this is a broiler template
+        const isBroilerTemplate = String(templateId).toLowerCase().includes('broiler');
 
         set(
           state => ({
@@ -1758,6 +1785,11 @@ export const useWorkflowState = create<WorkflowState>()(
             edges: edgesRecord,
             nodesArray,
             edgesArray,
+            workflowMetadata: {
+              type: isBroilerTemplate ? 'broiler' : 'general',
+              templateId: String(templateId),
+              showBroilerPresets: isBroilerTemplate,
+            },
             runtime: {
               ...state.runtime,
               hasUnsavedChanges: true,
@@ -1958,6 +1990,25 @@ export const useWorkflowState = create<WorkflowState>()(
           };
         }, false);
       },
+      
+      // Workflow Metadata Operations
+      setWorkflowMetadata: (metadata: Partial<WorkflowMetadata>) => {
+        set(state => ({
+          workflowMetadata: {
+            ...state.workflowMetadata,
+            ...metadata,
+          },
+        }), false);
+      },
+      
+      toggleBroilerPresets: () => {
+        set(state => ({
+          workflowMetadata: {
+            ...state.workflowMetadata,
+            showBroilerPresets: !state.workflowMetadata.showBroilerPresets,
+          },
+        }), false);
+      },
     },
   }))
 );
@@ -1969,6 +2020,7 @@ export const useEdges = () => useWorkflowState(state => state.edgesArray);
 export const useUIState = () => useWorkflowState(state => state.ui);
 export const useRuntimeState = () => useWorkflowState(state => state.runtime);
 export const useWorkflowActions = () => useWorkflowState(state => state.actions);
+export const useWorkflowMetadata = () => useWorkflowState(state => state.workflowMetadata);
 export const useSelectedNode = () =>
   useWorkflowState(state =>
     state.ui.selectedNodeId ? state.nodes[state.ui.selectedNodeId] : null

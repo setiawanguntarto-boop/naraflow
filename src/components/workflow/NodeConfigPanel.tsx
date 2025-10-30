@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { useWorkflowMetadata } from "@/hooks/useWorkflowState";
 
 interface MetricDefinition {
   name: string;
@@ -231,6 +232,7 @@ const getNodeTypeInfo = (nodeLabel: string): { icon: string; color: string; cate
 };
 
 export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps) => {
+  const workflowMetadata = useWorkflowMetadata();
   const [title, setTitle] = useState(String(node.data?.title || node.data?.label || ""));
   const [description, setDescription] = useState(String(node.data?.description || ""));
   const [metrics, setMetrics] = useState<MetricDefinition[]>((node.data?.metrics as MetricDefinition[]) || []);
@@ -334,8 +336,9 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
           <AlertDescription className="text-sm">{contextHint}</AlertDescription>
         </Alert>
 
-        {/* Broiler Quick Templates Section */}
-        {(node.data?.label === "WhatsApp Message" || 
+        {/* Broiler Quick Templates Section - Only show in broiler workflows */}
+        {workflowMetadata?.showBroilerPresets &&
+         (node.data?.label === "WhatsApp Message" || 
           node.data?.label === "WhatsApp Trigger" ||
           node.data?.label === "Ask Question" || 
           node.data?.label === "Process Data") && (
