@@ -173,31 +173,69 @@ return {
   }
 };
 
-const getContextHint = (nodeLabel: string): string => {
-  const hints: Record<string, string> = {
+const getContextHint = (nodeLabel: string, isBroilerWorkflow: boolean): string => {
+  // General hints for all workflows
+  const generalHints: Record<string, string> = {
     "WhatsApp Message":
       "Write the message that will be sent via WhatsApp. You can use {{name}} placeholders for dynamic content.",
-    "WhatsApp Trigger": "Konfigurasi trigger WhatsApp untuk workflow broiler. Pilih template atau buat pesan custom dengan placeholder {{variable}}.",
+    "WhatsApp Trigger": 
+      "Configure WhatsApp trigger for your workflow. You can use {{variable}} placeholders for dynamic content.",
     "Ask Input":
       "Define the question or prompt that will be sent to the user. Be clear and concise.",
-    "Ask Question": "Definisikan pertanyaan dan field input untuk data entry broiler. Gunakan preset untuk field standar seperti mortalitas, pakan, berat.",
+    "Ask Question": 
+      "Define the question and input fields for data collection. Configure field types, validation, and requirements.",
     "Receive Update":
       "Describe what automatic updates this node will receive (e.g., sensor readings, webhook data).",
-    "Process Data": "Konfigurasi pemrosesan data broiler. Gunakan calculator preset untuk FCR, ADG, mortality % atau tulis kustom logic.",
-    "Filter Data": "Define the filtering criteria or conditions that will be applied.",
+    "Process Data": 
+      "Configure data processing logic. Set up calculations, transformations, or custom business rules.",
+    "Filter Data": 
+      "Define the filtering criteria or conditions that will be applied.",
     Transform:
       "Describe the data transformation that will occur (e.g., format change, calculation).",
-    Condition: "Setup kondisi untuk alur workflow (contoh: jika mortalitas > 2%, kirim alert).",
-    Loop: "Define the loop criteria: what to iterate over and when to stop.",
-    Switch: "List the cases/conditions that determine which branch to follow.",
-    Notification: "Konfigurasi notifikasi untuk peternak, PPL, atau admin.",
-    "Report (PDF)": "Generate laporan PDF untuk data harian atau panen.",
-    "Data Storage": "Simpan data ke Google Sheets atau database.",
-    "QR Generator": "Generate QR code untuk identifikasi kandang.",
-    Email: "Compose the email subject and body. You can use placeholders like {{name}}.",
+    Condition: 
+      "Set up conditional logic for workflow branching (e.g., if value > threshold, send alert).",
+    Loop: 
+      "Define the loop criteria: what to iterate over and when to stop.",
+    Switch: 
+      "List the cases/conditions that determine which branch to follow.",
+    Notification: 
+      "Configure notifications for users, admins, or team members.",
+    "Report (PDF)": 
+      "Generate PDF reports from workflow data.",
+    "Data Storage": 
+      "Configure where to save data (Google Sheets, database, or cloud storage).",
+    "QR Generator": 
+      "Generate QR codes for item identification or tracking.",
+    Email: 
+      "Compose the email subject and body. You can use placeholders like {{name}}.",
   };
 
-  return hints[nodeLabel] || "Provide a short description or configuration details for this node.";
+  // Broiler-specific hints (when broiler template is active)
+  const broilerHints: Record<string, string> = {
+    "WhatsApp Trigger": 
+      "Konfigurasi trigger WhatsApp untuk workflow broiler. Pilih template atau buat pesan custom dengan placeholder {{variable}}.",
+    "Ask Question": 
+      "Definisikan pertanyaan dan field input untuk data entry broiler. Gunakan preset untuk field standar seperti mortalitas, pakan, berat.",
+    "Process Data": 
+      "Konfigurasi pemrosesan data broiler. Gunakan calculator preset untuk FCR, ADG, mortality % atau tulis kustom logic.",
+    Condition: 
+      "Setup kondisi untuk alur workflow (contoh: jika mortalitas > 2%, kirim alert).",
+    Notification: 
+      "Konfigurasi notifikasi untuk peternak, PPL, atau admin.",
+    "Report (PDF)": 
+      "Generate laporan PDF untuk data harian atau panen.",
+    "Data Storage": 
+      "Simpan data ke Google Sheets atau database.",
+    "QR Generator": 
+      "Generate QR code untuk identifikasi kandang.",
+  };
+
+  // Return appropriate hint based on workflow type
+  if (isBroilerWorkflow && broilerHints[nodeLabel]) {
+    return broilerHints[nodeLabel];
+  }
+
+  return generalHints[nodeLabel] || "Provide a short description or configuration details for this node.";
 };
 
 const getNodeTypeInfo = (nodeLabel: string): { icon: string; color: string; category: string } => {
@@ -304,7 +342,7 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
     setHasChanges(false);
   };
 
-  const contextHint = getContextHint(String(node.data?.label || ""));
+  const contextHint = getContextHint(String(node.data?.label || ""), workflowMetadata?.showBroilerPresets || false);
   const typeInfo = getNodeTypeInfo(String(node.data?.label || ""));
 
   return (
