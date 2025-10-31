@@ -129,6 +129,113 @@ export const workflowFeatures = {
     relatedFeatures: ["ai-node", "execution-system"]
   },
 
+  // --- V3 Nodes: LLaMA Chat Model ---
+  "chat-model": {
+    title: "Chat Model (LLaMA)",
+    description: "Panggil model LLaMA dengan system prompt dan prompt template. Sudah dibatasi ke model LLaMA saja dengan dropdown.",
+    usage: "Pilih model LLaMA → isi systemPrompt & promptTemplate → set temperature & maxTokens",
+    tips: [
+      "Gunakan {{variables}} untuk inject nilai dari payload/vars",
+      "Simpan tools di Advanced bila perlu function-calling",
+      "Gunakan AI Analysis jika perlu pemetaan hasil ke field terstruktur"
+    ],
+    icon: "🧠",
+    relatedFeatures: ["ai-analysis", "llama-integration"]
+  },
+
+  // --- V3 Nodes: AI Analysis ---
+  "ai-analysis": {
+    title: "AI Analysis",
+    description: "Analisa input menggunakan LLaMA dengan pemetaan hasil JSON ke field terstruktur.",
+    usage: "Isi systemPrompt & promptTemplate → definisikan responseMapping (field, path)",
+    tips: [
+      "Pastikan LLaMA terkoneksi",
+      "Gunakan responseMapping untuk mengambil nilai dari JSON hasil",
+      "Turunkan temperature (0.1–0.3) untuk hasil lebih stabil"
+    ],
+    icon: "🧩",
+    relatedFeatures: ["chat-model", "validation"]
+  },
+
+  // --- V3 Nodes: Sensor Data ---
+  "sensor-data": {
+    title: "Sensor Data",
+    description: "Terima data sensor via Webhook/MQTT/HTTP poll dengan konfigurasi metrics dan validasi range.",
+    usage: "Pilih sourceType → isi endpoints → tambahkan metrics (id, path, min/max, unit)",
+    tips: [
+      "Aktifkan Advanced untuk timestampPath, smoothing, out-of-range policy",
+      "Gunakan Decision untuk route alert berdasarkan metrics"
+    ],
+    icon: "🌡️",
+    relatedFeatures: ["decision", "store-records"]
+  },
+
+  // --- V3 Nodes: Fetch External Data ---
+  "fetch-external": {
+    title: "Fetch External Data",
+    description: "Ambil data dari HTTP API dengan auth, templating, retry, caching, dan response mapping.",
+    usage: "Pilih method & url → headers/body opsional → set responseMapping",
+    tips: [
+      "Gunakan {{var}} untuk templating URL/body",
+      "Aktifkan cacheTtlSec untuk respons yang jarang berubah"
+    ],
+    icon: "🌐",
+    relatedFeatures: ["ai-analysis", "store-records"]
+  },
+
+  // --- V3 Nodes: Calculate ---
+  "calculate": {
+    title: "Calculate",
+    description: "Hitung satu atau lebih ekspresi matematika dari variables dan constants.",
+    usage: "Tambah variables (name, path) → constants (opsional) → expressions (field, expr)",
+    tips: [
+      "Gunakan Math.* di expr (mis: Math.max, Math.min)",
+      "Gunakan clampMin/clampMax & precision untuk normalisasi"
+    ],
+    icon: "🧮",
+    relatedFeatures: ["store-records", "decision"]
+  },
+
+  // --- V3 Nodes: Decision ---
+  "decision": {
+    title: "Decision",
+    description: "Route workflow berdasarkan daftar kondisi (==, >=, includes, regex).",
+    usage: "Tambah conditions: leftPath, operator, rightValue, route",
+    tips: [
+      "Gunakan mode=any dan stopOnFirst=true untuk cepat branching",
+      "Set defaultRoute untuk fallback"
+    ],
+    icon: "🔀",
+    relatedFeatures: ["sensor-data", "send-message"]
+  },
+
+  // --- V3 Nodes: Send Message ---
+  "send-message": {
+    title: "Send Message",
+    description: "Kirim pesan via WhatsApp/SMS/Email dengan template dan attachments.",
+    usage: "Pilih channel → isi to & template → opsional attachments",
+    tips: [
+      "Gunakan {{variables}} untuk inject data",
+      "Aktifkan validateRecipient di Advanced",
+      "Simpan riwayat pengiriman via saveToHistory"
+    ],
+    icon: "✉️",
+    relatedFeatures: ["decision", "store-records"]
+  },
+
+  // --- V3 Nodes: Store Records ---
+  "store-records": {
+    title: "Store Records",
+    description: "Simpan records ke storage lokal atau HTTP API dengan mode append/upsert.",
+    usage: "Set destination → recordsPath → fieldMapping → mode (append/upsert)",
+    tips: [
+      "Tambahkan timestamp otomatis via Advanced",
+      "Gunakan batchSize untuk kirim HTTP dalam beberapa chunk"
+    ],
+    icon: "🗄️",
+    relatedFeatures: ["fetch-external", "calculate"]
+  },
+
   "node-configuration": {
     title: "Node Configuration",
     description: "Konfigurasi node individual dengan settings spesifik. Double-click node atau gunakan context menu.",
@@ -373,12 +480,16 @@ export function getFeaturesByCategory(): Record<string, FeatureData[]> {
     ] as FeatureData[],
     "ai": [
       workflowFeatures["llama-integration"],
-      workflowFeatures["responsible-ai"]
+      workflowFeatures["responsible-ai"],
+      workflowFeatures["chat-model"],
+      workflowFeatures["ai-analysis"]
     ] as FeatureData[],
     "development": [
       workflowFeatures["node-configuration"],
       workflowFeatures["validation"],
-      workflowFeatures["execution-system"]
+      workflowFeatures["execution-system"],
+      workflowFeatures["calculate"],
+      workflowFeatures["decision"]
     ] as FeatureData[],
     "deployment": [
       workflowFeatures["deployment"],
@@ -389,6 +500,12 @@ export function getFeaturesByCategory(): Record<string, FeatureData[]> {
       workflowFeatures["auto-layout"],
       workflowFeatures["optimization"],
       workflowFeatures["metrics-tracking"]
+    ] as FeatureData[],
+    "data": [
+      workflowFeatures["sensor-data"],
+      workflowFeatures["fetch-external"],
+      workflowFeatures["store-records"],
+      workflowFeatures["send-message"]
     ] as FeatureData[]
   };
   

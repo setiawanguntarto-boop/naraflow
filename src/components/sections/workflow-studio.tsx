@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, Suspense, lazy } from "react";
+import { motion } from "framer-motion";
 import {
   Sparkles,
   Trash2,
@@ -11,6 +12,7 @@ import {
   WifiOff,
   Loader2,
   Book,
+  MessageSquare,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +40,7 @@ import { MentionInput } from "@/components/workflow/MentionInput";
 import { PresetPanel, type WorkflowPreset as PresetType } from "@/components/workflow/PresetPanel";
 import { WorkflowSizeIndicator } from "@/components/workflow/WorkflowSizeIndicator";
 import { EnhancedWorkflowAssistant } from "@/components/workflow/EnhancedWorkflowAssistant";
+import { LiveAssistantPanel } from "@/components/workflow/LiveAssistantPanel";
 import { useContextAwareHelp } from "@/hooks/useContextAwareHelp";
 import { globalCanvasEventBus } from "@/hooks/useCanvasEventBus";
 import { QuickTemplatesPanel, BROILER_TEMPLATES, type QuickTemplate } from "@/components/workflow/QuickTemplatesPanel";
@@ -93,11 +96,7 @@ const WorkflowPreviewModal = lazy(() =>
 const DeployAgentModal = lazy(() =>
   import("@/components/workflow/DeployAgentModal").then(mod => ({ default: mod.DeployAgentModal }))
 );
-const FloatingChatButton = lazy(() =>
-  import("@/components/workflow/FloatingChatButton").then(mod => ({
-    default: mod.FloatingChatButton,
-  }))
-);
+// FloatingChatButton removed from canvas; assistant entry moved into canvas header
 
 // Loading component for canvas
 const CanvasLoader = () => (
@@ -153,11 +152,52 @@ const WorkflowStudioContent = () => {
 
   // Enhanced Workflow Assistant state
   const [showEnhancedAssistant, setShowEnhancedAssistant] = useState(false);
+  // Live Assistant
+  const [showLiveAssistant, setShowLiveAssistant] = useState(false);
+  const [liveActivity, setLiveActivity] = useState<{ ts: string; text: string }[]>([]);
+  const [liveSuggestions, setLiveSuggestions] = useState<{ id: string; text: string }[]>([]);
 
   // Use new state management
   const nodes = useNodes();
   const nodesRecord = useNodesRecord();
   const edges = useEdges();
+  // Track activity from nodes/edges changes
+  const prevCounts = useRef<{ nodes: number; edges: number }>({ nodes: 0, edges: 0 });
+  useEffect(() => {
+    const nodeCount = Object.keys(nodesRecord).length;
+    const edgeCount = edges.length;
+    if (prevCounts.current.nodes !== nodeCount) {
+      const diff = nodeCount - prevCounts.current.nodes;
+      if (diff > 0) setLiveActivity(a => [{ ts: new Date().toISOString(), text: `${diff} node added` }, ...a].slice(0, 200));
+      if (diff < 0) setLiveActivity(a => [{ ts: new Date().toISOString(), text: `${Math.abs(diff)} node removed` }, ...a].slice(0, 200));
+      prevCounts.current.nodes = nodeCount;
+    }
+    if (prevCounts.current.edges !== edgeCount) {
+      const diff = edgeCount - prevCounts.current.edges;
+      if (diff > 0) setLiveActivity(a => [{ ts: new Date().toISOString(), text: `${diff} connection added` }, ...a].slice(0, 200));
+      if (diff < 0) setLiveActivity(a => [{ ts: new Date().toISOString(), text: `${Math.abs(diff)} connection removed` }, ...a].slice(0, 200));
+      prevCounts.current.edges = edgeCount;
+    }
+  }, [nodesRecord, edges]);
+
+  // Generate simple suggestions
+  useEffect(() => {
+    const nodeCount = Object.keys(nodesRecord).length;
+    const edgeCount = edges.length;
+    const labels = Object.values(nodesRecord).map((n: any) => String(n.data?.label || n.type || "").toLowerCase());
+    const hasSensor = labels.some(l => l.includes("sensor"));
+    const hasDecision = labels.some(l => l.includes("decision"));
+    const hasSend = labels.some(l => l.includes("send"));
+    const hasAI = labels.some(l => l.includes("ai analysis"));
+
+    const sugg: { id: string; text: string }[] = [];
+    if (nodeCount === 0) sugg.push({ id: "get-started", text: "Canvas kosong — tambahkan node dari library atau gunakan Workflow Assistant untuk mulai." });
+    if (nodeCount > 0 && edgeCount === 0) sugg.push({ id: "connect", text: "Belum ada koneksi — sambungkan node dengan edge untuk membentuk alur." });
+    if (hasSensor && !hasDecision) sugg.push({ id: "sensor-decision", text: "Tambahkan Decision setelah Sensor Data untuk route alert berdasarkan threshold." });
+    if (hasAI) sugg.push({ id: "ai-mapping", text: "Isi responseMapping di AI Analysis agar hasil terstruktur dapat dipakai node berikutnya." });
+    if (hasDecision && !hasSend) sugg.push({ id: "route-send", text: "Tambahkan Send Message pada cabang output Decision untuk notifikasi otomatis." });
+    setLiveSuggestions(sugg);
+  }, [nodesRecord, edges]);
   const uiState = useUIState();
   const actions = useWorkflowActions();
   const { llamaConfig, validationErrors } = useWorkflowState();
@@ -657,13 +697,32 @@ const WorkflowStudioContent = () => {
             <div className="flex-1">
               <div className="bg-card rounded-2xl border border-border-light shadow-soft flex flex-col min-h-[500px] h-full">
                 <div className="flex-shrink-0 px-4 py-3 border-b border-border font-semibold flex justify-between items-center text-foreground">
-                  <span className="flex-shrink-0">Workflow Canvas</span>
+                  <span className="flex-shrink-0">3. Workflow Canvas</span>
                   <div className="flex items-center gap-2 overflow-x-auto max-w-full">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setShowEnhancedAssistant(true)}
+                      className="flex-shrink-0 bg-purple-50 border border-purple-200 text-purple-700"
+                      title="Guidance"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-1" /> Guidance
+                    </Button>
+
+                    <motion.button
+                      onClick={() => setShowLiveAssistant(v => !v)}
+                      title="Live Assistance"
+                      className="flex-shrink-0 px-3 py-1.5 rounded-md border bg-fuchsia-50 border-fuchsia-200 text-fuchsia-700 shadow-sm"
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      Live Assist
+                    </motion.button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setShowLlamaPanel(true)}
-                      className={`flex-shrink-0 ${llamaConfig.connected ? "bg-green-50 border-green-200 text-green-700" : ""}`}
+                      className={`flex-shrink-0 bg-violet-50 border-violet-200 text-violet-700 ${llamaConfig.connected ? "ring-1 ring-violet-300" : ""}`}
                     >
                       <Zap className="w-4 h-4 mr-1" />
                       Connect to LLaMA
@@ -678,14 +737,7 @@ const WorkflowStudioContent = () => {
                     </Button>
 
                     {/* Workflow Size Indicator */}
-                    <div className="hidden md:block border-l border-border pl-4 ml-2">
-                      <WorkflowSizeIndicator nodes={nodesRecord} />
-                    </div>
-
-                    <span className="text-xs text-foreground-light font-normal flex-shrink-0 whitespace-nowrap">
-                      {Object.keys(nodesRecord).length} node{Object.keys(nodesRecord).length !== 1 ? "s" : ""} | {edges.length} edge
-                      {edges.length !== 1 ? "s" : ""}
-                    </span>
+                    {/* Shrink header space by removing size indicator and condensed stats */}
                   </div>
                 </div>
 
@@ -831,21 +883,7 @@ const WorkflowStudioContent = () => {
           />
         </Suspense>
 
-        {/* Floating Chat Button */}
-        <Suspense fallback={null}>
-          <FloatingChatButton />
-        </Suspense>
-
-        {/* Enhanced Workflow Assistant Button - Floating */}
-        <Button
-          onClick={() => setShowEnhancedAssistant(true)}
-          variant="secondary"
-          size="lg"
-          className="fixed bottom-24 right-6 rounded-full shadow-lg z-50 h-14 w-14 p-0 flex items-center justify-center"
-          title="Learn all features"
-        >
-          <Book className="w-6 h-6" />
-        </Button>
+        {/* Assistant entry moved to header; floating buttons removed */}
 
         {/* Enhanced Workflow Assistant Modal */}
         {showEnhancedAssistant && (
@@ -866,6 +904,14 @@ const WorkflowStudioContent = () => {
             </div>
           </div>
         )}
+
+      {/* Live Assistant Panel */}
+      <LiveAssistantPanel
+        open={showLiveAssistant}
+        onClose={() => setShowLiveAssistant(false)}
+        activity={liveActivity}
+        suggestions={liveSuggestions}
+      />
 
         {/* Broiler Quick Templates Panel */}
         {showBroilerTemplates && (
