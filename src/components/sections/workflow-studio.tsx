@@ -203,20 +203,35 @@ const WorkflowStudioContent = () => {
   }, [nodesRecord, edges]);
 
   // Live Assistant onSend handler
-  const handleLiveSend = useCallback((text: string) => {
+  const handleLiveSend = useCallback(async (text: string) => {
     setLiveMessages(prev => [...prev, { role: "user", content: text }]);
     setLiveThinking(true);
     try {
-      const results = searchFeatures(text).slice(0, 3);
-      const countInfo = `${Object.keys(nodesRecord).length} node, ${edges.length} edge`;
-      const tips = liveSuggestions.map(s => `- ${s.text}`).join("\n");
-      const recs = results.map(r => `- ${r.data.title}: ${r.data.description}`).join("\n");
-      const reply = [
-        `Context: ${countInfo}.`,
-        tips ? `Suggestions:\n${tips}` : "",
-        recs ? `Related features:\n${recs}` : "",
-      ].filter(Boolean).join("\n\n");
-      setLiveMessages(prev => [...prev, { role: "assistant", content: reply || "Noted." }]);
+      // Build lightweight context for LLM
+      const nodeCount = Object.keys(nodesRecord).length;
+      const edgeCount = edges.length;
+      const labels = Object.values(nodesRecord).map((n: any) => String(n.data?.label || n.type || ""));
+      const topFeatures = searchFeatures(text).slice(0, 3).map(r => `${r.data.title}: ${r.data.description}`);
+
+      const system = `You are Naraflow Workflow Canvas Coach. Give concise, actionable guidance. Prefer step-by-step suggestions with references to nodes and settings. Language: follow user's language.`;
+      const context = `Nodes(${nodeCount}): ${labels.join(", ")}\nEdges: ${edgeCount}\nSuggestions: ${liveSuggestions.map(s => s.text).join("; ")}\nRelated: ${topFeatures.join(" | ")}`;
+
+      // Try LLM-generated guidance first
+      const llmAnswer = await getContextAwareMessage({ question: text, system, context });
+      const answer = (typeof llmAnswer === 'string' ? llmAnswer : llmAnswer?.message) as string | undefined;
+
+      if (answer && answer.trim().length > 0) {
+        setLiveMessages(prev => [...prev, { role: "assistant", content: answer }]);
+      } else {
+        // Fallback to heuristic reply
+        const reply = `Context: ${nodeCount} node, ${edgeCount} edge.\n${liveSuggestions.map(s => `- ${s.text}`).join("\n")}`;
+        setLiveMessages(prev => [...prev, { role: "assistant", content: reply }]);
+      }
+    } catch {
+      const nodeCount = Object.keys(nodesRecord).length;
+      const edgeCount = edges.length;
+      const reply = `Context: ${nodeCount} node, ${edgeCount} edge.\n${liveSuggestions.map(s => `- ${s.text}`).join("\n")}`;
+      setLiveMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } finally {
       setLiveThinking(false);
     }
