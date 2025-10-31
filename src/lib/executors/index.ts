@@ -14,3 +14,4 @@ export { performanceCalcExecutor } from "./performanceCalcExecutor";
 export { reportGeneratorExecutor } from "./reportGeneratorExecutor";
 export { httpRequestExecutor } from "./httpRequestExecutor";
 export { storageSaveExecutor } from "./storageSaveExecutor";
+export { aiResponseExecutor } from "./aiResponseExecutor";

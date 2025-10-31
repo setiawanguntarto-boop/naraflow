@@ -12,3 +12,4 @@ export { SwitchNode } from "./control.switch";
 export { WhatsAppSendNode } from "./whatsapp.send";
 export { HttpRequestNode } from "./http.request";
 export { StorageSaveNode } from "./storage.save";
+export { AIResponseNode } from "./ai.response";

@@ -13,6 +13,7 @@ import { switchExecutor } from "./executors/switchExecutor";
 import { whatsappSendExecutor } from "./executors/whatsappSendExecutor";
 import { httpRequestExecutor } from "./executors/httpRequestExecutor";
 import { storageSaveExecutor } from "./executors/storageSaveExecutor";
+import { aiResponseExecutor } from "./executors/aiResponseExecutor";
 
 type ExecutorFunction = (context: ExecutionContext, config: any) => Promise<NodeResult>;
 
@@ -76,6 +77,7 @@ import {
   WhatsAppSendNode,
   HttpRequestNode,
   StorageSaveNode,
+  AIResponseNode,
 } from "@/core/nodes";
 import { v2MigratedNodes } from "@/core/nodes/v2-migrated";
 
@@ -107,6 +109,7 @@ nodeTypeRegistry.register(SwitchNode, switchExecutor);
 nodeTypeRegistry.register(WhatsAppSendNode, whatsappSendExecutor);
 nodeTypeRegistry.register(HttpRequestNode, httpRequestExecutor);
 nodeTypeRegistry.register(StorageSaveNode, storageSaveExecutor);
+nodeTypeRegistry.register(AIResponseNode, aiResponseExecutor);
 
 // Register migrated v2 nodes (with generic executor)
 // These nodes maintain backward compatibility with existing workflows

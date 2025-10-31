@@ -437,6 +437,7 @@ export const WorkflowCanvas = ({
       "llama-decision": lazyComponents["llama-decision"],
       agent: lazyComponents.agent,
       "agent.conversational": lazyComponents.agent,
+      "ai.response": lazyComponents["ai.response"],
     };
   }, [handleNodeContextMenu]);
 
