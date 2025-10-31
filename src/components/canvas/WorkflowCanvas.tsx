@@ -485,7 +485,12 @@ export const WorkflowCanvas = ({
       // Try v3 registry first
       const v3 = nodeTypeRegistry.getAllNodeTypes().find(n => n.id === nodeId);
       if (v3) {
-        onDrop({ id: nodeId, label: v3.label, type: v3.id }, position);
+        onDrop({ 
+          id: nodeId, 
+          label: v3.label, 
+          type: "default", // React Flow node type (visual component)
+          nodeType: v3.id  // v3 node type ID for schema lookup
+        }, position);
         return;
       }
 

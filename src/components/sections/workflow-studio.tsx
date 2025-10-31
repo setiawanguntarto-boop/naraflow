@@ -476,6 +476,8 @@ const WorkflowStudioContent = () => {
         data: {
           label: nodeData.label,
           icon: getIconForLabel(nodeData.label)?.displayName,
+          nodeType: nodeData.nodeType, // Store v3 node type ID for schema lookup
+          config: {}, // Initialize empty config for schema-based nodes
         },
       };
 

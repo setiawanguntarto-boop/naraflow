@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useWorkflowMetadata } from "@/hooks/useWorkflowState";
+import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
+import { SchemaConfigFields } from "./SchemaConfigFields";
 
 interface MetricDefinition {
   name: string;
@@ -280,6 +282,11 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
   const [selectedPreset, setSelectedPreset] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Check if this is a v3 node with schema
+  const nodeTypeDefinition = nodeTypeRegistry.getNodeType(String(node.data?.nodeType || ""));
+  const hasConfigSchema = nodeTypeDefinition?.configSchema?.properties && 
+    Object.keys(nodeTypeDefinition.configSchema.properties).length > 0;
+
   useEffect(() => {
     setTitle(String(node.data?.title || node.data?.label || ""));
     setDescription(String(node.data?.description || ""));
@@ -456,31 +463,48 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
           <p className="text-xs text-muted-foreground">A short, descriptive name for this node</p>
         </div>
 
-        {/* Description Textarea */}
-        <div className="space-y-2">
-          <Label htmlFor="node-description">
-            Configuration
-            {node.data?.label === "Process Data" && (
-              <Badge variant="secondary" className="ml-2 text-xs">
-                Code
-              </Badge>
-            )}
-          </Label>
-          <Textarea
-            id="node-description"
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder={contextHint}
-            rows={8}
-            className="resize-none font-mono text-sm"
-          />
-          <p className="text-xs text-muted-foreground">
-            {node.data?.label === "Process Data" 
-              ? "JavaScript code for data processing. Use 'input' for incoming data."
-              : "Detailed configuration or content for this node"
-            }
-          </p>
-        </div>
+        {/* V3 Schema-based Configuration OR Legacy Configuration */}
+        {hasConfigSchema ? (
+          <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="text-xs">v3 Node</Badge>
+              <Label className="text-sm font-medium">Node Configuration</Label>
+            </div>
+            <SchemaConfigFields
+              schema={nodeTypeDefinition!.configSchema}
+              fieldsOrder={nodeTypeDefinition!.ui.fieldsOrder}
+              advancedFields={nodeTypeDefinition!.ui.advanced}
+              value={nodeConfig}
+              onChange={setNodeConfig}
+            />
+          </div>
+        ) : (
+          // Legacy configuration textarea
+          <div className="space-y-2">
+            <Label htmlFor="node-description">
+              Configuration
+              {node.data?.label === "Process Data" && (
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  Code
+                </Badge>
+              )}
+            </Label>
+            <Textarea
+              id="node-description"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder={contextHint}
+              rows={8}
+              className="resize-none font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              {node.data?.label === "Process Data" 
+                ? "JavaScript code for data processing. Use 'input' for incoming data."
+                : "Detailed configuration or content for this node"
+              }
+            </p>
+          </div>
+        )}
 
         {/* Additional Config for WhatsApp nodes */}
         {(node.data?.label === "WhatsApp Message" || node.data?.label === "WhatsApp Trigger") && (
