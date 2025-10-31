@@ -47,6 +47,7 @@ import { QuickTemplatesPanel, BROILER_TEMPLATES, type QuickTemplate } from "@/co
 import { useBroilerWorkflowGenerator } from "@/hooks/useBroilerWorkflowGenerator";
 import "@xyflow/react/dist/style.css";
 import { getContextAwareMessage } from "@/lib/workflowAssistantEngine";
+import { searchFeatures } from "@/data/workflowFeatures";
 
 // Lazy load heavy components
 const WorkflowCanvas = lazy(() =>
@@ -156,6 +157,8 @@ const WorkflowStudioContent = () => {
   const [showLiveAssistant, setShowLiveAssistant] = useState(false);
   const [liveActivity, setLiveActivity] = useState<{ ts: string; text: string }[]>([]);
   const [liveSuggestions, setLiveSuggestions] = useState<{ id: string; text: string }[]>([]);
+  const [liveMessages, setLiveMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [liveThinking, setLiveThinking] = useState(false);
 
   // Use new state management
   const nodes = useNodes();
@@ -198,6 +201,26 @@ const WorkflowStudioContent = () => {
     if (hasDecision && !hasSend) sugg.push({ id: "route-send", text: "Tambahkan Send Message pada cabang output Decision untuk notifikasi otomatis." });
     setLiveSuggestions(sugg);
   }, [nodesRecord, edges]);
+
+  // Live Assistant onSend handler
+  const handleLiveSend = useCallback((text: string) => {
+    setLiveMessages(prev => [...prev, { role: "user", content: text }]);
+    setLiveThinking(true);
+    try {
+      const results = searchFeatures(text).slice(0, 3);
+      const countInfo = `${Object.keys(nodesRecord).length} node, ${edges.length} edge`;
+      const tips = liveSuggestions.map(s => `- ${s.text}`).join("\n");
+      const recs = results.map(r => `- ${r.data.title}: ${r.data.description}`).join("\n");
+      const reply = [
+        `Context: ${countInfo}.`,
+        tips ? `Suggestions:\n${tips}` : "",
+        recs ? `Related features:\n${recs}` : "",
+      ].filter(Boolean).join("\n\n");
+      setLiveMessages(prev => [...prev, { role: "assistant", content: reply || "Noted." }]);
+    } finally {
+      setLiveThinking(false);
+    }
+  }, [nodesRecord, edges, liveSuggestions]);
   const uiState = useUIState();
   const actions = useWorkflowActions();
   const { llamaConfig, validationErrors } = useWorkflowState();
@@ -712,9 +735,9 @@ const WorkflowStudioContent = () => {
                     <motion.button
                       onClick={() => setShowLiveAssistant(v => !v)}
                       title="Live Assistance"
-                      className="flex-shrink-0 px-3 py-1.5 rounded-md border bg-fuchsia-50 border-fuchsia-200 text-fuchsia-700 shadow-sm"
-                      animate={{ y: [0, -5, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                      className="flex-shrink-0 px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                     >
                       Live Assist
                     </motion.button>
@@ -911,6 +934,9 @@ const WorkflowStudioContent = () => {
         onClose={() => setShowLiveAssistant(false)}
         activity={liveActivity}
         suggestions={liveSuggestions}
+        messages={liveMessages}
+        onSend={handleLiveSend}
+        isThinking={liveThinking}
       />
 
         {/* Broiler Quick Templates Panel */}

@@ -1,6 +1,7 @@
 import { X, Lightbulb, Clock, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export interface ActivityItem {
   ts: string;
@@ -25,6 +26,13 @@ interface LiveAssistantPanelProps {
 
 export function LiveAssistantPanel({ open, onClose, activity, suggestions, messages = [], onSend, isThinking = false }: LiveAssistantPanelProps) {
   if (!open) return null;
+  const [text, setText] = useState("");
+  const send = () => {
+    const val = text.trim();
+    if (!val) return;
+    onSend && onSend(val);
+    setText("");
+  };
 
   return (
     <div className="fixed right-0 top-0 h-full w-96 bg-card border-l border-border shadow-xl z-50 flex flex-col">
@@ -85,15 +93,16 @@ export function LiveAssistantPanel({ open, onClose, activity, suggestions, messa
           {isThinking && <div className="text-xs text-muted-foreground">Assistant is typing…</div>}
         </div>
         <div className="flex items-center gap-2">
-          <Input placeholder="Tanyakan tentang canvas, node, atau konfigurasi…" onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              const val = (e.target as HTMLInputElement).value.trim();
-              if (val && onSend) { onSend(val); (e.target as HTMLInputElement).value = ''; }
-            }
-          }} />
-          <Button size="sm" onClick={() => {
-            const el = document.querySelector<HTMLInputElement>("#live-assist-input");
-          }}>
+          <Input
+            id="live-assist-input"
+            placeholder="Tanyakan tentang canvas, node, atau konfigurasi…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') send();
+            }}
+          />
+          <Button size="sm" onClick={send}>
             <Send className="w-4 h-4" />
           </Button>
         </div>
