@@ -84,6 +84,77 @@ export const StorageSaveNode: NodeTypeDefinition = {
     }
   },
 
+  metrics: {
+    enabled: true,
+    category: "business",
+    customizable: true,
+    defaultMetrics: [
+      {
+        id: "records_saved",
+        label: "Records Saved",
+        description: "Total number of records saved",
+        type: "count",
+        defaultValue: 0,
+        required: true,
+      },
+      {
+        id: "success_rate",
+        label: "Save Success Rate",
+        description: "Percentage of successful save operations",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 100,
+        required: true,
+      },
+      {
+        id: "avg_save_time",
+        label: "Average Save Time",
+        description: "Average time to save data",
+        type: "duration",
+        unit: "ms",
+        defaultValue: 0,
+      },
+      {
+        id: "failed_saves",
+        label: "Failed Saves",
+        description: "Number of failed save operations",
+        type: "count",
+        defaultValue: 0,
+      },
+      {
+        id: "conflicts_resolved",
+        label: "Conflicts Resolved",
+        description: "Number of conflicts handled",
+        type: "count",
+        defaultValue: 0,
+      },
+      {
+        id: "write_mode_distribution",
+        label: "Write Mode Distribution",
+        description: "Distribution by mode (append/update/overwrite)",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 0,
+      },
+      {
+        id: "avg_record_size",
+        label: "Average Record Size",
+        description: "Average size of saved records",
+        type: "number",
+        unit: "bytes",
+        defaultValue: 0,
+      },
+      {
+        id: "destination_distribution",
+        label: "Destination Distribution",
+        description: "Distribution by destination (Sheets/Supabase/Local)",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 0,
+      },
+    ],
+  },
+
   ui: {
     icon: "database",
     category: "output",

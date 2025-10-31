@@ -53,6 +53,67 @@ export const WhatsAppTriggerNode: NodeTypeDefinition = {
     },
   },
 
+  metrics: {
+    enabled: true,
+    category: "business",
+    customizable: true,
+    defaultMetrics: [
+      {
+        id: "messages_received",
+        label: "Messages Received",
+        description: "Total WhatsApp messages received",
+        type: "count",
+        defaultValue: 0,
+        required: true,
+      },
+      {
+        id: "unique_users",
+        label: "Unique Users",
+        description: "Number of unique users who sent messages",
+        type: "count",
+        defaultValue: 0,
+      },
+      {
+        id: "avg_processing_time",
+        label: "Average Processing Time",
+        description: "Average time to process incoming message",
+        type: "duration",
+        unit: "ms",
+        defaultValue: 0,
+      },
+      {
+        id: "duplicate_messages",
+        label: "Duplicate Messages",
+        description: "Messages filtered by deduplication",
+        type: "count",
+        defaultValue: 0,
+      },
+      {
+        id: "webhook_failures",
+        label: "Webhook Failures",
+        description: "Number of failed webhook validations",
+        type: "count",
+        defaultValue: 0,
+      },
+      {
+        id: "message_types",
+        label: "Message Type Distribution",
+        description: "Distribution of message types (text/image/video/etc)",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 0,
+      },
+      {
+        id: "provider_distribution",
+        label: "Provider Distribution",
+        description: "Distribution by provider (Meta/Twilio/360dialog)",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 0,
+      },
+    ],
+  },
+
   ui: {
     icon: "message-square",
     category: "trigger",
