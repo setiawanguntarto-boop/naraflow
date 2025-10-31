@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { MessageSquare, X, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WorkflowAssistant } from "@/components/workflow/WorkflowAssistant";
@@ -6,6 +7,7 @@ import { WorkflowAssistant } from "@/components/workflow/WorkflowAssistant";
 export function FloatingChatButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [avoidConfigPanel, setAvoidConfigPanel] = useState(false);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -16,17 +18,40 @@ export function FloatingChatButton() {
     setIsMinimized(true);
   };
 
+  // Detect NodeConfigPanel presence to avoid overlap
+  useEffect(() => {
+    const check = () => {
+      const el = document.getElementById("node-config-panel");
+      setAvoidConfigPanel(Boolean(el));
+    };
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
+  const positioning = useMemo(() => {
+    // If config panel is open, push button to the left and slightly up
+    return avoidConfigPanel
+      ? "right-[26rem] bottom-24"
+      : "right-6 bottom-6";
+  }, [avoidConfigPanel]);
+
   return (
     <>
       {/* Floating Chat Button */}
       {!isOpen && (
-        <button
+        <motion.button
           onClick={toggleChat}
-          className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full px-6 py-3 shadow-lg flex items-center gap-2 transition-all duration-200 hover:scale-105"
+          title="Bingung? Klik untuk bertanya ke Workflow Assistant"
+          aria-label="Buka Workflow Assistant"
+          className={`fixed ${positioning} z-50 bg-green-500 hover:bg-green-600 text-white rounded-full px-6 py-3 shadow-lg flex items-center gap-2 transition-colors duration-200`}
+          animate={{ y: [0, -6, 0] }}
+          transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
         >
           <MessageSquare className="w-5 h-5" />
-          <span className="font-semibold">Chat</span>
-        </button>
+          <span className="font-semibold">Butuh bantuan? Chat</span>
+        </motion.button>
       )}
 
       {/* Chat Window */}

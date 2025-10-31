@@ -12,8 +12,9 @@ export const WhatsAppSendNode: NodeTypeDefinition = {
     properties: {
       provider: {
         type: "string",
-        enum: ["meta", "twilio", "360dialog", "custom"],
-        default: "twilio",
+        enum: ["meta"],
+        default: "meta",
+        description: "WhatsApp provider (locked to Meta)",
       },
       messageType: {
         type: "string",
@@ -65,7 +66,7 @@ export const WhatsAppSendNode: NodeTypeDefinition = {
   ui: {
     icon: "send",
     category: "output",
-    fieldsOrder: ["provider", "messageType", "text", "templateId"],
+    fieldsOrder: ["messageType", "text", "templateId"],
     advanced: {
       collapsed: true,
       fields: ["interactive", "retryOnFail"],

@@ -66,6 +66,14 @@ export const nodeTypeRegistry = new NodeTypeRegistry();
 // Auto-register nodes
 import {
   WhatsAppTriggerNode,
+  AskQuestionNode,
+  SensorDataNode,
+  FetchExternalDataNode,
+  AIAnalysisNode,
+  CalculateNode,
+  DecisionNode,
+  SendMessageNode,
+  StoreRecordsNode,
   ChatModelNode,
   MemoryGetNode,
   MemorySetNode,
@@ -73,7 +81,16 @@ import {
   SwitchNode,
   WhatsAppSendNode,
 } from "@/core/nodes";
-import { v2MigratedNodes } from "@/core/nodes/v2-migrated";
+// Legacy v2 nodes are no longer auto-registered to avoid duplicates in the UI
+// import { v2MigratedNodes } from "@/core/nodes/v2-migrated";
+import { askQuestionExecutor } from "./executors/askQuestionExecutor";
+import { sensorDataExecutor } from "./executors/sensorDataExecutor";
+import { fetchExternalExecutor } from "./executors/fetchExternalExecutor";
+import { aiAnalysisExecutor } from "./executors/aiAnalysisExecutor";
+import { calculateExecutor } from "./executors/calculateExecutor";
+import { decisionExecutorV3 } from "./executors/decisionExecutorV3";
+import { sendMessageExecutor } from "./executors/sendMessageExecutor";
+import { storeRecordsExecutor } from "./executors/storeRecordsExecutor";
 
 // Import a simple generic executor for migrated v2 nodes
 async function genericV2Executor(context: ExecutionContext, config: any): Promise<NodeResult> {
@@ -95,6 +112,14 @@ async function genericV2Executor(context: ExecutionContext, config: any): Promis
 
 // Register new v3 nodes
 nodeTypeRegistry.register(WhatsAppTriggerNode, whatsappTriggerExecutor);
+nodeTypeRegistry.register(AskQuestionNode, askQuestionExecutor);
+nodeTypeRegistry.register(SensorDataNode, sensorDataExecutor);
+nodeTypeRegistry.register(FetchExternalDataNode, fetchExternalExecutor);
+nodeTypeRegistry.register(AIAnalysisNode, aiAnalysisExecutor);
+nodeTypeRegistry.register(CalculateNode, calculateExecutor);
+nodeTypeRegistry.register(DecisionNode, decisionExecutorV3);
+nodeTypeRegistry.register(SendMessageNode, sendMessageExecutor);
+nodeTypeRegistry.register(StoreRecordsNode, storeRecordsExecutor);
 nodeTypeRegistry.register(ChatModelNode, chatModelExecutor);
 nodeTypeRegistry.register(MemoryGetNode, memoryGetExecutor);
 nodeTypeRegistry.register(MemorySetNode, memorySetExecutor);
@@ -102,13 +127,7 @@ nodeTypeRegistry.register(ValidationBasicNode, validationExecutor);
 nodeTypeRegistry.register(SwitchNode, switchExecutor);
 nodeTypeRegistry.register(WhatsAppSendNode, whatsappSendExecutor);
 
-// Register migrated v2 nodes (with generic executor)
-// These nodes maintain backward compatibility with existing workflows
-Object.values(v2MigratedNodes).forEach(nodeDef => {
-  if (nodeDef && nodeDef.id) {
-    nodeTypeRegistry.register(nodeDef as NodeTypeDefinition, genericV2Executor);
-  }
-});
+// NOTE: If you need backward compatibility, call migrateWorkflowToV3 on load instead of registering v2 here.
 
 console.log(
   `📦 NodeTypeRegistry initialized: ${nodeTypeRegistry.getAllNodeTypes().length} nodes registered`

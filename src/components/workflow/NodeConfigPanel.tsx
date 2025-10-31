@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { X, Save, AlertCircle, Plus, Trash2, Zap } from "lucide-react";
 import { Node } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import Ajv from "ajv";
+import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
 
 interface MetricDefinition {
   name: string;
@@ -55,6 +57,19 @@ const BROILER_NODE_CONFIGS = {
         template: "📦 PANEN SIAP\n🏠 {{farm_name}}\n📋 Kandang: {{shed_id}}\n📅 {{harvest_date}}\n\nSilakan konfirmasi data panen: jumlah ekor dan berat total."
       }
     ]
+  },
+  "Sensor Data": {
+    metricPresets: {
+      environment_basic: [
+        { id: "temp_c", label: "Suhu (°C)", path: "data.temperature", type: "number", unit: "°C", required: true, min: 15, max: 45, aggregation: "avg", windowSec: 300 },
+        { id: "humidity_pct", label: "Kelembaban (%RH)", path: "data.humidity", type: "number", unit: "%RH", required: false, min: 20, max: 100, aggregation: "avg", windowSec: 300 },
+        { id: "ammonia_ppm", label: "Amonia (ppm)", path: "data.ammonia", type: "number", unit: "ppm", required: false, min: 0, max: 50, aggregation: "max", windowSec: 300 }
+      ],
+      water_feed: [
+        { id: "water_l", label: "Air (L)", path: "data.water", type: "number", unit: "L", required: false, min: 0, aggregation: "none", windowSec: 0 },
+        { id: "feed_kg", label: "Pakan (kg)", path: "data.feed", type: "number", unit: "kg", required: false, min: 0, aggregation: "none", windowSec: 0 }
+      ]
+    }
   },
   "Ask Question": {
     metricPresets: {
@@ -176,13 +191,20 @@ const getContextHint = (nodeLabel: string): string => {
   const hints: Record<string, string> = {
     "WhatsApp Message":
       "Write the message that will be sent via WhatsApp. You can use {{name}} placeholders for dynamic content.",
-    "WhatsApp Trigger": "Konfigurasi trigger WhatsApp untuk workflow broiler. Pilih template atau buat pesan custom dengan placeholder {{variable}}.",
+    "WhatsApp Trigger": "Configure WhatsApp trigger. Choose a template or write a custom message using {{variable}} placeholders.",
     "Ask Input":
       "Define the question or prompt that will be sent to the user. Be clear and concise.",
     "Ask Question": "Definisikan pertanyaan dan field input untuk data entry broiler. Gunakan preset untuk field standar seperti mortalitas, pakan, berat.",
+      "Fetch External Data": "Konfigurasi HTTP request (method, url, headers, body) dan mapping response. Gunakan templating {{var}} dari payload/vars.",
+      "Sensor Data": "Konfigurasi sumber data sensor (Webhook/MQTT/HTTP Poll). Tambahkan daftar metrics (path payload, unit, min/max, agregasi).",
     "Receive Update":
       "Describe what automatic updates this node will receive (e.g., sensor readings, webhook data).",
     "Process Data": "Konfigurasi pemrosesan data broiler. Gunakan calculator preset untuk FCR, ADG, mortality % atau tulis kustom logic.",
+      "AI Analysis": "Gunakan LLaMA untuk menganalisis input. Isi system prompt, prompt template, dan mapping field dari JSON hasil.",
+      "Calculate": "Buat variabel dari payload, tambahkan constants, dan definisikan expressions. Contoh: FCR = feed_kg / (avg_weight_g * population / 1000).",
+      "Decision": "Tambah daftar kondisi dengan operator (==, >=, includes, regex) dan tentukan route tujuan.",
+      "Send Message": "Pilih channel (WhatsApp/SMS/Email), isi recipient dan template. Gunakan {{var}} untuk inject nilai dari payload/vars.",
+      "Store Records": "Simpan records ke storage atau HTTP. Atur mapping field, mode append/upsert, dan path array records di payload.",
     "Filter Data": "Define the filtering criteria or conditions that will be applied.",
     Transform:
       "Describe the data transformation that will occur (e.g., format change, calculation).",
@@ -237,14 +259,80 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
   const [nodeConfig, setNodeConfig] = useState<Record<string, any>>(node.data?.config as Record<string, any> || {});
   const [selectedPreset, setSelectedPreset] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
+  const [schemaErrors, setSchemaErrors] = useState<string[]>([]);
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+
+  // Detect v3 node type definition (schema-driven panel)
+  const nodeTypeId = String((node.data as any)?.type || "");
+  const v3Def = useMemo(() => {
+    try {
+      // Primary: resolve by explicit type id
+      const byId = nodeTypeId ? nodeTypeRegistry.getNodeType(nodeTypeId) : null;
+      if (byId) return byId;
+
+      // Fallback: resolve by label when legacy nodes don't carry 'type'
+      const label = String(node.data?.label || "");
+      if (!label) return null;
+      const all = nodeTypeRegistry.getAllNodeTypes();
+      return all.find(nt => nt.label === label) || null;
+    } catch {
+      return null;
+    }
+  }, [nodeTypeId, node.data]);
+
+  const ajv = useMemo(() => new Ajv({ allErrors: true, strict: false }), []);
+
+  // Build default config from JSON schema
+  const buildDefaults = (schema: any): any => {
+    if (!schema) return undefined;
+    if (schema.default !== undefined) return schema.default;
+    switch (schema.type) {
+      case "object": {
+        const result: Record<string, any> = {};
+        const props = schema.properties || {};
+        Object.keys(props).forEach(k => {
+          const defVal = buildDefaults(props[k]);
+          if (defVal !== undefined) result[k] = defVal;
+        });
+        return result;
+      }
+      case "array":
+        return Array.isArray(schema.default) ? schema.default : [];
+      case "string":
+        return schema.default !== undefined ? schema.default : undefined;
+      case "number":
+      case "integer":
+        return schema.default !== undefined ? schema.default : undefined;
+      case "boolean":
+        return schema.default !== undefined ? schema.default : false;
+      default:
+        return undefined;
+    }
+  };
 
   useEffect(() => {
     setTitle(String(node.data?.title || node.data?.label || ""));
     setDescription(String(node.data?.description || ""));
     setMetrics((node.data?.metrics as MetricDefinition[]) || []);
-    setNodeConfig((node.data?.config as Record<string, any>) || {});
+    // Seed config with schema defaults for v3 nodes, merge with existing
+    const existing = (node.data?.config as Record<string, any>) || {};
+    if (v3Def?.configSchema) {
+      const defaults = buildDefaults(v3Def.configSchema);
+      setNodeConfig({ ...(defaults || {}), ...existing });
+    } else {
+      setNodeConfig(existing);
+    }
+    setSchemaErrors([]);
     setHasChanges(false);
-  }, [node.id]);
+    // Initialize advanced collapse state for v3 nodes
+    if (v3Def?.ui?.advanced?.collapsed === true) {
+      setShowAdvanced(false);
+    } else if (v3Def?.ui?.advanced?.collapsed === false) {
+      setShowAdvanced(true);
+    } else {
+      setShowAdvanced(false);
+    }
+  }, [node.id, v3Def]);
 
   useEffect(() => {
     const changed =
@@ -297,7 +385,56 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
     setNodeConfig({ calculatorType: calculator.name });
   };
 
+  const applySensorMetricPreset = (presetKey: string) => {
+    const presets = (BROILER_NODE_CONFIGS as any)["Sensor Data"].metricPresets;
+    if (presets[presetKey as keyof typeof presets]) {
+      setNodeConfig(prev => ({ ...prev, metrics: [...presets[presetKey as keyof typeof presets]] }));
+      setSelectedPreset(presetKey);
+      setHasChanges(true);
+    }
+  };
+
+  const applyFetchPreset = (presetKey: string) => {
+    if (presetKey === "get_json") {
+      setNodeConfig(prev => ({
+        ...prev,
+        method: "GET",
+        url: "https://api.example.com/data?farm={{farmId}}",
+        headers: [{ key: "Accept", value: "application/json" }],
+        responseMapping: [
+          { field: "status", path: "status" },
+          { field: "items", path: "data.items" },
+        ],
+      }));
+    } else if (presetKey === "post_json") {
+      setNodeConfig(prev => ({
+        ...prev,
+        method: "POST",
+        url: "https://api.example.com/submit",
+        headers: [{ key: "Content-Type", value: "application/json" }],
+        bodyType: "json",
+        body: '{"farm":"{{farmId}}","day":{{day}}}',
+        responseMapping: [{ field: "ok", path: "ok" }],
+      }));
+    }
+    setSelectedPreset(presetKey);
+    setHasChanges(true);
+  };
+
   const handleSave = () => {
+    // Validate against schema for v3 nodes (if available)
+    if (v3Def?.configSchema) {
+      try {
+        const validate = ajv.compile(v3Def.configSchema as any);
+        const valid = validate(nodeConfig);
+        if (!valid) {
+          setSchemaErrors((validate.errors || []).map(e => `${e.instancePath || 'config'} ${e.message || ''}`));
+          return;
+        }
+      } catch (e) {
+        // If schema compile fails, proceed without blocking save
+      }
+    }
     onSave(node.id, title, description, metrics, nodeConfig);
     setHasChanges(false);
   };
@@ -305,8 +442,220 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
   const contextHint = getContextHint(String(node.data?.label || ""));
   const typeInfo = getNodeTypeInfo(String(node.data?.label || ""));
 
+  // --- Schema driven field renderer for v3 nodes ---
+  const renderSchemaField = (key: string, schema: any, value: any, onChange: (v: any) => void) => {
+    // enum → Select
+    if (Array.isArray(schema?.enum)) {
+      return (
+        <div className="space-y-1" key={key}>
+          <Label className="text-xs">{key}</Label>
+          <Select value={value ?? ''} onValueChange={val => onChange(val)}>
+            <SelectTrigger>
+              <SelectValue placeholder={`Select ${key}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {schema.enum.map((opt: string) => (
+                <SelectItem key={opt} value={String(opt)}>{String(opt)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {schema.description && <p className="text-[11px] text-muted-foreground">{schema.description}</p>}
+        </div>
+      );
+    }
+
+    // Primitive types
+    switch (schema?.type) {
+      case "string":
+        return (
+          <div className="space-y-1" key={key}>
+            <Label className="text-xs">{key}</Label>
+            <Input
+              value={value ?? ''}
+              onChange={e => onChange(e.target.value)}
+              placeholder={schema?.description || key}
+            />
+            {schema.description && <p className="text-[11px] text-muted-foreground">{schema.description}</p>}
+          </div>
+        );
+      case "number":
+      case "integer":
+        return (
+          <div className="space-y-1" key={key}>
+            <Label className="text-xs">{key}</Label>
+            <Input
+              type="number"
+              value={value ?? ''}
+              onChange={e => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+              placeholder={schema?.description || key}
+            />
+            {schema.description && <p className="text-[11px] text-muted-foreground">{schema.description}</p>}
+          </div>
+        );
+      case "boolean":
+        return (
+          <div className="flex items-center gap-2" key={key}>
+            <input
+              id={`bool-${key}`}
+              type="checkbox"
+              checked={Boolean(value)}
+              onChange={e => onChange(e.target.checked)}
+            />
+            <Label htmlFor={`bool-${key}`} className="text-xs">{key}</Label>
+          </div>
+        );
+      case "array": {
+        // Support array of simple objects used by switch.cases and validation.rules
+        const items = Array.isArray(value) ? value : [];
+        const itemSchema = schema.items || {};
+        return (
+          <div className="space-y-2" key={key}>
+            <div className="flex items-center justify-between">
+              <Label>{key}</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onChange([...(items || []), {}])}
+              >
+                <Plus className="w-4 h-4 mr-1" /> Add
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {items.map((it: any, idx: number) => (
+                <div key={idx} className="border border-border rounded-lg p-2 space-y-2 bg-muted/30">
+                  {Object.keys(itemSchema.properties || {}).map(propKey => (
+                    <div className="space-y-1" key={propKey}>
+                      <Label className="text-xs">{propKey}</Label>
+                      <Input
+                        value={it[propKey] ?? ''}
+                        onChange={e => {
+                          const clone = [...items];
+                          clone[idx] = { ...clone[idx], [propKey]: e.target.value };
+                          onChange(clone);
+                        }}
+                      />
+                    </div>
+                  ))}
+                  <div className="flex justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const clone = items.filter((_: any, i: number) => i !== idx);
+                        onChange(clone);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "object": {
+        // Render nested object fields (simple)
+        const props = schema.properties || {};
+        return (
+          <div className="space-y-2" key={key}>
+            <Label>{key}</Label>
+            <div className="grid grid-cols-1 gap-3">
+              {Object.keys(props).map((propKey: string) =>
+                renderSchemaField(
+                  propKey,
+                  props[propKey],
+                  (value || {})[propKey],
+                  (v) => setNodeConfig(prev => ({ ...prev, [key]: { ...(prev[key] || {}), [propKey]: v } }))
+                )
+              )}
+            </div>
+          </div>
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
+  const renderV3Config = () => {
+    if (!v3Def?.configSchema) return null;
+    const props = (v3Def.configSchema as any).properties || {};
+    const order = (v3Def.ui?.fieldsOrder as string[]) || Object.keys(props);
+    const advancedList = (v3Def.ui?.advanced?.fields as string[]) || [];
+    const baseKeys = order.filter(k => props[k] && !advancedList.includes(k));
+    const advancedKeys = advancedList.filter(k => props[k]);
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label>Configuration</Label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const defaults = buildDefaults(v3Def.configSchema);
+              setNodeConfig(defaults || {});
+              setSchemaErrors([]);
+              setHasChanges(true);
+            }}
+          >
+            Reset to defaults
+          </Button>
+        </div>
+        {/* Base fields */}
+        <div className="grid grid-cols-1 gap-3">
+          {baseKeys.map(k =>
+            renderSchemaField(
+              k,
+              props[k],
+              (nodeConfig as any)[k],
+              (v) => setNodeConfig(prev => ({ ...prev, [k]: v }))
+            )
+          )}
+        </div>
+
+        {/* Advanced toggle */}
+        {advancedKeys.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAdvanced(v => !v)}
+              >
+                {showAdvanced ? "Hide Advanced" : "Show Advanced"}
+              </Button>
+            </div>
+            {showAdvanced && (
+              <div className="grid grid-cols-1 gap-3">
+                {advancedKeys.map(k =>
+                  renderSchemaField(
+                    k,
+                    props[k],
+                    (nodeConfig as any)[k],
+                    (v) => setNodeConfig(prev => ({ ...prev, [k]: v }))
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        {schemaErrors.length > 0 && (
+          <Alert>
+            <AlertCircle className="w-4 h-4" />
+            <AlertDescription className="text-sm">
+              {schemaErrors.map((e, i) => (
+                <div key={i}>{e}</div>
+              ))}
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="fixed right-0 top-0 h-full w-96 bg-card border-l border-border shadow-lg z-50 flex flex-col animate-in slide-in-from-right duration-300">
+    <div id="node-config-panel" className="fixed right-0 top-0 h-full w-96 bg-card border-l border-border shadow-lg z-50 flex flex-col animate-in slide-in-from-right duration-300">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
@@ -334,11 +683,8 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
           <AlertDescription className="text-sm">{contextHint}</AlertDescription>
         </Alert>
 
-        {/* Broiler Quick Templates Section */}
-        {(node.data?.label === "WhatsApp Message" || 
-          node.data?.label === "WhatsApp Trigger" ||
-          node.data?.label === "Ask Question" || 
-          node.data?.label === "Process Data") && (
+        {/* Broiler Quick Templates Section (only when broiler mode is active on the node) */}
+        {node.data?.broiler === true && (
           <div className="space-y-3 p-3 bg-muted/30 rounded-lg border">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-yellow-600" />
@@ -378,6 +724,18 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
               </Select>
             )}
 
+            {node.data?.label === "Sensor Data" && (
+              <Select value={selectedPreset} onValueChange={applySensorMetricPreset}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih preset metrics sensor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="environment_basic">Environment: Temp/Humidity/Ammonia</SelectItem>
+                  <SelectItem value="water_feed">Consumption: Water/Feed</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
             {node.data?.label === "Process Data" && (
               <div className="grid gap-2">
                 {BROILER_NODE_CONFIGS["Process Data"].broilerCalculators.map((calculator) => (
@@ -398,10 +756,22 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
                 ))}
               </div>
             )}
+
+            {node.data?.label === "Fetch External Data" && (
+              <Select value={selectedPreset} onValueChange={applyFetchPreset}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih preset HTTP..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="get_json">GET JSON (templated URL)</SelectItem>
+                  <SelectItem value="post_json">POST JSON (templated body)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         )}
 
-        {/* Title Input */}
+        {/* Title Input (keep for legacy/v2 and as display name) */}
         <div className="space-y-2">
           <Label htmlFor="node-title">Title</Label>
           <Input
@@ -413,7 +783,10 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
           <p className="text-xs text-muted-foreground">A short, descriptive name for this node</p>
         </div>
 
-        {/* Description Textarea */}
+        {/* V3 schema-driven configuration or legacy description */}
+        {v3Def ? (
+          renderV3Config()
+        ) : (
         <div className="space-y-2">
           <Label htmlFor="node-description">
             Configuration
@@ -438,9 +811,10 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
             }
           </p>
         </div>
+        )}
 
-        {/* Additional Config for WhatsApp nodes */}
-        {(node.data?.label === "WhatsApp Message" || node.data?.label === "WhatsApp Trigger") && (
+        {/* Additional Config for WhatsApp nodes (only in broiler mode) */}
+        {node.data?.broiler === true && (node.data?.label === "WhatsApp Message" || node.data?.label === "WhatsApp Trigger") && (
           <div className="space-y-3">
             <Label>WhatsApp Configuration</Label>
             <div className="grid grid-cols-2 gap-3">

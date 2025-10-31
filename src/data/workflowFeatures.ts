@@ -14,10 +14,10 @@ export interface FeatureData {
   title: string;
   description: string;
   icon: string;
-  category: "fundamental" | "ai" | "quality" | "deployment" | "advanced";
+  category?: "fundamental" | "ai" | "quality" | "deployment" | "advanced";
   
   // Step-by-step instructions yang sangat detail
-  stepByStep: StepDetail[];
+  stepByStep?: StepDetail[];
   
   // Best practices dan common mistakes
   bestPractices?: string[];
@@ -39,7 +39,7 @@ export interface FeatureData {
   relatedFeatures: string[];
 }
 
-export const workflowFeatures: Record<string, FeatureData> = {
+export const workflowFeatures = {
   "describe-workflow": {
     title: "Describe Workflow",
     description: "Gunakan bahasa natural untuk mendeskripsikan workflow Anda. Sistem AI akan menginterpretasi dan menghasilkan node-node yang sesuai.",
@@ -125,6 +125,7 @@ export const workflowFeatures: Record<string, FeatureData> = {
       "Configuration panel untuk custom models",
       "Status indicator menunjukkan connection state"
     ],
+    icon: "🦙",
     relatedFeatures: ["ai-node", "execution-system"]
   },
 
@@ -190,6 +191,7 @@ export const workflowFeatures: Record<string, FeatureData> = {
       "Privacy compliance",
       "Transparency reporting"
     ],
+    icon: "🛡️",
     relatedFeatures: ["ai-node", "llama-integration"]
   },
 
@@ -242,6 +244,7 @@ export const workflowFeatures: Record<string, FeatureData> = {
       "Save template custom Anda",
       "Share template dengan team"
     ],
+    icon: "🧩",
     relatedFeatures: ["describe-workflow", "export-import"]
   },
 
@@ -297,46 +300,64 @@ export const workflowFeatures: Record<string, FeatureData> = {
     icon: "⚡",
     relatedFeatures: ["workflow-canvas"]
   }
-};
+} as const satisfies Record<string, FeatureData>;
+
+export type FeatureId = keyof typeof workflowFeatures;
 
 /**
  * Get feature by ID
  */
-export function getFeature(featureId: string): FeatureData | undefined {
+export function getFeature(featureId: FeatureId): FeatureData | undefined {
   return workflowFeatures[featureId];
 }
 
 /**
  * Search features
  */
-export function searchFeatures(query: string): Array<{ id: string; data: FeatureData }> {
+export function searchFeatures(query: string): Array<{ id: FeatureId; data: FeatureData }> {
   const normalizedQuery = query.toLowerCase().trim();
   
   if (!normalizedQuery) {
-    return Object.entries(workflowFeatures).map(([id, data]) => ({ id, data }));
+    return (Object.entries(workflowFeatures) as Array<[FeatureId, FeatureData]>).map(([id, data]) => ({ id, data }));
   }
 
-  return Object.entries(workflowFeatures)
-    .filter(([id, feature]) => 
-      feature.title.toLowerCase().includes(normalizedQuery) ||
-      feature.description.toLowerCase().includes(normalizedQuery) ||
-      id.toLowerCase().includes(normalizedQuery) ||
-      feature.usage?.toLowerCase().includes(normalizedQuery) ||
-      feature.tips?.some(tip => tip.toLowerCase().includes(normalizedQuery))
-    )
+  return (Object.entries(workflowFeatures) as Array<[FeatureId, FeatureData]>)
+    .filter(([id, feature]) => {
+      const titleMatch = feature.title.toLowerCase().includes(normalizedQuery);
+      const descMatch = feature.description.toLowerCase().includes(normalizedQuery);
+      const idMatch = id.toLowerCase().includes(normalizedQuery);
+      const usageMatch = feature.usage?.toLowerCase().includes(normalizedQuery) ?? false;
+      const tipsMatch = feature.tips?.some(tip => tip.toLowerCase().includes(normalizedQuery)) ?? false;
+      const featuresMatch = feature.features?.some(f => f.toLowerCase().includes(normalizedQuery)) ?? false;
+      const checksMatch = feature.checks?.some(c => c.toLowerCase().includes(normalizedQuery)) ?? false;
+      const bestMatch = feature.bestPractices?.some(b => b.toLowerCase().includes(normalizedQuery)) ?? false;
+      const mistakesMatch = feature.commonMistakes?.some(m => m.toLowerCase().includes(normalizedQuery)) ?? false;
+      const categoryText = feature.categories ? Object.values(feature.categories).join(" ") : "";
+      const categoriesMatch = categoryText.toLowerCase().includes(normalizedQuery);
+      return (
+        titleMatch || descMatch || idMatch || usageMatch || tipsMatch ||
+        featuresMatch || checksMatch || bestMatch || mistakesMatch || categoriesMatch
+      );
+    })
     .map(([id, data]) => ({ id, data }));
 }
 
 /**
  * Get related features
  */
-export function getRelatedFeatures(featureId: string): FeatureData[] {
+export function getRelatedFeatures(featureId: FeatureId): FeatureData[] {
   const feature = workflowFeatures[featureId];
   if (!feature?.relatedFeatures) return [];
   
+  const seen = new Set<string>();
   return feature.relatedFeatures
-    .map(id => workflowFeatures[id])
-    .filter(Boolean);
+    .filter(id => {
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    })
+    .map(id => workflowFeatures[id as FeatureId])
+    .filter((f) => f !== undefined) as FeatureData[];
 }
 
 /**
@@ -349,28 +370,36 @@ export function getFeaturesByCategory(): Record<string, FeatureData[]> {
       workflowFeatures["describe-workflow"],
       workflowFeatures["workflow-canvas"],
       workflowFeatures["node-library"]
-    ],
+    ] as FeatureData[],
     "ai": [
       workflowFeatures["llama-integration"],
       workflowFeatures["responsible-ai"]
-    ],
+    ] as FeatureData[],
     "development": [
       workflowFeatures["node-configuration"],
       workflowFeatures["validation"],
       workflowFeatures["execution-system"]
-    ],
+    ] as FeatureData[],
     "deployment": [
       workflowFeatures["deployment"],
       workflowFeatures["simulation"],
       workflowFeatures["export-import"]
-    ],
+    ] as FeatureData[],
     "optimization": [
       workflowFeatures["auto-layout"],
       workflowFeatures["optimization"],
       workflowFeatures["metrics-tracking"]
-    ]
+    ] as FeatureData[]
   };
   
   return categories;
+}
+
+export function getAllFeatures(): Array<{ id: FeatureId; data: FeatureData }> {
+  return (Object.entries(workflowFeatures) as Array<[FeatureId, FeatureData]>).map(([id, data]) => ({ id, data }));
+}
+
+export function hasFeature(featureId: FeatureId): boolean {
+  return featureId in workflowFeatures;
 }
 

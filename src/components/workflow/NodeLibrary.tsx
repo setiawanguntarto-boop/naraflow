@@ -46,6 +46,7 @@ export const NodeLibrary = ({ onNodeDragStart, showTitle = true }: NodeLibraryPr
     const categoryMap: Record<string, NodeCategory> = {
       trigger: "Input",
       logic: "Processing",
+      processing: "Processing", // ensure v3 'processing' maps correctly
       control: "Logic",
       output: "Output",
       utility: "Meta",
@@ -80,23 +81,7 @@ export const NodeLibrary = ({ onNodeDragStart, showTitle = true }: NodeLibraryPr
       });
     });
 
-    // Add legacy v2 nodes
-    Object.entries(NODE_CATEGORIES).forEach(([category, nodes]) => {
-      nodes.forEach(node => {
-        const nodeId = node.toLowerCase().replace(/\s+/g, "_");
-        if (!allNodesList.find(n => n.id === nodeId)) {
-          const nodeItem: NodeItem = {
-            id: nodeId,
-            label: node,
-            isV3: false,
-            category: category as NodeCategory,
-          };
-
-          result[category as NodeCategory].push(nodeItem);
-          allNodesList.push(nodeItem);
-        }
-      });
-    });
+    // Note: Legacy v2 nodes are intentionally omitted to focus on refined v3 nodes
 
     return { nodesByCategory: result, allNodes: allNodesList };
   }, []);

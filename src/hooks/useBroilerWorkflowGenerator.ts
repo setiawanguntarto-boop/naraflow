@@ -1000,7 +1000,13 @@ return {
       );
     }
 
-    return { nodes: baseNodes, edges: baseEdges };
+    // Mark all generated nodes as broiler to enable broiler-specific UI/config panels
+    const nodesWithBroilerFlag = baseNodes.map(n => ({
+      ...n,
+      data: { ...(n.data as any), broiler: true }
+    }));
+
+    return { nodes: nodesWithBroilerFlag, edges: baseEdges };
   };
 
   return { generateBroilerWorkflow };

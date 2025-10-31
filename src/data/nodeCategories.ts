@@ -1,9 +1,32 @@
 export const NODE_CATEGORIES = {
-  Input: ["Ask Question", "Sensor Data", "Fetch External Data"],
-  Processing: ["AI Analysis", "Calculate"],
-  Logic: ["Decision"],
-  Output: ["Send Message", "Store Records"],
-  Meta: ["Start Workflow", "End Workflow"],
+  Input: [
+    "Ask Question",
+    "Sensor Data",
+    "Fetch External Data",
+    "WhatsApp Trigger"
+  ],
+  Processing: [
+    "AI Analysis",
+    "Calculate",
+    "Chat Model (LLM)"
+  ],
+  Logic: [
+    "Decision",
+    "Switch (Route)",
+    "Validation"
+  ],
+  Output: [
+    "Send Message",
+    "Store Records",
+    "WhatsApp Message",
+    "WhatsApp Send"
+  ],
+  Meta: [
+    "Start Workflow",
+    "End Workflow",
+    "Get Memory",
+    "Set Memory"
+  ],
 } as const;
 
 export type NodeCategory = keyof typeof NODE_CATEGORIES;
