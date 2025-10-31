@@ -85,6 +85,60 @@ export const AIResponseNode: NodeTypeDefinition = {
     },
   },
 
+  metrics: {
+    enabled: true,
+    category: "performance",
+    customizable: true,
+    defaultMetrics: [
+      {
+        id: "avg_response_time",
+        label: "Average Response Time",
+        description: "Average time to generate AI response",
+        type: "duration",
+        unit: "ms",
+        defaultValue: 0,
+      },
+      {
+        id: "token_usage",
+        label: "Token Usage",
+        description: "Total tokens consumed",
+        type: "count",
+        defaultValue: 0,
+      },
+      {
+        id: "api_cost",
+        label: "API Cost",
+        description: "Estimated cost of API calls",
+        type: "number",
+        unit: "$",
+        defaultValue: 0,
+      },
+      {
+        id: "success_rate",
+        label: "Success Rate",
+        description: "Percentage of successful AI calls",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 100,
+        required: true,
+      },
+      {
+        id: "error_count",
+        label: "Error Count",
+        description: "Number of failed API calls",
+        type: "count",
+        defaultValue: 0,
+      },
+      {
+        id: "avg_tokens_per_request",
+        label: "Avg Tokens per Request",
+        description: "Average tokens used per request",
+        type: "number",
+        defaultValue: 0,
+      },
+    ],
+  },
+
   ui: {
     icon: "Bot",
     category: "AI",

@@ -1,9 +1,9 @@
 export const NODE_CATEGORIES = {
-  Input: ["Ask Question", "Sensor Data", "Fetch External Data"],
-  Processing: ["AI Analysis", "Calculate"],
-  Logic: ["Decision"],
-  Output: ["Send Message", "Store Records"],
-  Meta: ["Start Workflow", "End Workflow"],
+  Input: ["Ask Question", "Sensor Data", "Fetch External Data", "WhatsApp Trigger"],
+  Processing: ["AI Analysis", "Calculate", "AI Response", "Chat Model"],
+  Logic: ["Decision", "Switch", "Validation"],
+  Output: ["Send Message", "Store Records", "WhatsApp Send"],
+  Meta: ["Start Workflow", "End Workflow", "Memory Get", "Memory Set"],
 } as const;
 
 export type NodeCategory = keyof typeof NODE_CATEGORIES;
@@ -50,4 +50,31 @@ export const CATEGORY_COLORS = {
     icon: "text-[#94A3B8]", // Gray icon
   },
   default: "#9CA3AF", // Fallback color for edges without labels
+} as const;
+
+export const METRICS_CATEGORY_COLORS = {
+  performance: {
+    bg: "bg-blue-50",
+    text: "text-blue-700",
+    border: "border-blue-200",
+    icon: "⚡",
+  },
+  quality: {
+    bg: "bg-green-50",
+    text: "text-green-700",
+    border: "border-green-200",
+    icon: "✓",
+  },
+  business: {
+    bg: "bg-purple-50",
+    text: "text-purple-700",
+    border: "border-purple-200",
+    icon: "💼",
+  },
+  technical: {
+    bg: "bg-orange-50",
+    text: "text-orange-700",
+    border: "border-orange-200",
+    icon: "🔧",
+  },
 } as const;

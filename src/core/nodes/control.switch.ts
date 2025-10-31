@@ -92,6 +92,46 @@ export const SwitchNode: NodeTypeDefinition = {
     },
   },
 
+  metrics: {
+    enabled: true,
+    category: "performance",
+    customizable: true,
+    defaultMetrics: [
+      {
+        id: "route_distribution",
+        label: "Route Distribution",
+        description: "Track which routes are most frequently taken",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 0,
+      },
+      {
+        id: "evaluation_time",
+        label: "Evaluation Time",
+        description: "Time taken to evaluate conditions",
+        type: "duration",
+        unit: "ms",
+        defaultValue: 0,
+        max: 5000,
+      },
+      {
+        id: "condition_success_rate",
+        label: "Condition Success Rate",
+        description: "Percentage of successful condition evaluations",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 100,
+      },
+      {
+        id: "fallback_triggered",
+        label: "Fallback Triggered",
+        description: "Number of times default route was used",
+        type: "count",
+        defaultValue: 0,
+      },
+    ],
+  },
+
   ui: {
     icon: "git-branch",
     category: "control",

@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Search, ChevronDown, ChevronRight, Zap, Filter, X } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, Zap, Filter, X, Activity } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,10 +45,11 @@ export const NodeLibrary = ({ onNodeDragStart, showTitle = true }: NodeLibraryPr
 
     const categoryMap: Record<string, NodeCategory> = {
       trigger: "Input",
-      logic: "Processing",
-      control: "Logic",
+      logic: "Logic",          // ✅ Fixed - logic nodes go to Logic category
+      control: "Logic",         // ✅ Keep - control nodes also go to Logic
       output: "Output",
       utility: "Meta",
+      agent: "Processing",      // ✅ New - AI agents go to Processing
     };
 
     const result: Record<NodeCategory, NodeItem[]> = {
@@ -384,6 +385,20 @@ export const NodeLibrary = ({ onNodeDragStart, showTitle = true }: NodeLibraryPr
                                     {node.description}
                                   </p>
                                 )}
+                                
+                                {/* Metrics Badge */}
+                                {(() => {
+                                  const nodeType = nodeTypeRegistry.getNodeType(node.id);
+                                  if (nodeType?.metrics?.enabled) {
+                                    return (
+                                      <Badge variant="outline" className="text-xs mt-1 gap-1">
+                                        <Activity className="w-3 h-3" />
+                                        {nodeType.metrics.defaultMetrics.length} metrics
+                                      </Badge>
+                                    );
+                                  }
+                                  return null;
+                                })()}
                               </div>
                             </div>
                           </TooltipTrigger>

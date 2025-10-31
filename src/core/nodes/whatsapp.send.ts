@@ -62,6 +62,60 @@ export const WhatsAppSendNode: NodeTypeDefinition = {
     },
   },
 
+  metrics: {
+    enabled: true,
+    category: "business",
+    customizable: true,
+    defaultMetrics: [
+      {
+        id: "messages_sent",
+        label: "Messages Sent",
+        description: "Total messages sent successfully",
+        type: "count",
+        defaultValue: 0,
+        required: true,
+      },
+      {
+        id: "delivery_rate",
+        label: "Delivery Rate",
+        description: "Percentage of messages delivered",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 0,
+      },
+      {
+        id: "avg_send_time",
+        label: "Average Send Time",
+        description: "Average time to send message",
+        type: "duration",
+        unit: "ms",
+        defaultValue: 0,
+      },
+      {
+        id: "failed_sends",
+        label: "Failed Sends",
+        description: "Number of failed message attempts",
+        type: "count",
+        defaultValue: 0,
+      },
+      {
+        id: "retry_count",
+        label: "Retry Count",
+        description: "Number of retried sends",
+        type: "count",
+        defaultValue: 0,
+      },
+      {
+        id: "message_type_distribution",
+        label: "Message Type Distribution",
+        description: "Distribution of message types (text/template/interactive)",
+        type: "percentage",
+        unit: "%",
+        defaultValue: 0,
+      },
+    ],
+  },
+
   ui: {
     icon: "send",
     category: "output",
