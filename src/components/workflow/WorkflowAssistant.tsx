@@ -57,9 +57,7 @@ export const WorkflowAssistant = () => {
 
   const runValidation = () => {
     const state = useWorkflowState.getState();
-    state.validateWorkflow?.();
-    // Pull latest validation errors from store
-    const errors = (state.validationErrors || []) as any[];
+    const errors = state.actions.validateWorkflow();
     const errorCount = errors.filter(e => e.type === "error").length;
     const warningCount = errors.filter(e => e.type === "warning").length;
     const summary = `Found ${errorCount} error${errorCount !== 1 ? "s" : ""} and ${warningCount} warning${warningCount !== 1 ? "s" : ""} in your workflow.`;
@@ -107,8 +105,7 @@ export const WorkflowAssistant = () => {
 
     // Revalidate and report
     setTimeout(() => {
-      state.validateWorkflow?.();
-      const after = (useWorkflowState.getState().validationErrors || []) as any[];
+      const after = useWorkflowState.getState().actions.validateWorkflow();
       const afterErr = after.filter(e => e.type === "error").length;
       const afterWarn = after.filter(e => e.type === "warning").length;
       
@@ -257,14 +254,14 @@ export const WorkflowAssistant = () => {
                 <div className="whitespace-pre-wrap">{message.text}</div>
                 {message.validationResults && message.validationResults.errors.length > 0 && (
                   <div className="mt-2 p-2 bg-white/50 rounded border border-gray-300">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold">Issues Found:</span>
-                      <div className="flex gap-1">
-                        <Button size="xs" variant="ghost" onClick={() => setExpandedCards(s => ({ ...s, [i]: !s[i] }))}>
-                          {expandedCards[i] ? "Hide" : "Details"}
-                        </Button>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold">Issues Found:</span>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => setExpandedCards(s => ({ ...s, [i]: !s[i] }))}>
+                            {expandedCards[i] ? "Hide" : "Details"}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
                     {expandedCards[i] && (
                       <div className="space-y-1">
                         {message.validationResults.errors.map((e, idx) => (

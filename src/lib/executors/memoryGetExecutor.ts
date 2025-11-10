@@ -9,7 +9,8 @@ export async function memoryGetExecutor(
   context: ExecutionContext,
   config: any
 ): Promise<NodeResult> {
-  const { storage, logger, vars } = context;
+  const { storage, logger } = context.services;
+  const { vars } = context;
 
   if (!storage) {
     return {

@@ -3,6 +3,7 @@ import { Handle, Position } from "@xyflow/react";
 import { Bot, AlertCircle } from "lucide-react";
 import { useWorkflowState } from "@/hooks/useWorkflowState";
 import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
+import { AdvancedHandle } from "../handles/AdvancedHandle";
 
 interface AgentNodeProps {
   id: string;
@@ -73,18 +74,20 @@ export const AgentNode = memo(({ id, data, selected }: AgentNodeProps) => {
         </div>
       </div>
 
-      {/* Main I/O Handles */}
-      <Handle
+      {/* Main I/O Handles - Using Advanced Handle System */}
+      <AdvancedHandle
         type="target"
         position={Position.Left}
-        className="w-5 h-5 border-2 border-white cursor-pointer !bg-purple-500"
-        style={{ width: "16px", height: "16px" }}
+        id="input-1"
+        percentage={50}
+        isOutput={false}
       />
-      <Handle
+      <AdvancedHandle
         type="source"
         position={Position.Right}
-        className="w-5 h-5 border-2 border-white cursor-pointer !bg-purple-500"
-        style={{ width: "16px", height: "16px" }}
+        id="output-1"
+        percentage={50}
+        isOutput={true}
       />
 
       {/* Attachment Ports (Sub-node connectors) */}

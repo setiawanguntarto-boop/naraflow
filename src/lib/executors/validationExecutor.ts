@@ -9,7 +9,8 @@ export async function validationExecutor(
   context: ExecutionContext,
   config: any
 ): Promise<NodeResult> {
-  const { logger, payload } = context;
+  const { logger } = context.services;
+  const { payload } = context;
 
   try {
     // Get field value
@@ -111,29 +112,24 @@ async function runValidator(
           // Parse validation expression safely
           const expression = rule.params.code.trim();
 
-          // Whitelist-based validation (only allow specific operations)
-          const allowedPattern = /^(value|payload)\.(.+)\s*[<>=!]+|\s*-?\d+(\.\d+)?$/;
-          if (!allowedPattern.test(expression)) {
-            return { valid: false, message: "Unsafe expression not allowed" };
+          // SECURITY: Use safe expression evaluator
+          try {
+            const { Parser } = await import('expr-eval');
+            const parser = new Parser();
+            
+            // Create safe context
+            const safeContext = {
+              value,
+              payload: context?.payload
+            };
+            
+            const result = parser.evaluate(expression, safeContext);
+            return { valid: Boolean(result) };
+          } catch (evalError: any) {
+            return { valid: false, message: `Expression evaluation failed: ${evalError.message}` };
           }
-
-          // Safe evaluation using Function constructor (safer than eval)
-          const validationFn = new Function(
-            "value",
-            "payload",
-            `
-            try {
-              return ${expression};
-            } catch {
-              return false;
-            }
-          `
-          );
-
-          const result = validationFn(value, context);
-          return { valid: Boolean(result) };
         } catch (error: any) {
-          logger?.warn(`JS validation error: ${error.message}`);
+          context?.services?.logger?.warn(`JS validation error: ${error.message}`);
           return { valid: false, message: error.message };
         }
       }

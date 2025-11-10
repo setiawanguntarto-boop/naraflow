@@ -67,6 +67,14 @@ export class DeploymentClient {
         agentName: config.agentName,
       });
 
+      // SECURITY: Sanitize sensitive data from logs
+      console.log("Starting deployment request...", {
+        agentName: config.agentName,
+        phoneNumberId: config.phoneNumberId,
+        webhookUrl: workflowData.webhookUrl,
+        // Sensitive fields redacted from logs
+      });
+
       const response = await fetch(`${this.baseURL}/deploy`, {
         method: "POST",
         headers: {
@@ -98,7 +106,11 @@ export class DeploymentClient {
       // Check if response is OK
       if (!response.ok) {
         const errorText = await this.getResponseText(response);
-        console.error("HTTP error response:", errorText);
+        
+        // SECURITY: Only log error details in development
+        if (import.meta.env.DEV) {
+          console.error("[Dev Only] HTTP error response:", errorText);
+        }
 
         // Try to parse as JSON for error details
         let errorData: any = {};
@@ -108,9 +120,14 @@ export class DeploymentClient {
           errorData = { error: errorText || `HTTP ${response.status}: ${response.statusText}` };
         }
 
-        throw new Error(
-          errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
+        // Provide user-friendly error message
+        const userMessage = response.status === 401 || response.status === 403
+          ? "Authentication failed. Please verify your credentials."
+          : response.status >= 500
+          ? "Server error. Please try again later."
+          : errorData.error || errorData.message || "Deployment failed. Please try again.";
+
+        throw new Error(userMessage);
       }
 
       // Get response text
@@ -127,24 +144,30 @@ export class DeploymentClient {
       try {
         data = JSON.parse(responseText);
       } catch (parseError: any) {
-        console.error("JSON parse error:", parseError);
-        console.error("Response text:", responseText);
-        throw new Error(
-          `Invalid JSON response from server: ${responseText.substring(0, 200)}...`
-        );
+        // SECURITY: Only log detailed errors in development
+        if (import.meta.env.DEV) {
+          console.error("[Dev Only] JSON parse error:", parseError);
+          console.error("[Dev Only] Response text:", responseText.substring(0, 200));
+        }
+        throw new Error("Invalid server response. Please try again.");
       }
 
       // Validate response structure
       if (!data.success && !data.error) {
-        console.error("Invalid response structure:", data);
+        if (import.meta.env.DEV) {
+          console.error("[Dev Only] Invalid response structure:", data);
+        }
         throw new Error("Invalid response format from server");
       }
 
-      console.log("Deployment successful:", data);
+      console.log("Deployment completed successfully");
       return data;
 
     } catch (error: any) {
-      console.error("Deployment error:", error);
+      // SECURITY: Only log detailed errors in development
+      if (import.meta.env.DEV) {
+        console.error("[Dev Only] Deployment error:", error);
+      }
 
       // Handle specific error cases
       if (error.name === "AbortError") {

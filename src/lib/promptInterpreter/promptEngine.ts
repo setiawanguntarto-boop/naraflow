@@ -13,6 +13,7 @@ export interface InterpreterOptions {
   llmProvider?: "openai" | "llama" | "none";
   validate?: boolean;
   preview?: boolean;
+  template?: any;
 }
 
 export interface InterpreterResult {
@@ -30,13 +31,21 @@ export async function interpretPrompt(
   prompt: string,
   options: InterpreterOptions = {}
 ): Promise<InterpreterResult> {
+  console.log("🚀 [Prompt Interpreter] Starting...", {
+    promptLength: prompt.length,
+    options,
+    timestamp: new Date().toISOString()
+  });
+
   const { llmProvider = "openai", validate = true, preview = true } = options;
 
   try {
     // Step 1: Parse prompt (intent detection + entity extraction)
-    const analysis = await originalInterpretPrompt(prompt, { llmProvider });
+    console.log("📊 [Step 1/4] Parsing prompt...");
+    const analysis = await originalInterpretPrompt(prompt, { llmProvider, template: options.template });
 
     if (!analysis) {
+      console.error("❌ [Step 1/4] Parse failed");
       return {
         success: false,
         workflow: null,
@@ -44,14 +53,20 @@ export async function interpretPrompt(
         error: "Failed to parse prompt",
       };
     }
+    console.log("✅ [Step 1/4] Parse complete:", analysis?.intent.type);
 
     // Step 2: Plan nodes based on intent and entities
+    console.log("📊 [Step 2/4] Planning nodes...");
     const nodePlans = planNodes(analysis);
+    console.log("✅ [Step 2/4] Planned", nodePlans.length, "nodes");
 
     // Step 3: Assemble workflow
+    console.log("📊 [Step 3/4] Assembling workflow...");
     const workflow = assembleWorkflow(nodePlans);
+    console.log("✅ [Step 3/4] Generated", workflow.nodes.length, "nodes,", workflow.edges.length, "edges");
 
     // Step 4: Validate workflow
+    console.log("📊 [Step 4/4] Validating...");
     let validation: ValidationResult | undefined;
 
     if (validate) {
@@ -62,8 +77,11 @@ export async function interpretPrompt(
         workflow.warnings.push(...validation.warnings);
       }
 
+      console.log("✅ [Step 4/4] Validation:", validation.errors.length, "errors,", validation.warnings.length, "warnings");
+
       // If there are errors, return early
       if (validation.errors.length > 0) {
+        console.error("❌ Validation failed:", validation.errors);
         return {
           success: false,
           workflow: null,
@@ -74,6 +92,7 @@ export async function interpretPrompt(
       }
     }
 
+    console.log("✅ [Prompt Interpreter] Complete - Success!");
     return {
       success: true,
       workflow,
@@ -81,7 +100,7 @@ export async function interpretPrompt(
       validation,
     };
   } catch (error: any) {
-    console.error("Prompt interpreter error:", error);
+    console.error("❌ [Prompt Interpreter] Error:", error);
 
     return {
       success: false,

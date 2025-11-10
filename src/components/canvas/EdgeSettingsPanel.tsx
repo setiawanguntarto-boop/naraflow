@@ -18,22 +18,20 @@ import { useWorkflowState } from "@/hooks/useWorkflowState";
 import { toast } from "sonner";
 
 export const EdgeSettingsPanel = () => {
-  const {
-    defaultEdgeType,
-    defaultEdgeStyle,
-    defaultEdgeAnimated,
-    defaultEdgeWidth,
-    defaultEdgeCondition,
-    validationOptions,
-    setDefaultEdgeType,
-    setDefaultEdgeStyle,
-    setDefaultEdgeAnimated,
-    setDefaultEdgeWidth,
-    setDefaultEdgeCondition,
-    setValidationOptions,
-    applyStyleToAllEdges,
-    edges,
-  } = useWorkflowState();
+  const defaultEdgeType = useWorkflowState(state => state.defaultEdgeType);
+  const defaultEdgeStyle = useWorkflowState(state => state.defaultEdgeStyle);
+  const defaultEdgeAnimated = useWorkflowState(state => state.defaultEdgeAnimated);
+  const defaultEdgeWidth = useWorkflowState(state => state.defaultEdgeWidth);
+  const defaultEdgeCondition = useWorkflowState(state => state.defaultEdgeCondition);
+  const validationOptions = useWorkflowState(state => state.validationOptions);
+  const edges = useWorkflowState(state => state.edgesArray);
+  const setDefaultEdgeType = useWorkflowState(state => state.actions.setDefaultEdgeType);
+  const setDefaultEdgeStyle = useWorkflowState(state => state.actions.setDefaultEdgeStyle);
+  const setDefaultEdgeAnimated = useWorkflowState(state => state.actions.setDefaultEdgeAnimated);
+  const setDefaultEdgeWidth = useWorkflowState(state => state.actions.setDefaultEdgeWidth);
+  const setDefaultEdgeCondition = useWorkflowState(state => state.actions.setDefaultEdgeCondition);
+  const setValidationOptions = useWorkflowState(state => state.actions.setValidationOptions);
+  const applyStyleToAllEdges = useWorkflowState(state => state.actions.applyStyleToAllEdges);
 
   const handleApplyToAll = () => {
     if (edges.length === 0) {

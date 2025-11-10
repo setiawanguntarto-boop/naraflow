@@ -6,7 +6,7 @@ interface MentionInputProps {
   value: string;
   onChange: (value: string) => void;
   onTemplateSelect?: (template: WorkflowPreset) => void;
-  selectedPreset?: PresetType | null;
+  selectedPreset?: WorkflowPreset | null;
   placeholder?: string;
   className?: string;
 }
@@ -155,13 +155,13 @@ export function MentionInput({
   };
 
   // Parse text and highlight mentions and preset badges
-  const parseTextWithMentions = (text: string, selectedPreset: PresetType | null = null) => {
+  const parseTextWithMentions = (text: string, selectedPreset: WorkflowPreset | null = null) => {
     const mentionRegex = /@(\w+)/g;
     const parts: Array<{
       type: "text" | "mention" | "preset";
       content: string;
       template?: WorkflowPreset;
-      preset?: PresetType;
+      preset?: WorkflowPreset;
     }> = [];
 
     // Special case: If we have a selected preset, always add it as a badge at the start
@@ -182,7 +182,7 @@ export function MentionInput({
       }
 
       // Check if preset badge already exists in text to avoid duplicates
-      const presetBadgeText = `${selectedPreset.emoji} ${selectedPreset.title}`;
+      const presetBadgeText = `${selectedPreset.icon} ${selectedPreset.label}`;
       const alreadyHasBadge = text.includes(presetBadgeText);
 
       // Only add preset badge if it's not already in the text
@@ -362,7 +362,7 @@ export function MentionInput({
               presetColors[part.preset.id] ||
               "bg-slate-700 text-white dark:bg-slate-800 dark:text-white border-slate-800 dark:border-slate-600";
             span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
-            span.textContent = `${part.preset.emoji} ${part.preset.title}`;
+            span.textContent = `${part.preset.icon} ${part.preset.label}`;
             span.setAttribute("contenteditable", "false");
             contentEditableRef.current?.appendChild(span);
           } else {
@@ -570,7 +570,7 @@ export function MentionInput({
             presetColors[part.preset.id] ||
             "bg-slate-700 text-white dark:bg-slate-800 dark:text-white border-slate-800 dark:border-slate-600";
           span.className = `inline-flex items-center px-2.5 py-1 rounded-md border font-medium text-sm ${colorClass}`;
-          span.textContent = `${part.preset.emoji} ${part.preset.title}`;
+          span.textContent = `${part.preset.icon} ${part.preset.label}`;
           span.setAttribute("contenteditable", "false");
           div.appendChild(span);
         } else {

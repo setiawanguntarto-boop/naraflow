@@ -1,7 +1,8 @@
 import { memo } from "react";
-import { Handle, Position, NodeProps } from "@xyflow/react";
+import { Position, NodeProps } from "@xyflow/react";
 import { HelpCircle, AlertCircle } from "lucide-react";
 import { useWorkflowState } from "@/hooks/useWorkflowState";
+import { AdvancedHandle } from "../handles/AdvancedHandle";
 
 export const DecisionNode = memo(({ id, data, selected }: NodeProps) => {
   const { actions } = useWorkflowState();
@@ -43,27 +44,33 @@ export const DecisionNode = memo(({ id, data, selected }: NodeProps) => {
         </div>
       </div>
 
-      <Handle
+      {/* Input Handle */}
+      <AdvancedHandle
         type="target"
         position={Position.Left}
-        className="w-5 h-5 !bg-brand-secondary border-2 border-background !-left-1.5 cursor-pointer"
-        style={{ width: "16px", height: "16px" }}
+        id="input-1"
+        percentage={50}
+        isOutput={false}
       />
 
-      <Handle
+      {/* Yes Output Handle */}
+      <AdvancedHandle
         type="source"
         position={Position.Top}
         id="yes"
-        className="w-5 h-5 !bg-brand-secondary border-2 border-background !-top-1.5 cursor-pointer"
-        style={{ width: "16px", height: "16px" }}
+        percentage={50}
+        label="Yes"
+        isOutput={true}
       />
 
-      <Handle
+      {/* No Output Handle */}
+      <AdvancedHandle
         type="source"
         position={Position.Bottom}
         id="no"
-        className="w-5 h-5 !bg-brand-secondary border-2 border-background !-bottom-1.5 cursor-pointer"
-        style={{ width: "16px", height: "16px" }}
+        percentage={50}
+        label="No"
+        isOutput={true}
       />
     </div>
   );

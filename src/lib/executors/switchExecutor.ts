@@ -6,11 +6,27 @@
 import { ExecutionContext, NodeResult } from "@/core/nodeLibrary_v3";
 
 export async function switchExecutor(context: ExecutionContext, config: any): Promise<NodeResult> {
-  const { logger, payload, memory, vars } = context;
+  const { logger } = context.services;
+  const { payload, memory, vars } = context;
 
   try {
+    let expression = config.expression;
+    
+    // Build expression from simple condition
+    if (config.conditionType === "simple" && config.leftOperand && config.operator) {
+      expression = buildSimpleExpression(config.leftOperand, config.operator, config.rightOperand);
+    }
+    
+    // Build expression from multiple conditions
+    if (config.conditionType === "multiple" && config.conditions && config.conditions.length > 0) {
+      expression = buildMultipleConditionsExpression(
+        config.conditions, 
+        config.logicGate || "AND"
+      );
+    }
+    
     // Evaluate expression
-    const result = evaluateExpression(config.expression, { payload, memory, vars });
+    const result = await evaluateExpression(expression, { payload, memory, vars });
 
     logger.info(`Expression result: ${result}`);
 
@@ -46,22 +62,57 @@ export async function switchExecutor(context: ExecutionContext, config: any): Pr
   }
 }
 
-function evaluateExpression(expression: string, context: any): any {
-  // Basic safe expression evaluation
-  // In production, use a sandboxed expression evaluator like expr-eval or safer-eval
-
+async function evaluateExpression(expression: string, context: any): Promise<any> {
+  // SECURITY: Use safe expression evaluator instead of Function constructor
+  
   try {
-    // Replace context references
-    const safeExpression = expression
-      .replace(/payload\./g, "context.payload.")
-      .replace(/memory\./g, "context.memory.")
-      .replace(/vars\./g, "context.vars.");
-
-    // Simple evaluation using Function constructor
-    const func = new Function("context", `return ${safeExpression}`);
-    return func(context);
+    const { Parser } = await import('expr-eval');
+    const parser = new Parser();
+    
+    // Create safe context with payload, memory, and vars
+    const safeContext = {
+      payload: context.payload,
+      memory: context.memory,
+      vars: context.vars,
+      value: context.vars?.value,
+      input: context.vars?.input,
+      data: context.vars?.data,
+    };
+    
+    return parser.evaluate(expression, safeContext);
   } catch (error) {
-    // Fallback to simple string comparison
+    // Fallback to simple string comparison if evaluation fails
     return expression;
   }
+}
+
+function buildSimpleExpression(left: string, operator: string, right: string): string {
+  const opMap: Record<string, string> = {
+    "equals": "==",
+    "not_equals": "!=",
+    "greater_than": ">",
+    "less_than": "<",
+    "greater_or_equal": ">=",
+    "less_or_equal": "<=",
+  };
+  
+  if (operator === "contains") {
+    return `${left}.includes(${right})`;
+  } else if (operator === "starts_with") {
+    return `${left}.startsWith(${right})`;
+  } else if (operator === "is_empty") {
+    return `${left} == null || ${left} == ''`;
+  }
+  
+  const op = opMap[operator] || "==";
+  return `${left} ${op} ${right}`;
+}
+
+function buildMultipleConditionsExpression(conditions: any[], gate: string): string {
+  const expressions = conditions.map(c => 
+    buildSimpleExpression(c.leftOperand, c.operator, c.rightOperand)
+  );
+  
+  const connector = gate === "AND" ? " && " : " || ";
+  return expressions.join(connector);
 }

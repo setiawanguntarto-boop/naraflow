@@ -43,6 +43,23 @@ export function validateWorkflow(workflow: WorkflowOutput): ValidationResult {
         }
       }
     }
+
+    // Check webhook nodes for security configuration
+    if (node.type === "whatsapp.trigger" || node.type?.includes("trigger")) {
+      const config = node.data.config || node.data;
+      
+      if (config.verifyToken === "" || config.verifyToken === "verify-token") {
+        warnings.push(
+          `Node ${node.id}: Webhook verify token is not configured. Set a secure random token before deploying.`
+        );
+      }
+      
+      if (config.verifyToken && config.verifyToken.length < 16) {
+        warnings.push(
+          `Node ${node.id}: Webhook verify token is too short. Use at least 16 characters for security.`
+        );
+      }
+    }
   });
 
   // Check edge connections

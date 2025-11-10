@@ -1,5 +1,5 @@
 import React from "react";
-import { Edge } from "@xyflow/react";
+import { Edge, useStore } from "@xyflow/react";
 import { ConnectionLabel } from "@/types/connectionLabel.types";
 
 interface ConnectionLabelRendererProps {
@@ -19,6 +19,12 @@ export const ConnectionLabelRenderer: React.FC<ConnectionLabelRendererProps> = (
 }) => {
   if (!label || !edge) return null;
 
+  // Get node positions from React Flow store
+  const sourceNode = useStore(state => state.nodeLookup.get(edge.source));
+  const targetNode = useStore(state => state.nodeLookup.get(edge.target));
+
+  if (!sourceNode || !targetNode) return null;
+
   // Use provided label coordinates if available, otherwise calculate midpoint
   const getMidpoint = () => {
     // If labelX and labelY are provided, use them (they're calculated from actual edge path)
@@ -26,11 +32,11 @@ export const ConnectionLabelRenderer: React.FC<ConnectionLabelRendererProps> = (
       return { x: labelX, y: labelY };
     }
 
-    // Fallback to calculated midpoint for backward compatibility
-    const sourceX = edge.sourceX || 0;
-    const sourceY = edge.sourceY || 0;
-    const targetX = edge.targetX || 0;
-    const targetY = edge.targetY || 0;
+    // Calculate positions from node positions
+    const sourceX = sourceNode.position.x + (sourceNode.width ?? 0) / 2;
+    const sourceY = sourceNode.position.y + (sourceNode.height ?? 0) / 2;
+    const targetX = targetNode.position.x + (targetNode.width ?? 0) / 2;
+    const targetY = targetNode.position.y + (targetNode.height ?? 0) / 2;
 
     const midX = (sourceX + targetX) / 2;
     const midY = (sourceY + targetY) / 2;
@@ -99,11 +105,17 @@ export const ConnectionLabelTooltip: React.FC<ConnectionLabelTooltipProps> = ({
 }) => {
   if (!label || !visible) return null;
 
+  // Get node positions from React Flow store
+  const sourceNode = useStore(state => state.nodeLookup.get(edge.source));
+  const targetNode = useStore(state => state.nodeLookup.get(edge.target));
+
+  if (!sourceNode || !targetNode) return null;
+
   const getMidpoint = () => {
-    const sourceX = edge.sourceX || 0;
-    const sourceY = edge.sourceY || 0;
-    const targetX = edge.targetX || 0;
-    const targetY = edge.targetY || 0;
+    const sourceX = sourceNode.position.x + (sourceNode.width ?? 0) / 2;
+    const sourceY = sourceNode.position.y + (sourceNode.height ?? 0) / 2;
+    const targetX = targetNode.position.x + (targetNode.width ?? 0) / 2;
+    const targetY = targetNode.position.y + (targetNode.height ?? 0) / 2;
 
     // For better alignment, calculate the actual midpoint
     // and add slight offset to account for edge curvature

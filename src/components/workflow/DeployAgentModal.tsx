@@ -385,21 +385,24 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig, 
   const canProceedToNext = (step: number) => {
     if (step === 1) {
       const hasBlocking = validationErrors.some(e => e.type === "error");
-      const requiredFieldsValid = Boolean(agentName.trim() && phoneNumberId.trim() && accessToken.trim());
       
       console.log("[DeployAgentModal] canProceedToNext check:", {
         step,
         hasBlocking,
         validationErrors: validationErrors.length,
         blockingErrors: validationErrors.filter(e => e.type === "error").length,
-        requiredFieldsValid,
-        agentName: agentName.trim(),
-        phoneNumberId: phoneNumberId.trim(),
-        accessToken: accessToken.trim(),
       });
       
-      return requiredFieldsValid && !hasBlocking;
+      // More lenient: only check for blocking errors, not required fields
+      return !hasBlocking;
     }
+    
+    if (step === 2) {
+      // Strict: require all config fields for deploy
+      const requiredFieldsValid = Boolean(agentName.trim() && phoneNumberId.trim() && accessToken.trim());
+      return requiredFieldsValid;
+    }
+    
     return true;
   };
 
@@ -470,46 +473,61 @@ export function DeployAgentModal({ open, onOpenChange, workflow, initialConfig, 
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="agentName" className="text-black">Agent Name</Label>
+                <Label htmlFor="agentName" className="text-black">Agent Name *</Label>
                 <Input
                   id="agentName"
                   value={agentName}
                   onChange={e => setAgentName(e.target.value)}
                   placeholder="e.g., NaraflowOpsBot"
-                  className="text-black placeholder:text-gray-400"
+                  className={`text-black placeholder:text-gray-400 ${!agentName ? "border-red-500" : ""}`}
                 />
-                <p className="text-xs text-black">
-                  Nama unik untuk endpoint dan identitas agent Anda.
-                </p>
+                {!agentName && (
+                  <p className="text-xs text-red-500">Agent name is required</p>
+                )}
+                {agentName && (
+                  <p className="text-xs text-black">
+                    Nama unik untuk endpoint dan identitas agent Anda.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phoneNumberId" className="text-black">Phone Number ID</Label>
+                <Label htmlFor="phoneNumberId" className="text-black">Phone Number ID *</Label>
                 <Input
                   id="phoneNumberId"
                   value={phoneNumberId}
                   onChange={e => setPhoneNumberId(e.target.value)}
                   placeholder="e.g., 123456789012345"
-                  className="text-black placeholder:text-gray-400"
+                  className={`text-black placeholder:text-gray-400 ${!phoneNumberId ? "border-red-500" : ""}`}
                 />
-                <p className="text-xs text-black">
-                  ID nomor WhatsApp dari WABA (Meta Business). <a className="underline" href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started/" target="_blank" rel="noreferrer">Pelajari cara mendapatkannya</a>.
-                </p>
+                {!phoneNumberId && (
+                  <p className="text-xs text-red-500">Phone Number ID is required</p>
+                )}
+                {phoneNumberId && (
+                  <p className="text-xs text-black">
+                    ID nomor WhatsApp dari WABA (Meta Business). <a className="underline" href="https://developers.facebook.com/docs/whatsapp/cloud-api/get-started/" target="_blank" rel="noreferrer">Pelajari cara mendapatkannya</a>.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="accessToken" className="text-black">Access Token</Label>
+                <Label htmlFor="accessToken" className="text-black">Access Token *</Label>
                 <Input
                   id="accessToken"
+                  type="password"
                   value={accessToken}
                   onChange={e => setAccessToken(e.target.value)}
                   placeholder="EAAJB..."
-                  type="password"
-                  className="text-black placeholder:text-gray-400"
+                  className={`text-black placeholder:text-gray-400 ${!accessToken ? "border-red-500" : ""}`}
                 />
-                <p className="text-xs text-black">
-                  System User Access Token dari Meta App Anda. <a className="underline" href="https://developers.facebook.com/docs/whatsapp/business-management-api/get-started#generate-system-user-access-tokens" target="_blank" rel="noreferrer">Panduan token</a>.
-                </p>
+                {!accessToken && (
+                  <p className="text-xs text-red-500">Access Token is required</p>
+                )}
+                {accessToken && (
+                  <p className="text-xs text-black">
+                    System User Access Token dari Meta App Anda. <a className="underline" href="https://developers.facebook.com/docs/whatsapp/business-management-api/get-started#generate-system-user-access-tokens" target="_blank" rel="noreferrer">Panduan token</a>.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">

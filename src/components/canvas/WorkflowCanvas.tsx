@@ -58,14 +58,6 @@ import {
   FileJson,
 } from "lucide-react";
 
-// Edge types are statically loaded for better performance
-const edgeTypes = {
-  smoothstep: CustomEdge,
-  straight: CustomEdge,
-  step: CustomEdge,
-  default: CustomEdge,
-};
-
 interface WorkflowCanvasProps {
   onNodeClick?: (node: Node) => void;
   onDrop?: (nodeData: any, position: { x: number; y: number }) => void;
@@ -412,6 +404,14 @@ export const WorkflowCanvas = ({
     [onNodeClick, onDuplicate, actions, showContextMenu]
   );
 
+  // Memoize edge types to prevent recreation on every render
+  const edgeTypes = useMemo(() => ({
+    smoothstep: CustomEdge,
+    straight: CustomEdge,
+    step: CustomEdge,
+    default: CustomEdge,
+  }), []);
+
   // Create node types with context menu handler and lazy loading
   const nodeTypes = useMemo(() => {
     const lazyComponents = NodeRegistry.getLazyNodeComponents();
@@ -437,6 +437,7 @@ export const WorkflowCanvas = ({
       "llama-decision": lazyComponents["llama-decision"],
       agent: lazyComponents.agent,
       "agent.conversational": lazyComponents.agent,
+      "ai.response": lazyComponents["ai.response"],
     };
   }, [handleNodeContextMenu]);
 
@@ -484,7 +485,12 @@ export const WorkflowCanvas = ({
       // Try v3 registry first
       const v3 = nodeTypeRegistry.getAllNodeTypes().find(n => n.id === nodeId);
       if (v3) {
-        onDrop({ id: nodeId, label: v3.label, type: v3.id }, position);
+        onDrop({ 
+          id: nodeId, 
+          label: v3.label, 
+          type: "default", // React Flow node type (visual component)
+          nodeType: v3.id  // v3 node type ID for schema lookup
+        }, position);
         return;
       }
 

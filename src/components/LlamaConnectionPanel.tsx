@@ -22,7 +22,9 @@ interface LlamaConnectionPanelProps {
 }
 
 export function LlamaConnectionPanel({ open, onOpenChange }: LlamaConnectionPanelProps) {
-  const { llamaConfig, setLlamaConfig, toggleLocalLlama } = useWorkflowState();
+  const llamaConfig = useWorkflowState(state => state.llamaConfig);
+  const setLlamaConfig = useWorkflowState(state => state.actions.setLlamaConfig);
+  const toggleLocalLlama = useWorkflowState(state => state.actions.toggleLocalLlama);
   const [mode, setMode] = useState<"local" | "cloud">(llamaConfig.mode);
   const [endpoint, setEndpoint] = useState(llamaConfig.endpoint);
   const [apiKey, setApiKey] = useState(llamaConfig.apiKey || "");

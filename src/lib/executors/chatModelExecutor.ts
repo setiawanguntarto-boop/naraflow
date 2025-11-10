@@ -1,37 +1,47 @@
 /**
  * Executor for Chat Model (LLM) Node
  * Calls LLM with system prompts and conversation context
+ * Updated to use AI Provider system from Phase 1
  */
 
 import { ExecutionContext, NodeResult } from "@/core/nodeLibrary_v3";
+import { AIProviderFactory, AIMessage } from "@/lib/services/aiProviders";
 
 export async function chatModelExecutor(
   context: ExecutionContext,
   config: any
 ): Promise<NodeResult> {
-  const { llm, logger, payload, memory } = context;
+  const { logger } = context.services;
+  const { payload, memory } = context;
 
-  if (!llm) {
+  // Validate configuration
+  if (!config.provider || !config.apiKey) {
     return {
       status: "error",
-      error: { message: "LLM service not available", code: "NO_LLM" },
+      error: { message: "AI provider or API key not configured", code: "NO_AI_PROVIDER" },
     };
   }
 
   try {
+    // Create AI provider using Phase 1 system
+    const aiProvider = AIProviderFactory.createProvider({
+      provider: config.provider,
+      apiKey: config.apiKey,
+    });
+
     // Build messages array
-    const systemPrompt = config.systemPrompt;
+    const systemPrompt = config.systemPrompt || "You are a helpful assistant.";
     const userPrompt = resolveTemplate(config.promptTemplate, { payload, memory });
 
-    const messages = [
+    const messages: AIMessage[] = [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ];
 
-    logger.info(`Calling LLM: ${config.provider}/${config.model}`);
+    logger.info(`Calling AI: ${config.provider}/${config.model}`);
 
-    // Call LLM
-    const response = await llm.chat(messages, {
+    // Call AI provider using Phase 1 interface
+    const response = await aiProvider.chat(messages, {
       model: config.model,
       temperature: config.temperature,
       maxTokens: config.maxTokens,

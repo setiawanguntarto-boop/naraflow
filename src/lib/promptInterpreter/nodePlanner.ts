@@ -1,12 +1,20 @@
 /**
  * Node Planner for WhatsApp Data Entry
  * Plans node sequence based on intent and extracted entities
+ * 
+ * IMPORTANT: This code runs in the browser (frontend).
+ * - Do NOT use process.env (Node.js only, always undefined in browser)
+ * - Do NOT hardcode sensitive tokens
+ * - Use empty defaults and validation warnings to guide users
  */
 
 import { PromptAnalysis, NodePlan } from "./types";
 import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
 import { planNotificationWorkflow } from "./nodePlanners/notification.planner";
 import { planConditionalWorkflow } from "./nodePlanners/conditional.planner";
+
+// Re-export types for convenience
+export type { NodePlan } from "./types";
 
 const NODE_SPACING_X = 250;
 const NODE_SPACING_Y = 150;
@@ -63,8 +71,9 @@ export function planNodes(analysis: PromptAnalysis): NodePlan[] {
     config: {
       provider: "meta",
       webhookPath: "/webhook/whatsapp",
-      verifyToken: process.env.WEBHOOK_VERIFY_TOKEN || "verify-token",
+      verifyToken: "", // Empty by default - user must configure
       validateSignature: true,
+      _configNote: "⚠️ Set verifyToken in node configuration before deploying",
     },
     connections: [{ target: nodeIds.aiChat, source_port: "default", target_port: "default" }],
   });

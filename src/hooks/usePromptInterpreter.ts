@@ -24,6 +24,13 @@ export function usePromptInterpreter() {
     setIsInterpreting(true);
 
     try {
+      console.log("🎯 [Interpreter] Starting with context:", {
+        promptLength: prompt.length,
+        hasTemplate: !!template,
+        templateId: template?.id,
+        templateLabel: template?.label
+      });
+      
       const result = await interpretPrompt(prompt, {
         llmProvider: "openai", // TODO: Get from settings
         validate: true,

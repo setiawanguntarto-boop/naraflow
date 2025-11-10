@@ -178,25 +178,16 @@ export const workflowFeaturesEnriched: Record<string, FeatureData> = {
       }
     ],
 
-    nodeCategories: {
-      input: {
-        description: "Memulai workflow - trigger points",
-        nodes: [
-          {
-            name: "Message In",
-            usage: "Trigger dari pesan WhatsApp masuk",
-            config: "Filter berdasarkan keyword, sender, type"
-          }
-        ]
-      }
+    useCases: {
+      "customerService": [
+        "Auto-reply untuk pertanyaan umum",
+        "Forward kompleks ke agent"
+      ],
+      "dataEntry": [
+        "Form input data pelanggan",
+        "Validasi dan simpan ke database"
+      ]
     },
-
-    bestPractices: [
-      "Gunakan naming convention konsisten untuk node labels",
-      "Batasi 5-8 nodes per logical group",
-      "Document complex nodes dengan description field",
-      "Test setiap node individually sebelum integrasi"
-    ],
 
     relatedFeatures: ["workflow-canvas", "node-configuration", "validation"]
   },

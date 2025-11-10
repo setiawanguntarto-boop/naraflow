@@ -15,6 +15,7 @@ export const LazyNodeComponents = {
   group: lazy(() => import("@/components/canvas/nodes/GroupNode").then(mod => ({ default: mod.GroupNode }))),
   "llama-decision": lazy(() => import("@/components/canvas/nodes/LlamaNode").then(mod => ({ default: mod.LlamaNode }))),
   agent: lazy(() => import("@/components/canvas/nodes/AgentNode").then(mod => ({ default: mod.AgentNode }))),
+  "ai.response": lazy(() => import("@/components/canvas/nodes/AIResponseNode").then(mod => ({ default: mod.AIResponseNode }))),
 };
 
 export class NodeRegistry {

@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useMemo } from "react";
-import { useUIState } from "./useWorkflowState";
+import { useUIState, useWorkflowState } from "./useWorkflowState";
 import { useNodes, useEdges } from "./useWorkflowState";
 import { workflowFeatures, type FeatureData } from "@/data/workflowFeatures";
 
@@ -25,7 +25,8 @@ export function useContextAwareHelp() {
     }
 
     // If validation errors exist
-    const errorCount = Object.values(uiState.validationErrors || {}).length;
+    const state = useWorkflowState.getState();
+    const errorCount = state.validationErrors?.length || 0;
     if (errorCount > 0) {
       return workflowFeatures.validation;
     }
@@ -36,7 +37,7 @@ export function useContextAwareHelp() {
     }
 
     // If execution is in progress
-    if (uiState.executionState?.isExecuting) {
+    if (state.runtime.executionInProgress) {
       return workflowFeatures["execution-system"];
     }
 
@@ -72,7 +73,8 @@ export function useContextAwareHelp() {
     suggestions.push(workflowFeatures.validation);
 
     // If workflow is complete, suggest deployment
-    if (edgeCount > 0 && !uiState.validationErrors) {
+    const state = useWorkflowState.getState();
+    if (edgeCount > 0 && (state.validationErrors?.length || 0) === 0) {
       suggestions.push(workflowFeatures.deployment);
     }
 
@@ -97,12 +99,13 @@ export function useContextAwareHelp() {
   }, []);
 
   const helpContext = useMemo(() => {
+    const state = useWorkflowState.getState();
     return {
       nodeCount: Object.keys(nodes).length,
       edgeCount: Object.keys(edges).length,
-      hasValidationErrors: Object.values(uiState.validationErrors || {}).length > 0,
+      hasValidationErrors: (state.validationErrors?.length || 0) > 0,
       hasSelectedNode: !!uiState.selectedNodeId,
-      isExecuting: !!uiState.executionState?.isExecuting,
+      isExecuting: state.runtime.executionInProgress,
     };
   }, [nodes, edges, uiState]);
 

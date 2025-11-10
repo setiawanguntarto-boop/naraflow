@@ -8,7 +8,8 @@ import { toPng } from "html-to-image";
 export const ExportImportPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { exportWorkflowJSON, importWorkflowJSON } = useWorkflowState();
+  const exportWorkflowJSON = useWorkflowState(state => state.actions.exportWorkflowJSON);
+  const importWorkflowJSON = useWorkflowState(state => state.actions.importWorkflowJSON);
 
   const handleExportJSON = () => {
     try {

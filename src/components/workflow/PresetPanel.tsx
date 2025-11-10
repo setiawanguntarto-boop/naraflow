@@ -4,6 +4,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Building2 } from "lucide-react";
 
+export type PresetType = WorkflowPreset['id'];
+
 export interface WorkflowPreset {
   id: string;
   emoji: string;

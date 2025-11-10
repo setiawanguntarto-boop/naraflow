@@ -108,6 +108,13 @@ interface BatchUpdate {
   runtime?: Partial<RuntimeState>;
 }
 
+// Workflow Metadata (context-aware features)
+interface WorkflowMetadata {
+  type?: "general" | "broiler" | "custom";
+  templateId?: string;
+  showBroilerPresets?: boolean;
+}
+
 interface WorkflowState {
   // Core Data (Runtime State)
   nodes: Record<string, NodeEntity>;
@@ -118,6 +125,9 @@ interface WorkflowState {
 
   // Runtime State (session and execution)
   runtime: RuntimeState;
+  
+  // Workflow Metadata
+  workflowMetadata: WorkflowMetadata;
 
   // Legacy arrays for React Flow compatibility
   nodesArray: Node[];
@@ -269,6 +279,28 @@ interface WorkflowState {
     setLlamaConfig: (config: Partial<WorkflowState["llamaConfig"]>) => void;
     appendLlamaLog: (message: string) => void;
     applyTemplateFlow: (templateId: keyof typeof workflowTemplates) => void;
+    setLlamaCache: (prompt: string, data: any) => void;
+    getLlamaCache: (prompt: string) => any | null;
+    clearLlamaCache: () => void;
+    toggleLocalLlama: () => void;
+    
+    // Workflow Metadata Operations
+    setWorkflowMetadata: (metadata: Partial<WorkflowMetadata>) => void;
+    toggleBroilerPresets: () => void;
+
+    // Connection Label Operations
+    setConnectionLabel: (edgeId: string, label: ConnectionLabel) => void;
+    getConnectionLabel: (edgeId: string) => ConnectionLabel | null;
+    removeConnectionLabel: (edgeId: string) => void;
+
+    // Edge Configuration Operations
+    setDefaultEdgeType: (type: WorkflowState['defaultEdgeType']) => void;
+    setDefaultEdgeStyle: (style: WorkflowState['defaultEdgeStyle']) => void;
+    setDefaultEdgeAnimated: (animated: boolean) => void;
+    setDefaultEdgeWidth: (width: number) => void;
+    setDefaultEdgeCondition: (condition: EdgeConditionType) => void;
+    setValidationOptions: (options: Partial<ValidationOptions>) => void;
+    applyStyleToAllEdges: (style: Partial<EdgeEntity>) => void;
   };
 }
 
@@ -325,6 +357,12 @@ export const useWorkflowState = create<WorkflowState>()(
       hasUnsavedChanges: false,
       executionInProgress: false,
       currentExecutionId: null,
+    },
+    
+    // Workflow Metadata
+    workflowMetadata: {
+      type: "general",
+      showBroilerPresets: false,
     },
 
     // Legacy arrays for React Flow compatibility
@@ -1362,6 +1400,10 @@ export const useWorkflowState = create<WorkflowState>()(
               ...get().runtime,
               hasUnsavedChanges: true,
             },
+            workflowMetadata: {
+              type: 'general',
+              showBroilerPresets: false,
+            },
           },
           false
         );
@@ -1733,6 +1775,9 @@ export const useWorkflowState = create<WorkflowState>()(
 
         const { nodesRecord, edgesRecord } = arraysToRecords(template.nodes, template.edges);
         const { nodesArray, edgesArray } = recordsToArrays(nodesRecord, edgesRecord);
+        
+        // Detect if this is a broiler template
+        const isBroilerTemplate = String(templateId).toLowerCase().includes('broiler');
 
         set(
           state => ({
@@ -1740,6 +1785,11 @@ export const useWorkflowState = create<WorkflowState>()(
             edges: edgesRecord,
             nodesArray,
             edgesArray,
+            workflowMetadata: {
+              type: isBroilerTemplate ? 'broiler' : 'general',
+              templateId: String(templateId),
+              showBroilerPresets: isBroilerTemplate,
+            },
             runtime: {
               ...state.runtime,
               hasUnsavedChanges: true,
@@ -1864,6 +1914,101 @@ export const useWorkflowState = create<WorkflowState>()(
           };
         }, false);
       },
+
+      // LLaMA Cache Operations
+      setLlamaCache: (prompt: string, data: any) => {
+        set(state => ({
+          llamaCache: {
+            ...state.llamaCache,
+            [prompt]: data,
+          },
+        }), false);
+      },
+
+      getLlamaCache: (prompt: string) => {
+        const { llamaCache } = get();
+        return llamaCache[prompt] || null;
+      },
+
+      clearLlamaCache: () => {
+        set({ llamaCache: {} }, false);
+      },
+
+      toggleLocalLlama: () => {
+        set(state => ({
+          llamaConfig: {
+            ...state.llamaConfig,
+            useLocalLlama: !state.llamaConfig.useLocalLlama,
+          },
+        }), false);
+      },
+
+      // Edge Configuration Operations
+      setDefaultEdgeType: (type: WorkflowState['defaultEdgeType']) => {
+        set({ defaultEdgeType: type }, false);
+      },
+
+      setDefaultEdgeStyle: (style: WorkflowState['defaultEdgeStyle']) => {
+        set({ defaultEdgeStyle: style }, false);
+      },
+
+      setDefaultEdgeAnimated: (animated: boolean) => {
+        set({ defaultEdgeAnimated: animated }, false);
+      },
+
+      setDefaultEdgeWidth: (width: number) => {
+        set({ defaultEdgeWidth: width }, false);
+      },
+
+      setDefaultEdgeCondition: (condition: EdgeConditionType) => {
+        set({ defaultEdgeCondition: condition }, false);
+      },
+
+      setValidationOptions: (options: Partial<ValidationOptions>) => {
+        set(state => ({
+          validationOptions: {
+            ...state.validationOptions,
+            ...options,
+          },
+        }), false);
+      },
+
+      applyStyleToAllEdges: (style: Partial<EdgeEntity>) => {
+        set(state => {
+          const updatedEdges: Record<string, EdgeEntity> = {};
+          Object.entries(state.edges).forEach(([id, edge]) => {
+            updatedEdges[id] = {
+              ...edge,
+              ...style,
+              style: { ...edge.style, ...style.style },
+            };
+          });
+
+          return {
+            edges: updatedEdges,
+            edgesArray: Object.values(updatedEdges),
+          };
+        }, false);
+      },
+      
+      // Workflow Metadata Operations
+      setWorkflowMetadata: (metadata: Partial<WorkflowMetadata>) => {
+        set(state => ({
+          workflowMetadata: {
+            ...state.workflowMetadata,
+            ...metadata,
+          },
+        }), false);
+      },
+      
+      toggleBroilerPresets: () => {
+        set(state => ({
+          workflowMetadata: {
+            ...state.workflowMetadata,
+            showBroilerPresets: !state.workflowMetadata.showBroilerPresets,
+          },
+        }), false);
+      },
     },
   }))
 );
@@ -1875,6 +2020,7 @@ export const useEdges = () => useWorkflowState(state => state.edgesArray);
 export const useUIState = () => useWorkflowState(state => state.ui);
 export const useRuntimeState = () => useWorkflowState(state => state.runtime);
 export const useWorkflowActions = () => useWorkflowState(state => state.actions);
+export const useWorkflowMetadata = () => useWorkflowState(state => state.workflowMetadata);
 export const useSelectedNode = () =>
   useWorkflowState(state =>
     state.ui.selectedNodeId ? state.nodes[state.ui.selectedNodeId] : null

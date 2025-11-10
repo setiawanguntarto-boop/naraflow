@@ -55,6 +55,28 @@ export interface OutputPortDefinition {
 }
 
 /**
+ * Metrics definition for node monitoring and analytics
+ */
+export interface MetricField {
+  id: string;
+  label: string;
+  description: string;
+  type: "number" | "percentage" | "duration" | "count" | "boolean" | "string";
+  unit?: string;
+  defaultValue?: any;
+  required?: boolean;
+  min?: number;
+  max?: number;
+}
+
+export interface NodeMetricsDefinition {
+  enabled: boolean;
+  defaultMetrics: MetricField[];
+  customizable: boolean;
+  category: "performance" | "quality" | "business" | "technical";
+}
+
+/**
  * Attachment port for sub-node connections (Langflow-style)
  * Used to connect specialized nodes to parent nodes (e.g., Model → Agent, Memory → Agent)
  */
@@ -96,6 +118,12 @@ export interface NodeTypeDefinition {
    * Value: port configuration
    */
   attachments?: Record<string, AttachmentPortDefinition>;
+  
+  /**
+   * Metrics configuration for node monitoring and analytics
+   */
+  metrics?: NodeMetricsDefinition;
+  
   ui: {
     icon: string;
     category: string;

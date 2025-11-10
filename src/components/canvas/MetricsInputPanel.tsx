@@ -3,6 +3,8 @@ import { X } from "lucide-react";
 import { Node } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
+import { SmartMetricsPanel } from "./SmartMetricsPanel";
 
 interface MetricsInputPanelProps {
   node: Node | null;
@@ -11,6 +13,16 @@ interface MetricsInputPanelProps {
 }
 
 export const MetricsInputPanel = ({ node, onClose, onUpdateMetrics }: MetricsInputPanelProps) => {
+  // Check if node has v3 metrics definition
+  const nodeType = node ? nodeTypeRegistry.getNodeType(node.type || "") : null;
+  const hasV3Metrics = nodeType?.metrics?.enabled;
+
+  // If node has v3 metrics, use SmartMetricsPanel
+  if (hasV3Metrics) {
+    return <SmartMetricsPanel node={node} onClose={onClose} onUpdateMetrics={onUpdateMetrics} />;
+  }
+
+  // Otherwise, use legacy metrics input panel
   const [metrics, setMetrics] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<Array<{ text: string; type: "bot" | "user" }>>([]);

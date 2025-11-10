@@ -9,7 +9,8 @@ export async function whatsappTriggerExecutor(
   context: ExecutionContext,
   config: any
 ): Promise<NodeResult> {
-  const { logger, memory } = context;
+  const { logger } = context.services;
+  const { memory } = context;
 
   try {
     // Normalize provider payload to standard format

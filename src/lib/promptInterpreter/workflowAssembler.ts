@@ -7,6 +7,9 @@ import { NodePlan, WorkflowOutput } from "./types";
 import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
 import { v4 as uuidv4 } from "uuid";
 
+// Re-export types for convenience
+export type { WorkflowOutput } from "./types";
+
 /**
  * Assemble complete workflow from node plans
  */
@@ -112,7 +115,7 @@ export function assembleWorkflow(plans: NodePlan[]): WorkflowOutput {
   const metadata = {
     title: "AI-Generated Workflow",
     description: "Generated from natural language prompt",
-    generated_by: "prompt_interpreter",
+    generated_by: "prompt_interpreter" as const,
     timestamp: new Date().toISOString(),
   };
 
