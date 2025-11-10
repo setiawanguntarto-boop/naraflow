@@ -105,13 +105,8 @@ export const HowItWorks = () => {
               >
                 {/* Gradient background effect on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                
-                {/* Step number */}
-                <div className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-700">
-                  <span className="text-xs font-bold text-foreground">{idx + 1}</span>
-                </div>
 
-                <div className="relative z-10 mt-4">
+                <div className="relative z-10">
                   <div className={`bg-gradient-to-br ${step.gradient} w-16 h-16 flex items-center justify-center rounded-2xl mx-auto mb-5 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                     <Icon className="w-8 h-8 text-white" />
                   </div>
@@ -261,8 +256,7 @@ export const DataCollectionSection = () => {
 
               {/* Features */}
               <div className="mb-8">
-                <h4 className="font-semibold text-foreground mb-4 flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
+                <h4 className="font-semibold text-foreground mb-4">
                   Cara Kerja:
                 </h4>
                 <div className="space-y-3">
@@ -290,25 +284,41 @@ export const DataCollectionSection = () => {
 
               {/* Stats */}
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                  <div className="text-2xl font-bold text-green-600">90%</div>
+                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                  <div className="text-2xl font-bold text-purple-600">90%</div>
                   <div className="text-sm text-foreground-muted">Reducsi Error</div>
                 </div>
-                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                  <div className="text-2xl font-bold text-green-600">24/7</div>
+                <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                  <div className="text-2xl font-bold text-purple-600">24/7</div>
                   <div className="text-sm text-foreground-muted">Operasional</div>
                 </div>
               </div>
 
-              {/* Demo Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 flex items-center justify-center group"
-              >
-                Lihat Demo WhatsApp
-                <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
-              </motion.button>
+              {/* Demo Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <motion.a
+                  href="https://api.whatsapp.com/send/?phone=6285123366169&text&type=phone_number&app_absent=0"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-gradient-to-r from-green-700 to-green-800 text-white py-3 rounded-xl font-semibold hover:from-green-800 hover:to-green-900 transition-all duration-300 flex items-center justify-center group text-sm"
+                >
+                  Coba Rahayu
+                  <ArrowRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                </motion.a>
+                <motion.a
+                  href="https://api.whatsapp.com/send/?phone=62881024280794&text&type=phone_number&app_absent=0"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-gradient-to-r from-blue-700 to-blue-800 text-white py-3 rounded-xl font-semibold hover:from-blue-800 hover:to-blue-900 transition-all duration-300 flex items-center justify-center group text-sm"
+                >
+                  Coba Tambakflow
+                  <ArrowRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                </motion.a>
+              </div>
             </div>
           </motion.div>
 
@@ -319,12 +329,12 @@ export const DataCollectionSection = () => {
             animate={inView ? "visible" : "hidden"}
             className="group"
           >
-            <div className="bg-white dark:bg-surface-elevated rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 h-full border border-gray-100 dark:border-border-light hover:border-blue-200 dark:hover:border-blue-800">
+            <div className="bg-white dark:bg-surface-elevated rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 h-full border border-gray-100 dark:border-border-light hover:border-yellow-200 dark:hover:border-yellow-800">
               {/* Header */}
               <div className="flex items-center mb-6">
                 <motion.div
                   whileHover={{ scale: 1.1, rotate: -5 }}
-                  className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl mr-6 shadow-lg"
+                  className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center text-white text-2xl mr-6 shadow-lg"
                 >
                   <Cpu size={32} />
                 </motion.div>
@@ -332,7 +342,7 @@ export const DataCollectionSection = () => {
                   <h3 className="text-2xl font-bold text-foreground mb-1">
                     Sensor & Perangkat IoT
                   </h3>
-                  <p className="text-blue-600 dark:text-blue-400 font-medium">Data Real-Time Otomatis</p>
+                  <p className="text-yellow-600 dark:text-yellow-400 font-medium">Data Real-Time Otomatis</p>
                 </div>
               </div>
 
@@ -344,8 +354,7 @@ export const DataCollectionSection = () => {
 
               {/* Features */}
               <div className="mb-8">
-                <h4 className="font-semibold text-foreground mb-4 flex items-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-2" />
+                <h4 className="font-semibold text-foreground mb-4">
                   Cara Kerja:
                 </h4>
                 <div className="space-y-3">
@@ -361,9 +370,9 @@ export const DataCollectionSection = () => {
                         initial={{ scale: 0 }}
                         animate={inView ? { scale: 1 } : {}}
                         transition={{ delay: 0.8 + index * 0.1 }}
-                        className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0"
+                        className="w-6 h-6 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0"
                       >
-                        <CheckCircle size={14} className="text-blue-600 dark:text-blue-400" />
+                        <CheckCircle size={14} className="text-yellow-600 dark:text-yellow-400" />
                       </motion.div>
                       <span className="text-foreground-muted text-sm leading-relaxed">{step}</span>
                     </motion.div>
@@ -373,12 +382,12 @@ export const DataCollectionSection = () => {
 
               {/* Stats */}
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                  <div className="text-2xl font-bold text-blue-600">100%</div>
+                <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">
+                  <div className="text-2xl font-bold text-yellow-600">100%</div>
                   <div className="text-sm text-foreground-muted">Real-time</div>
                 </div>
-                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                  <div className="text-2xl font-bold text-blue-600">99.9%</div>
+                <div className="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">
+                  <div className="text-2xl font-bold text-yellow-600">99.9%</div>
                   <div className="text-sm text-foreground-muted">Akurasi</div>
                 </div>
               </div>
@@ -387,7 +396,7 @@ export const DataCollectionSection = () => {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center group"
+                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white py-3 rounded-xl font-semibold hover:from-yellow-600 hover:to-yellow-700 transition-all duration-300 flex items-center justify-center group"
               >
                 Lihat Demo IoT
                 <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
@@ -395,18 +404,6 @@ export const DataCollectionSection = () => {
             </div>
           </motion.div>
         </div>
-
-        {/* Comparison Arrow */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0 }}
-          animate={inView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ delay: 1.2, duration: 0.5 }}
-          className="flex justify-center mt-8"
-        >
-          <div className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium shadow-lg">
-            Atau kombinasi keduanya untuk hasil optimal
-          </div>
-        </motion.div>
       </div>
     </section>
   );

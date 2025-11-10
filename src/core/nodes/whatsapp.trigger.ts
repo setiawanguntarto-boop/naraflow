@@ -13,9 +13,9 @@ export const WhatsAppTriggerNode: NodeTypeDefinition = {
     properties: {
       provider: {
         type: "string",
-        enum: ["meta", "twilio", "360dialog", "custom"],
+        enum: ["meta"],
         default: "meta",
-        description: "WhatsApp provider",
+        description: "WhatsApp provider (locked to Meta)",
       },
       webhookPath: {
         type: "string",
@@ -117,7 +117,7 @@ export const WhatsAppTriggerNode: NodeTypeDefinition = {
   ui: {
     icon: "message-square",
     category: "trigger",
-    fieldsOrder: ["provider", "webhookPath", "validateSignature", "dedupeWindowSec"],
+    fieldsOrder: ["webhookPath", "validateSignature", "dedupeWindowSec"],
     advanced: {
       collapsed: true,
       fields: ["dedupeWindowSec"],

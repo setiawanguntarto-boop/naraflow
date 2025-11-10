@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Search, ChevronDown, ChevronRight, Zap, Filter, X, Activity } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, Zap, Filter, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,11 +45,11 @@ export const NodeLibrary = ({ onNodeDragStart, showTitle = true }: NodeLibraryPr
 
     const categoryMap: Record<string, NodeCategory> = {
       trigger: "Input",
-      logic: "Logic",          // ✅ Fixed - logic nodes go to Logic category
-      control: "Logic",         // ✅ Keep - control nodes also go to Logic
+      logic: "Processing",
+      processing: "Processing", // ensure v3 'processing' maps correctly
+      control: "Logic",
       output: "Output",
       utility: "Meta",
-      agent: "Processing",      // ✅ New - AI agents go to Processing
     };
 
     const result: Record<NodeCategory, NodeItem[]> = {
@@ -81,23 +81,7 @@ export const NodeLibrary = ({ onNodeDragStart, showTitle = true }: NodeLibraryPr
       });
     });
 
-    // Add legacy v2 nodes
-    Object.entries(NODE_CATEGORIES).forEach(([category, nodes]) => {
-      nodes.forEach(node => {
-        const nodeId = node.toLowerCase().replace(/\s+/g, "_");
-        if (!allNodesList.find(n => n.id === nodeId)) {
-          const nodeItem: NodeItem = {
-            id: nodeId,
-            label: node,
-            isV3: false,
-            category: category as NodeCategory,
-          };
-
-          result[category as NodeCategory].push(nodeItem);
-          allNodesList.push(nodeItem);
-        }
-      });
-    });
+    // Note: Legacy v2 nodes are intentionally omitted to focus on refined v3 nodes
 
     return { nodesByCategory: result, allNodes: allNodesList };
   }, []);
@@ -385,20 +369,6 @@ export const NodeLibrary = ({ onNodeDragStart, showTitle = true }: NodeLibraryPr
                                     {node.description}
                                   </p>
                                 )}
-                                
-                                {/* Metrics Badge */}
-                                {(() => {
-                                  const nodeType = nodeTypeRegistry.getNodeType(node.id);
-                                  if (nodeType?.metrics?.enabled) {
-                                    return (
-                                      <Badge variant="outline" className="text-xs mt-1 gap-1">
-                                        <Activity className="w-3 h-3" />
-                                        {nodeType.metrics.defaultMetrics.length} metrics
-                                      </Badge>
-                                    );
-                                  }
-                                  return null;
-                                })()}
                               </div>
                             </div>
                           </TooltipTrigger>

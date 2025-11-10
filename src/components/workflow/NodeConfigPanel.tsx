@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X, Save, AlertCircle, Plus, Trash2, Zap, ChevronDown } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { X, Save, AlertCircle, Plus, Trash2, Zap } from "lucide-react";
 import { Node } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useWorkflowMetadata } from "@/hooks/useWorkflowState";
+import Ajv from "ajv";
 import { nodeTypeRegistry } from "@/lib/nodeTypeRegistry";
-import { SchemaConfigFields } from "./SchemaConfigFields";
 
 interface MetricDefinition {
   name: string;
@@ -60,6 +57,19 @@ const BROILER_NODE_CONFIGS = {
         template: "📦 PANEN SIAP\n🏠 {{farm_name}}\n📋 Kandang: {{shed_id}}\n📅 {{harvest_date}}\n\nSilakan konfirmasi data panen: jumlah ekor dan berat total."
       }
     ]
+  },
+  "Sensor Data": {
+    metricPresets: {
+      environment_basic: [
+        { id: "temp_c", label: "Suhu (°C)", path: "data.temperature", type: "number", unit: "°C", required: true, min: 15, max: 45, aggregation: "avg", windowSec: 300 },
+        { id: "humidity_pct", label: "Kelembaban (%RH)", path: "data.humidity", type: "number", unit: "%RH", required: false, min: 20, max: 100, aggregation: "avg", windowSec: 300 },
+        { id: "ammonia_ppm", label: "Amonia (ppm)", path: "data.ammonia", type: "number", unit: "ppm", required: false, min: 0, max: 50, aggregation: "max", windowSec: 300 }
+      ],
+      water_feed: [
+        { id: "water_l", label: "Air (L)", path: "data.water", type: "number", unit: "L", required: false, min: 0, aggregation: "none", windowSec: 0 },
+        { id: "feed_kg", label: "Pakan (kg)", path: "data.feed", type: "number", unit: "kg", required: false, min: 0, aggregation: "none", windowSec: 0 }
+      ]
+    }
   },
   "Ask Question": {
     metricPresets: {
@@ -177,69 +187,38 @@ return {
   }
 };
 
-const getContextHint = (nodeLabel: string, isBroilerWorkflow: boolean): string => {
-  // General hints for all workflows
-  const generalHints: Record<string, string> = {
+const getContextHint = (nodeLabel: string): string => {
+  const hints: Record<string, string> = {
     "WhatsApp Message":
       "Write the message that will be sent via WhatsApp. You can use {{name}} placeholders for dynamic content.",
-    "WhatsApp Trigger": 
-      "Configure WhatsApp trigger for your workflow. You can use {{variable}} placeholders for dynamic content.",
+    "WhatsApp Trigger": "Configure WhatsApp trigger. Choose a template or write a custom message using {{variable}} placeholders.",
     "Ask Input":
       "Define the question or prompt that will be sent to the user. Be clear and concise.",
-    "Ask Question": 
-      "Define the question and input fields for data collection. Configure field types, validation, and requirements.",
+    "Ask Question": "Definisikan pertanyaan dan field input untuk data entry broiler. Gunakan preset untuk field standar seperti mortalitas, pakan, berat.",
+      "Fetch External Data": "Konfigurasi HTTP request (method, url, headers, body) dan mapping response. Gunakan templating {{var}} dari payload/vars.",
+      "Sensor Data": "Konfigurasi sumber data sensor (Webhook/MQTT/HTTP Poll). Tambahkan daftar metrics (path payload, unit, min/max, agregasi).",
     "Receive Update":
       "Describe what automatic updates this node will receive (e.g., sensor readings, webhook data).",
-    "Process Data": 
-      "Configure data processing logic. Set up calculations, transformations, or custom business rules.",
-    "Filter Data": 
-      "Define the filtering criteria or conditions that will be applied.",
+    "Process Data": "Konfigurasi pemrosesan data broiler. Gunakan calculator preset untuk FCR, ADG, mortality % atau tulis kustom logic.",
+      "AI Analysis": "Gunakan LLaMA untuk menganalisis input. Isi system prompt, prompt template, dan mapping field dari JSON hasil.",
+      "Calculate": "Buat variabel dari payload, tambahkan constants, dan definisikan expressions. Contoh: FCR = feed_kg / (avg_weight_g * population / 1000).",
+      "Decision": "Tambah daftar kondisi dengan operator (==, >=, includes, regex) dan tentukan route tujuan.",
+      "Send Message": "Pilih channel (WhatsApp/SMS/Email), isi recipient dan template. Gunakan {{var}} untuk inject nilai dari payload/vars.",
+      "Store Records": "Simpan records ke storage atau HTTP. Atur mapping field, mode append/upsert, dan path array records di payload.",
+    "Filter Data": "Define the filtering criteria or conditions that will be applied.",
     Transform:
       "Describe the data transformation that will occur (e.g., format change, calculation).",
-    Condition: 
-      "Set up conditional logic for workflow branching (e.g., if value > threshold, send alert).",
-    Loop: 
-      "Define the loop criteria: what to iterate over and when to stop.",
-    Switch: 
-      "List the cases/conditions that determine which branch to follow.",
-    Notification: 
-      "Configure notifications for users, admins, or team members.",
-    "Report (PDF)": 
-      "Generate PDF reports from workflow data.",
-    "Data Storage": 
-      "Configure where to save data (Google Sheets, database, or cloud storage).",
-    "QR Generator": 
-      "Generate QR codes for item identification or tracking.",
-    Email: 
-      "Compose the email subject and body. You can use placeholders like {{name}}.",
+    Condition: "Setup kondisi untuk alur workflow (contoh: jika mortalitas > 2%, kirim alert).",
+    Loop: "Define the loop criteria: what to iterate over and when to stop.",
+    Switch: "List the cases/conditions that determine which branch to follow.",
+    Notification: "Konfigurasi notifikasi untuk peternak, PPL, atau admin.",
+    "Report (PDF)": "Generate laporan PDF untuk data harian atau panen.",
+    "Data Storage": "Simpan data ke Google Sheets atau database.",
+    "QR Generator": "Generate QR code untuk identifikasi kandang.",
+    Email: "Compose the email subject and body. You can use placeholders like {{name}}.",
   };
 
-  // Broiler-specific hints (when broiler template is active)
-  const broilerHints: Record<string, string> = {
-    "WhatsApp Trigger": 
-      "Konfigurasi trigger WhatsApp untuk workflow broiler. Pilih template atau buat pesan custom dengan placeholder {{variable}}.",
-    "Ask Question": 
-      "Definisikan pertanyaan dan field input untuk data entry broiler. Gunakan preset untuk field standar seperti mortalitas, pakan, berat.",
-    "Process Data": 
-      "Konfigurasi pemrosesan data broiler. Gunakan calculator preset untuk FCR, ADG, mortality % atau tulis kustom logic.",
-    Condition: 
-      "Setup kondisi untuk alur workflow (contoh: jika mortalitas > 2%, kirim alert).",
-    Notification: 
-      "Konfigurasi notifikasi untuk peternak, PPL, atau admin.",
-    "Report (PDF)": 
-      "Generate laporan PDF untuk data harian atau panen.",
-    "Data Storage": 
-      "Simpan data ke Google Sheets atau database.",
-    "QR Generator": 
-      "Generate QR code untuk identifikasi kandang.",
-  };
-
-  // Return appropriate hint based on workflow type
-  if (isBroilerWorkflow && broilerHints[nodeLabel]) {
-    return broilerHints[nodeLabel];
-  }
-
-  return generalHints[nodeLabel] || "Provide a short description or configuration details for this node.";
+  return hints[nodeLabel] || "Provide a short description or configuration details for this node.";
 };
 
 const getNodeTypeInfo = (nodeLabel: string): { icon: string; color: string; category: string } => {
@@ -274,26 +253,86 @@ const getNodeTypeInfo = (nodeLabel: string): { icon: string; color: string; cate
 };
 
 export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps) => {
-  const workflowMetadata = useWorkflowMetadata();
   const [title, setTitle] = useState(String(node.data?.title || node.data?.label || ""));
   const [description, setDescription] = useState(String(node.data?.description || ""));
   const [metrics, setMetrics] = useState<MetricDefinition[]>((node.data?.metrics as MetricDefinition[]) || []);
   const [nodeConfig, setNodeConfig] = useState<Record<string, any>>(node.data?.config as Record<string, any> || {});
   const [selectedPreset, setSelectedPreset] = useState("");
   const [hasChanges, setHasChanges] = useState(false);
+  const [schemaErrors, setSchemaErrors] = useState<string[]>([]);
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
-  // Check if this is a v3 node with schema
-  const nodeTypeDefinition = nodeTypeRegistry.getNodeType(String(node.data?.nodeType || ""));
-  const hasConfigSchema = nodeTypeDefinition?.configSchema?.properties && 
-    Object.keys(nodeTypeDefinition.configSchema.properties).length > 0;
+  // Detect v3 node type definition (schema-driven panel)
+  const nodeTypeId = String((node.data as any)?.type || "");
+  const v3Def = useMemo(() => {
+    try {
+      // Primary: resolve by explicit type id
+      const byId = nodeTypeId ? nodeTypeRegistry.getNodeType(nodeTypeId) : null;
+      if (byId) return byId;
+
+      // Fallback: resolve by label when legacy nodes don't carry 'type'
+      const label = String(node.data?.label || "");
+      if (!label) return null;
+      const all = nodeTypeRegistry.getAllNodeTypes();
+      return all.find(nt => nt.label === label) || null;
+    } catch {
+      return null;
+    }
+  }, [nodeTypeId, node.data]);
+
+  const ajv = useMemo(() => new Ajv({ allErrors: true, strict: false }), []);
+
+  // Build default config from JSON schema
+  const buildDefaults = (schema: any): any => {
+    if (!schema) return undefined;
+    if (schema.default !== undefined) return schema.default;
+    switch (schema.type) {
+      case "object": {
+        const result: Record<string, any> = {};
+        const props = schema.properties || {};
+        Object.keys(props).forEach(k => {
+          const defVal = buildDefaults(props[k]);
+          if (defVal !== undefined) result[k] = defVal;
+        });
+        return result;
+      }
+      case "array":
+        return Array.isArray(schema.default) ? schema.default : [];
+      case "string":
+        return schema.default !== undefined ? schema.default : undefined;
+      case "number":
+      case "integer":
+        return schema.default !== undefined ? schema.default : undefined;
+      case "boolean":
+        return schema.default !== undefined ? schema.default : false;
+      default:
+        return undefined;
+    }
+  };
 
   useEffect(() => {
     setTitle(String(node.data?.title || node.data?.label || ""));
     setDescription(String(node.data?.description || ""));
     setMetrics((node.data?.metrics as MetricDefinition[]) || []);
-    setNodeConfig((node.data?.config as Record<string, any>) || {});
+    // Seed config with schema defaults for v3 nodes, merge with existing
+    const existing = (node.data?.config as Record<string, any>) || {};
+    if (v3Def?.configSchema) {
+      const defaults = buildDefaults(v3Def.configSchema);
+      setNodeConfig({ ...(defaults || {}), ...existing });
+    } else {
+      setNodeConfig(existing);
+    }
+    setSchemaErrors([]);
     setHasChanges(false);
-  }, [node.id]);
+    // Initialize advanced collapse state for v3 nodes
+    if (v3Def?.ui?.advanced?.collapsed === true) {
+      setShowAdvanced(false);
+    } else if (v3Def?.ui?.advanced?.collapsed === false) {
+      setShowAdvanced(true);
+    } else {
+      setShowAdvanced(false);
+    }
+  }, [node.id, v3Def]);
 
   useEffect(() => {
     const changed =
@@ -346,16 +385,277 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
     setNodeConfig({ calculatorType: calculator.name });
   };
 
+  const applySensorMetricPreset = (presetKey: string) => {
+    const presets = (BROILER_NODE_CONFIGS as any)["Sensor Data"].metricPresets;
+    if (presets[presetKey as keyof typeof presets]) {
+      setNodeConfig(prev => ({ ...prev, metrics: [...presets[presetKey as keyof typeof presets]] }));
+      setSelectedPreset(presetKey);
+      setHasChanges(true);
+    }
+  };
+
+  const applyFetchPreset = (presetKey: string) => {
+    if (presetKey === "get_json") {
+      setNodeConfig(prev => ({
+        ...prev,
+        method: "GET",
+        url: "https://api.example.com/data?farm={{farmId}}",
+        headers: [{ key: "Accept", value: "application/json" }],
+        responseMapping: [
+          { field: "status", path: "status" },
+          { field: "items", path: "data.items" },
+        ],
+      }));
+    } else if (presetKey === "post_json") {
+      setNodeConfig(prev => ({
+        ...prev,
+        method: "POST",
+        url: "https://api.example.com/submit",
+        headers: [{ key: "Content-Type", value: "application/json" }],
+        bodyType: "json",
+        body: '{"farm":"{{farmId}}","day":{{day}}}',
+        responseMapping: [{ field: "ok", path: "ok" }],
+      }));
+    }
+    setSelectedPreset(presetKey);
+    setHasChanges(true);
+  };
+
   const handleSave = () => {
+    // Validate against schema for v3 nodes (if available)
+    if (v3Def?.configSchema) {
+      try {
+        const validate = ajv.compile(v3Def.configSchema as any);
+        const valid = validate(nodeConfig);
+        if (!valid) {
+          setSchemaErrors((validate.errors || []).map(e => `${e.instancePath || 'config'} ${e.message || ''}`));
+          return;
+        }
+      } catch (e) {
+        // If schema compile fails, proceed without blocking save
+      }
+    }
     onSave(node.id, title, description, metrics, nodeConfig);
     setHasChanges(false);
   };
 
-  const contextHint = getContextHint(String(node.data?.label || ""), workflowMetadata?.showBroilerPresets || false);
+  const contextHint = getContextHint(String(node.data?.label || ""));
   const typeInfo = getNodeTypeInfo(String(node.data?.label || ""));
 
+  // --- Schema driven field renderer for v3 nodes ---
+  const renderSchemaField = (key: string, schema: any, value: any, onChange: (v: any) => void) => {
+    // enum → Select
+    if (Array.isArray(schema?.enum)) {
+      return (
+        <div className="space-y-1" key={key}>
+          <Label className="text-xs">{key}</Label>
+          <Select value={value ?? ''} onValueChange={val => onChange(val)}>
+            <SelectTrigger>
+              <SelectValue placeholder={`Select ${key}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {schema.enum.map((opt: string) => (
+                <SelectItem key={opt} value={String(opt)}>{String(opt)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {schema.description && <p className="text-[11px] text-muted-foreground">{schema.description}</p>}
+        </div>
+      );
+    }
+
+    // Primitive types
+    switch (schema?.type) {
+      case "string":
+        return (
+          <div className="space-y-1" key={key}>
+            <Label className="text-xs">{key}</Label>
+            <Input
+              value={value ?? ''}
+              onChange={e => onChange(e.target.value)}
+              placeholder={schema?.description || key}
+            />
+            {schema.description && <p className="text-[11px] text-muted-foreground">{schema.description}</p>}
+          </div>
+        );
+      case "number":
+      case "integer":
+        return (
+          <div className="space-y-1" key={key}>
+            <Label className="text-xs">{key}</Label>
+            <Input
+              type="number"
+              value={value ?? ''}
+              onChange={e => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+              placeholder={schema?.description || key}
+            />
+            {schema.description && <p className="text-[11px] text-muted-foreground">{schema.description}</p>}
+          </div>
+        );
+      case "boolean":
+        return (
+          <div className="flex items-center gap-2" key={key}>
+            <input
+              id={`bool-${key}`}
+              type="checkbox"
+              checked={Boolean(value)}
+              onChange={e => onChange(e.target.checked)}
+            />
+            <Label htmlFor={`bool-${key}`} className="text-xs">{key}</Label>
+          </div>
+        );
+      case "array": {
+        // Support array of simple objects used by switch.cases and validation.rules
+        const items = Array.isArray(value) ? value : [];
+        const itemSchema = schema.items || {};
+        return (
+          <div className="space-y-2" key={key}>
+            <div className="flex items-center justify-between">
+              <Label>{key}</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onChange([...(items || []), {}])}
+              >
+                <Plus className="w-4 h-4 mr-1" /> Add
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {items.map((it: any, idx: number) => (
+                <div key={idx} className="border border-border rounded-lg p-2 space-y-2 bg-muted/30">
+                  {Object.keys(itemSchema.properties || {}).map(propKey => (
+                    <div className="space-y-1" key={propKey}>
+                      <Label className="text-xs">{propKey}</Label>
+                      <Input
+                        value={it[propKey] ?? ''}
+                        onChange={e => {
+                          const clone = [...items];
+                          clone[idx] = { ...clone[idx], [propKey]: e.target.value };
+                          onChange(clone);
+                        }}
+                      />
+                    </div>
+                  ))}
+                  <div className="flex justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const clone = items.filter((_: any, i: number) => i !== idx);
+                        onChange(clone);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "object": {
+        // Render nested object fields (simple)
+        const props = schema.properties || {};
+        return (
+          <div className="space-y-2" key={key}>
+            <Label>{key}</Label>
+            <div className="grid grid-cols-1 gap-3">
+              {Object.keys(props).map((propKey: string) =>
+                renderSchemaField(
+                  propKey,
+                  props[propKey],
+                  (value || {})[propKey],
+                  (v) => setNodeConfig(prev => ({ ...prev, [key]: { ...(prev[key] || {}), [propKey]: v } }))
+                )
+              )}
+            </div>
+          </div>
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
+  const renderV3Config = () => {
+    if (!v3Def?.configSchema) return null;
+    const props = (v3Def.configSchema as any).properties || {};
+    const order = (v3Def.ui?.fieldsOrder as string[]) || Object.keys(props);
+    const advancedList = (v3Def.ui?.advanced?.fields as string[]) || [];
+    const baseKeys = order.filter(k => props[k] && !advancedList.includes(k));
+    const advancedKeys = advancedList.filter(k => props[k]);
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label>Configuration</Label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const defaults = buildDefaults(v3Def.configSchema);
+              setNodeConfig(defaults || {});
+              setSchemaErrors([]);
+              setHasChanges(true);
+            }}
+          >
+            Reset to defaults
+          </Button>
+        </div>
+        {/* Base fields */}
+        <div className="grid grid-cols-1 gap-3">
+          {baseKeys.map(k =>
+            renderSchemaField(
+              k,
+              props[k],
+              (nodeConfig as any)[k],
+              (v) => setNodeConfig(prev => ({ ...prev, [k]: v }))
+            )
+          )}
+        </div>
+
+        {/* Advanced toggle */}
+        {advancedKeys.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAdvanced(v => !v)}
+              >
+                {showAdvanced ? "Hide Advanced" : "Show Advanced"}
+              </Button>
+            </div>
+            {showAdvanced && (
+              <div className="grid grid-cols-1 gap-3">
+                {advancedKeys.map(k =>
+                  renderSchemaField(
+                    k,
+                    props[k],
+                    (nodeConfig as any)[k],
+                    (v) => setNodeConfig(prev => ({ ...prev, [k]: v }))
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        {schemaErrors.length > 0 && (
+          <Alert>
+            <AlertCircle className="w-4 h-4" />
+            <AlertDescription className="text-sm">
+              {schemaErrors.map((e, i) => (
+                <div key={i}>{e}</div>
+              ))}
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="fixed right-0 top-0 h-full w-96 bg-card border-l border-border shadow-lg z-50 flex flex-col animate-in slide-in-from-right duration-300">
+    <div id="node-config-panel" className="fixed right-0 top-0 h-full w-96 bg-card border-l border-border shadow-lg z-50 flex flex-col animate-in slide-in-from-right duration-300">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
@@ -383,12 +683,8 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
           <AlertDescription className="text-sm">{contextHint}</AlertDescription>
         </Alert>
 
-        {/* Broiler Quick Templates Section - Only show in broiler workflows */}
-        {workflowMetadata?.showBroilerPresets &&
-         (node.data?.label === "WhatsApp Message" || 
-          node.data?.label === "WhatsApp Trigger" ||
-          node.data?.label === "Ask Question" || 
-          node.data?.label === "Process Data") && (
+        {/* Broiler Quick Templates Section (only when broiler mode is active on the node) */}
+        {node.data?.broiler === true && (
           <div className="space-y-3 p-3 bg-muted/30 rounded-lg border">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-yellow-600" />
@@ -428,6 +724,18 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
               </Select>
             )}
 
+            {node.data?.label === "Sensor Data" && (
+              <Select value={selectedPreset} onValueChange={applySensorMetricPreset}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih preset metrics sensor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="environment_basic">Environment: Temp/Humidity/Ammonia</SelectItem>
+                  <SelectItem value="water_feed">Consumption: Water/Feed</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
             {node.data?.label === "Process Data" && (
               <div className="grid gap-2">
                 {BROILER_NODE_CONFIGS["Process Data"].broilerCalculators.map((calculator) => (
@@ -448,10 +756,22 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
                 ))}
               </div>
             )}
+
+            {node.data?.label === "Fetch External Data" && (
+              <Select value={selectedPreset} onValueChange={applyFetchPreset}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih preset HTTP..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="get_json">GET JSON (templated URL)</SelectItem>
+                  <SelectItem value="post_json">POST JSON (templated body)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
         )}
 
-        {/* Title Input */}
+        {/* Title Input (keep for legacy/v2 and as display name) */}
         <div className="space-y-2">
           <Label htmlFor="node-title">Title</Label>
           <Input
@@ -463,755 +783,72 @@ export const NodeConfigPanel = ({ node, onClose, onSave }: NodeConfigPanelProps)
           <p className="text-xs text-muted-foreground">A short, descriptive name for this node</p>
         </div>
 
-        {/* V3 Schema-based Configuration OR Legacy Configuration */}
-        {hasConfigSchema ? (
-          <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
-            <div className="flex items-center gap-2">
-              <Badge variant="default" className="text-xs">v3 Node</Badge>
-              <Label className="text-sm font-medium">Node Configuration</Label>
-            </div>
-            <SchemaConfigFields
-              schema={nodeTypeDefinition!.configSchema}
-              fieldsOrder={nodeTypeDefinition!.ui.fieldsOrder}
-              advancedFields={nodeTypeDefinition!.ui.advanced}
-              value={nodeConfig}
-              onChange={setNodeConfig}
-            />
-          </div>
+        {/* V3 schema-driven configuration or legacy description */}
+        {v3Def ? (
+          renderV3Config()
         ) : (
-          // Legacy configuration textarea
-          <div className="space-y-2">
-            <Label htmlFor="node-description">
-              Configuration
-              {node.data?.label === "Process Data" && (
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  Code
-                </Badge>
-              )}
-            </Label>
-            <Textarea
-              id="node-description"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder={contextHint}
-              rows={8}
-              className="resize-none font-mono text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              {node.data?.label === "Process Data" 
-                ? "JavaScript code for data processing. Use 'input' for incoming data."
-                : "Detailed configuration or content for this node"
-              }
-            </p>
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="node-description">
+            Configuration
+            {node.data?.label === "Process Data" && (
+              <Badge variant="secondary" className="ml-2 text-xs">
+                Code
+              </Badge>
+            )}
+          </Label>
+          <Textarea
+            id="node-description"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder={contextHint}
+            rows={8}
+            className="resize-none font-mono text-sm"
+          />
+          <p className="text-xs text-muted-foreground">
+            {node.data?.label === "Process Data" 
+              ? "JavaScript code for data processing. Use 'input' for incoming data."
+              : "Detailed configuration or content for this node"
+            }
+          </p>
+        </div>
         )}
 
-        {/* Additional Config for WhatsApp nodes */}
-        {(node.data?.label === "WhatsApp Message" || node.data?.label === "WhatsApp Trigger") && (
+        {/* Additional Config for WhatsApp nodes (only in broiler mode) */}
+        {node.data?.broiler === true && (node.data?.label === "WhatsApp Message" || node.data?.label === "WhatsApp Trigger") && (
           <div className="space-y-3">
             <Label>WhatsApp Configuration</Label>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="recipient-type" className="text-xs">Recipient Type</Label>
                 <Select 
-                  value={nodeConfig.recipientType || (workflowMetadata?.showBroilerPresets ? "farmer" : "user")}
+                  value={nodeConfig.recipientType || "farmer"}
                   onValueChange={(value) => setNodeConfig({...nodeConfig, recipientType: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {workflowMetadata?.showBroilerPresets ? (
-                      <>
-                        <SelectItem value="farmer">Peternak</SelectItem>
-                        <SelectItem value="ppl">PPL</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="both">Peternak + PPL</SelectItem>
-                      </>
-                    ) : (
-                      <>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="team">Team</SelectItem>
-                      </>
-                    )}
+                    <SelectItem value="farmer">Peternak</SelectItem>
+                    <SelectItem value="ppl">PPL</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="both">Peternak + PPL</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="message-type" className="text-xs">Message Type</Label>
                 <Select 
-                  value={nodeConfig.messageType || "notification"}
+                  value={nodeConfig.messageType || "reminder"}
                   onValueChange={(value) => setNodeConfig({...nodeConfig, messageType: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="notification">Notification</SelectItem>
                     <SelectItem value="reminder">Reminder</SelectItem>
                     <SelectItem value="alert">Alert</SelectItem>
                     <SelectItem value="confirmation">Confirmation</SelectItem>
                     <SelectItem value="report">Report</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Decision/Condition Configuration */}
-        {(node.data?.label === "Decision" || node.data?.label === "Condition" || node.data?.label === "Switch (Route)") && (
-          <div className="space-y-4 pt-4 border-t">
-            <Label className="text-sm font-semibold">Condition Configuration</Label>
-            
-            {/* Condition Type Selector */}
-            <div className="space-y-2">
-              <Label htmlFor="condition-type" className="text-xs">Condition Type</Label>
-              <Select 
-                value={nodeConfig.conditionType || "simple"}
-                onValueChange={(value) => setNodeConfig({...nodeConfig, conditionType: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="simple">Simple Comparison</SelectItem>
-                  <SelectItem value="expression">Custom Expression</SelectItem>
-                  <SelectItem value="multiple">Multiple Conditions</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Simple Condition Builder */}
-            {nodeConfig.conditionType === "simple" && (
-              <div className="space-y-3 p-3 bg-muted/50 rounded-md">
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-1">
-                    <Label className="text-xs">Left Value</Label>
-                    <Input 
-                      placeholder="{{payload.value}}"
-                      value={nodeConfig.leftOperand || ""}
-                      onChange={(e) => setNodeConfig({...nodeConfig, leftOperand: e.target.value})}
-                      className="text-xs"
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <Label className="text-xs">Operator</Label>
-                    <Select 
-                      value={nodeConfig.operator || "equals"}
-                      onValueChange={(value) => setNodeConfig({...nodeConfig, operator: value})}
-                    >
-                      <SelectTrigger className="text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="equals">=</SelectItem>
-                        <SelectItem value="not_equals">≠</SelectItem>
-                        <SelectItem value="greater_than">&gt;</SelectItem>
-                        <SelectItem value="less_than">&lt;</SelectItem>
-                        <SelectItem value="greater_or_equal">≥</SelectItem>
-                        <SelectItem value="less_or_equal">≤</SelectItem>
-                        <SelectItem value="contains">Contains</SelectItem>
-                        <SelectItem value="starts_with">Starts With</SelectItem>
-                        <SelectItem value="is_empty">Is Empty</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="col-span-1">
-                    <Label className="text-xs">Right Value</Label>
-                    <Input 
-                      placeholder="30"
-                      value={nodeConfig.rightOperand || ""}
-                      onChange={(e) => setNodeConfig({...nodeConfig, rightOperand: e.target.value})}
-                      className="text-xs"
-                    />
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground bg-blue-500/10 p-2 rounded">
-                  Preview: <code>{nodeConfig.leftOperand || "{{value}}"} {nodeConfig.operator || "equals"} {nodeConfig.rightOperand || "threshold"}</code>
-                </div>
-              </div>
-            )}
-
-            {/* Custom Expression */}
-            {nodeConfig.conditionType === "expression" && (
-              <div className="space-y-2">
-                <Label className="text-xs">Custom Expression</Label>
-                <Textarea 
-                  placeholder="payload.temperature > 30 && payload.humidity < 60"
-                  value={nodeConfig.expression || ""}
-                  onChange={(e) => setNodeConfig({...nodeConfig, expression: e.target.value})}
-                  className="font-mono text-xs"
-                  rows={3}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Available variables: payload, memory, vars
-                </p>
-              </div>
-            )}
-
-            {/* Multiple Conditions */}
-            {nodeConfig.conditionType === "multiple" && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Conditions</Label>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      const conditions = nodeConfig.conditions || [];
-                      setNodeConfig({
-                        ...nodeConfig, 
-                        conditions: [...conditions, {leftOperand: "", operator: "equals", rightOperand: ""}]
-                      });
-                    }}
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Add Condition
-                  </Button>
-                </div>
-                
-                {(nodeConfig.conditions || []).map((condition: any, index: number) => (
-                  <div key={index} className="p-3 bg-muted/50 rounded-md space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs">Condition {index + 1}</Label>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => {
-                          const conditions = [...(nodeConfig.conditions || [])];
-                          conditions.splice(index, 1);
-                          setNodeConfig({...nodeConfig, conditions});
-                        }}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <Input 
-                        placeholder="{{value}}"
-                        value={condition.leftOperand || ""}
-                        onChange={(e) => {
-                          const conditions = [...(nodeConfig.conditions || [])];
-                          conditions[index].leftOperand = e.target.value;
-                          setNodeConfig({...nodeConfig, conditions});
-                        }}
-                        className="text-xs"
-                      />
-                      <Select 
-                        value={condition.operator || "equals"}
-                        onValueChange={(value) => {
-                          const conditions = [...(nodeConfig.conditions || [])];
-                          conditions[index].operator = value;
-                          setNodeConfig({...nodeConfig, conditions});
-                        }}
-                      >
-                        <SelectTrigger className="text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="equals">=</SelectItem>
-                          <SelectItem value="not_equals">≠</SelectItem>
-                          <SelectItem value="greater_than">&gt;</SelectItem>
-                          <SelectItem value="less_than">&lt;</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input 
-                        placeholder="threshold"
-                        value={condition.rightOperand || ""}
-                        onChange={(e) => {
-                          const conditions = [...(nodeConfig.conditions || [])];
-                          conditions[index].rightOperand = e.target.value;
-                          setNodeConfig({...nodeConfig, conditions});
-                        }}
-                        className="text-xs"
-                      />
-                    </div>
-                  </div>
-                ))}
-                
-                {(nodeConfig.conditions || []).length > 1 && (
-                  <div className="space-y-2">
-                    <Label className="text-xs">Logic Gate</Label>
-                    <Select 
-                      value={nodeConfig.logicGate || "AND"}
-                      onValueChange={(value) => setNodeConfig({...nodeConfig, logicGate: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AND">All conditions must match (AND)</SelectItem>
-                        <SelectItem value="OR">Any condition can match (OR)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* API Call / HTTP Request Configuration */}
-        {(node.data?.label === "Fetch External Data" || node.data?.label === "HTTP Request" || node.data?.label === "API Call") && (
-          <div className="space-y-4 pt-4 border-t">
-            <Label className="text-sm font-semibold">API Configuration</Label>
-            
-            {/* HTTP Method & URL */}
-            <div className="grid grid-cols-4 gap-2">
-              <div className="col-span-1">
-                <Label className="text-xs">Method</Label>
-                <Select 
-                  value={nodeConfig.method || "GET"}
-                  onValueChange={(value) => setNodeConfig({...nodeConfig, method: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="GET">GET</SelectItem>
-                    <SelectItem value="POST">POST</SelectItem>
-                    <SelectItem value="PUT">PUT</SelectItem>
-                    <SelectItem value="PATCH">PATCH</SelectItem>
-                    <SelectItem value="DELETE">DELETE</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="col-span-3">
-                <Label className="text-xs">URL</Label>
-                <Input 
-                  placeholder="https://api.example.com/endpoint"
-                  value={nodeConfig.url || ""}
-                  onChange={(e) => setNodeConfig({...nodeConfig, url: e.target.value})}
-                  className="text-xs font-mono"
-                />
-              </div>
-            </div>
-
-            {/* Query Parameters */}
-            <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <Label className="text-xs">Query Parameters</Label>
-                <ChevronDown className="w-4 h-4" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-2 pt-2">
-                {(nodeConfig.queryParams || []).map((param: any, index: number) => (
-                  <div key={index} className="grid grid-cols-2 gap-2">
-                    <Input 
-                      placeholder="key"
-                      value={param.key || ""}
-                      onChange={(e) => {
-                        const params = [...(nodeConfig.queryParams || [])];
-                        params[index].key = e.target.value;
-                        setNodeConfig({...nodeConfig, queryParams: params});
-                      }}
-                      className="text-xs"
-                    />
-                    <div className="flex gap-1">
-                      <Input 
-                        placeholder="value"
-                        value={param.value || ""}
-                        onChange={(e) => {
-                          const params = [...(nodeConfig.queryParams || [])];
-                          params[index].value = e.target.value;
-                          setNodeConfig({...nodeConfig, queryParams: params});
-                        }}
-                        className="text-xs flex-1"
-                      />
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => {
-                          const params = [...(nodeConfig.queryParams || [])];
-                          params.splice(index, 1);
-                          setNodeConfig({...nodeConfig, queryParams: params});
-                        }}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    const params = nodeConfig.queryParams || [];
-                    setNodeConfig({
-                      ...nodeConfig, 
-                      queryParams: [...params, {key: "", value: ""}]
-                    });
-                  }}
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Parameter
-                </Button>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {/* Authentication */}
-            <div className="space-y-2">
-              <Label className="text-xs">Authentication</Label>
-              <Select 
-                value={nodeConfig.authType || "none"}
-                onValueChange={(value) => setNodeConfig({...nodeConfig, authType: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="bearer">Bearer Token</SelectItem>
-                  <SelectItem value="apiKey">API Key</SelectItem>
-                  <SelectItem value="basic">Basic Auth</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {nodeConfig.authType && nodeConfig.authType !== "none" && (
-                <Input 
-                  type="password"
-                  placeholder="Enter token or API key"
-                  value={nodeConfig.authToken || ""}
-                  onChange={(e) => setNodeConfig({...nodeConfig, authToken: e.target.value})}
-                  className="text-xs font-mono"
-                />
-              )}
-            </div>
-
-            {/* Request Body (for POST/PUT/PATCH) */}
-            {["POST", "PUT", "PATCH"].includes(nodeConfig.method || "") && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Request Body</Label>
-                  <Select 
-                    value={nodeConfig.bodyType || "json"}
-                    onValueChange={(value) => setNodeConfig({...nodeConfig, bodyType: value})}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="json">JSON</SelectItem>
-                      <SelectItem value="form">Form Data</SelectItem>
-                      <SelectItem value="text">Plain Text</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Textarea 
-                  placeholder='{"key": "{{payload.value}}"}'
-                  value={nodeConfig.body || ""}
-                  onChange={(e) => setNodeConfig({...nodeConfig, body: e.target.value})}
-                  className="font-mono text-xs"
-                  rows={4}
-                />
-              </div>
-            )}
-
-            {/* Headers */}
-            <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <Label className="text-xs">Custom Headers</Label>
-                <ChevronDown className="w-4 h-4" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-2 pt-2">
-                {(nodeConfig.headers || []).map((header: any, index: number) => (
-                  <div key={index} className="grid grid-cols-2 gap-2">
-                    <Input 
-                      placeholder="Header-Name"
-                      value={header.key || ""}
-                      onChange={(e) => {
-                        const headers = [...(nodeConfig.headers || [])];
-                        headers[index].key = e.target.value;
-                        setNodeConfig({...nodeConfig, headers});
-                      }}
-                      className="text-xs"
-                    />
-                    <div className="flex gap-1">
-                      <Input 
-                        placeholder="value"
-                        value={header.value || ""}
-                        onChange={(e) => {
-                          const headers = [...(nodeConfig.headers || [])];
-                          headers[index].value = e.target.value;
-                          setNodeConfig({...nodeConfig, headers});
-                        }}
-                        className="text-xs flex-1"
-                      />
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => {
-                          const headers = [...(nodeConfig.headers || [])];
-                          headers.splice(index, 1);
-                          setNodeConfig({...nodeConfig, headers});
-                        }}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    const headers = nodeConfig.headers || [];
-                    setNodeConfig({
-                      ...nodeConfig, 
-                      headers: [...headers, {key: "", value: ""}]
-                    });
-                  }}
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Header
-                </Button>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {/* Advanced Options */}
-            <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <Label className="text-xs">Advanced Options</Label>
-                <ChevronDown className="w-4 h-4" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-2">
-                <div className="space-y-2">
-                  <Label className="text-xs">Timeout (ms)</Label>
-                  <Input 
-                    type="number"
-                    value={nodeConfig.timeout || 30000}
-                    onChange={(e) => setNodeConfig({...nodeConfig, timeout: parseInt(e.target.value)})}
-                    className="text-xs"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={nodeConfig.retryOnFailure || false}
-                    onCheckedChange={(checked) => setNodeConfig({...nodeConfig, retryOnFailure: checked})}
-                  />
-                  <Label className="text-xs">Retry on failure</Label>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-        )}
-
-        {/* Store Records / Database Configuration */}
-        {(node.data?.label === "Store Records" || node.data?.label === "Save Data" || node.data?.label === "Database") && (
-          <div className="space-y-4 pt-4 border-t">
-            <Label className="text-sm font-semibold">Storage Configuration</Label>
-            
-            {/* Storage Destination */}
-            <div className="space-y-2">
-              <Label className="text-xs">Destination</Label>
-              <Select 
-                value={nodeConfig.destination || "google_sheets"}
-                onValueChange={(value) => setNodeConfig({...nodeConfig, destination: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="google_sheets">Google Sheets</SelectItem>
-                  <SelectItem value="supabase">Supabase Database</SelectItem>
-                  <SelectItem value="local_storage">Local Storage</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Google Sheets Configuration */}
-            {nodeConfig.destination === "google_sheets" && (
-              <div className="space-y-3 p-3 bg-muted/50 rounded-md">
-                <div className="space-y-2">
-                  <Label className="text-xs">Sheet ID</Label>
-                  <Input 
-                    placeholder="1a2b3c4d5e6f..."
-                    value={nodeConfig.sheetId || ""}
-                    onChange={(e) => setNodeConfig({...nodeConfig, sheetId: e.target.value})}
-                    className="text-xs font-mono"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Find in URL: docs.google.com/spreadsheets/d/<strong>[SHEET_ID]</strong>/edit
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Tab Name</Label>
-                  <Input 
-                    placeholder="Sheet1"
-                    value={nodeConfig.sheetName || ""}
-                    onChange={(e) => setNodeConfig({...nodeConfig, sheetName: e.target.value})}
-                    className="text-xs"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Supabase Configuration */}
-            {nodeConfig.destination === "supabase" && (
-              <div className="space-y-3 p-3 bg-muted/50 rounded-md">
-                <div className="space-y-2">
-                  <Label className="text-xs">Table Name</Label>
-                  <Input 
-                    placeholder="records"
-                    value={nodeConfig.sheetId || ""}
-                    onChange={(e) => setNodeConfig({...nodeConfig, sheetId: e.target.value})}
-                    className="text-xs font-mono"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Write Mode */}
-            <div className="space-y-2">
-              <Label className="text-xs">Write Mode</Label>
-              <Select 
-                value={nodeConfig.writeMode || "append"}
-                onValueChange={(value) => setNodeConfig({...nodeConfig, writeMode: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="append">Append (Add new rows)</SelectItem>
-                  <SelectItem value="overwrite">Overwrite (Replace all data)</SelectItem>
-                  <SelectItem value="update">Update (Match & update)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Primary Key for Update Mode */}
-            {nodeConfig.writeMode === "update" && (
-              <div className="space-y-2">
-                <Label className="text-xs">Primary Key Field</Label>
-                <Input 
-                  placeholder="id or email"
-                  value={nodeConfig.primaryKey || ""}
-                  onChange={(e) => setNodeConfig({...nodeConfig, primaryKey: e.target.value})}
-                  className="text-xs"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Field to match records for updating
-                </p>
-              </div>
-            )}
-
-            {/* Field Mapping */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Field Mapping</Label>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    const mapping = nodeConfig.fieldMapping || [];
-                    setNodeConfig({
-                      ...nodeConfig, 
-                      fieldMapping: [...mapping, {source: "", target: "", transform: "none"}]
-                    });
-                  }}
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Add Field
-                </Button>
-              </div>
-              
-              {(nodeConfig.fieldMapping || []).map((field: any, index: number) => (
-                <div key={index} className="grid grid-cols-3 gap-2 p-2 bg-muted/30 rounded">
-                  <div>
-                    <Label className="text-xs">From</Label>
-                    <Input 
-                      placeholder="{{payload.name}}"
-                      value={field.source || ""}
-                      onChange={(e) => {
-                        const mapping = [...(nodeConfig.fieldMapping || [])];
-                        mapping[index].source = e.target.value;
-                        setNodeConfig({...nodeConfig, fieldMapping: mapping});
-                      }}
-                      className="text-xs"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">To Column</Label>
-                    <Input 
-                      placeholder="customer_name"
-                      value={field.target || ""}
-                      onChange={(e) => {
-                        const mapping = [...(nodeConfig.fieldMapping || [])];
-                        mapping[index].target = e.target.value;
-                        setNodeConfig({...nodeConfig, fieldMapping: mapping});
-                      }}
-                      className="text-xs"
-                    />
-                  </div>
-                  <div className="flex items-end gap-1">
-                    <div className="flex-1">
-                      <Label className="text-xs">Transform</Label>
-                      <Select 
-                        value={field.transform || "none"}
-                        onValueChange={(value) => {
-                          const mapping = [...(nodeConfig.fieldMapping || [])];
-                          mapping[index].transform = value;
-                          setNodeConfig({...nodeConfig, fieldMapping: mapping});
-                        }}
-                      >
-                        <SelectTrigger className="text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="uppercase">UPPERCASE</SelectItem>
-                          <SelectItem value="lowercase">lowercase</SelectItem>
-                          <SelectItem value="date">Date Format</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => {
-                        const mapping = [...(nodeConfig.fieldMapping || [])];
-                        mapping.splice(index, 1);
-                        setNodeConfig({...nodeConfig, fieldMapping: mapping});
-                      }}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              
-              {(!nodeConfig.fieldMapping || nodeConfig.fieldMapping.length === 0) && (
-                <div className="text-xs text-muted-foreground bg-yellow-500/10 p-3 rounded">
-                  ⚠️ No field mapping defined. All payload fields will be saved as-is.
-                </div>
-              )}
-            </div>
-
-            {/* Additional Options */}
-            <div className="space-y-3 p-3 bg-muted/50 rounded-md">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={nodeConfig.includeTimestamp !== false}
-                  onCheckedChange={(checked) => setNodeConfig({...nodeConfig, includeTimestamp: checked})}
-                />
-                <Label className="text-xs">Include timestamp column</Label>
-              </div>
-              
-              <div className="space-y-2">
-                <Label className="text-xs">On Conflict</Label>
-                <Select 
-                  value={nodeConfig.onConflict || "ignore"}
-                  onValueChange={(value) => setNodeConfig({...nodeConfig, onConflict: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ignore">Ignore (Skip duplicates)</SelectItem>
-                    <SelectItem value="overwrite">Overwrite (Replace)</SelectItem>
-                    <SelectItem value="fail">Fail (Show error)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

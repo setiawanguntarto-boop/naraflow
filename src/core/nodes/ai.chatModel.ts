@@ -12,12 +12,20 @@ export const ChatModelNode: NodeTypeDefinition = {
     properties: {
       provider: {
         type: "string",
-        enum: ["openai", "google", "local"],
-        default: "openai",
+        enum: ["llama"],
+        default: "llama",
       },
       model: {
         type: "string",
-        default: "gpt-4o",
+        enum: [
+          "llama-3-8b-instruct",
+          "llama-3-70b-instruct",
+          "llama-3.1-8b-instruct",
+          "llama-3.1-70b-instruct",
+          "llama-3.2-11b-vision",
+          "llama-3.2-90b-vision"
+        ],
+        default: "llama-3.1-8b-instruct",
         description: "Model name",
       },
       systemPrompt: {
@@ -42,8 +50,29 @@ export const ChatModelNode: NodeTypeDefinition = {
       },
       tools: {
         type: "array",
-        items: { type: "object" },
-        description: "Function calling tools",
+        description: "Function calling tools available to the LLM",
+        items: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "Unique tool name" },
+            description: { type: "string", description: "What the tool does and when to use it" },
+            parameters: {
+              type: "array",
+              description: "List of accepted arguments",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  type: { type: "string", enum: ["text", "number", "boolean"], default: "text" },
+                  required: { type: "boolean", default: false },
+                  description: { type: "string" },
+                },
+                required: ["name", "type"],
+              },
+            },
+          },
+          required: ["name"],
+        },
       },
     },
     required: ["provider", "model", "systemPrompt", "promptTemplate"],
